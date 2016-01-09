@@ -1,0 +1,23 @@
+
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "libflist", "libflist\libflist.csproj", "{168B34A7-3D90-4B8A-9D03-FDA382702F26}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleMessenger", "ConsoleMessenger\ConsoleMessenger.csproj", "{05EDE2F8-EF8B-4FDB-8B80-B80665C90001}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x86 = Debug|x86
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{168B34A7-3D90-4B8A-9D03-FDA382702F26}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{168B34A7-3D90-4B8A-9D03-FDA382702F26}.Debug|x86.Build.0 = Debug|Any CPU
+		{168B34A7-3D90-4B8A-9D03-FDA382702F26}.Release|x86.ActiveCfg = Release|Any CPU
+		{168B34A7-3D90-4B8A-9D03-FDA382702F26}.Release|x86.Build.0 = Release|Any CPU
+		{05EDE2F8-EF8B-4FDB-8B80-B80665C90001}.Debug|x86.ActiveCfg = Debug|x86
+		{05EDE2F8-EF8B-4FDB-8B80-B80665C90001}.Debug|x86.Build.0 = Debug|x86
+		{05EDE2F8-EF8B-4FDB-8B80-B80665C90001}.Release|x86.ActiveCfg = Release|x86
+		{05EDE2F8-EF8B-4FDB-8B80-B80665C90001}.Release|x86.Build.0 = Release|x86
+	EndGlobalSection
+EndGlobal

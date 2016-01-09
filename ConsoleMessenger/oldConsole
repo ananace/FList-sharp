@@ -1,0 +1,163 @@
+if (type == "ext")
+			{
+				chat = new FChat();
+				con = chat.Connection;
+			}
+			else if (type == "comb")
+			{
+				chat = new FChat();
+				con = chat.Connection;
+			}
+			else
+			{
+				con = new ChatConnection();
+			}
+
+			con.PreParseCommand += Con_PreParseCommand;
+
+			con.OnSentCommand += Con_OnSentCommand;
+			con.OnReceivedCommand += Con_OnReceivedCommand;
+
+			con.Endpoint = ChatConnection.TestingServerEndpoint;
+
+			libflist.Connection.Commands.CommandParser.AllowMeta = false;
+
+			bool running = true;
+			while (running)
+			{
+				Console.Write("> ");
+				var input = Console.ReadLine();
+
+				var data = input.Split(' ');
+				var cmd = data.First().ToLower();
+				data = data.Skip(1).ToArray();
+
+				try
+				{
+					switch (cmd)
+					{
+					case "c":
+					case "connect":
+						{
+							if (!hasTicket || data.Any())
+							{
+								do
+								{
+									Console.Write("Username> ");
+									user = Console.ReadLine();
+									Console.Write("Password> ");
+									var password = Console.ReadLine();
+
+									Console.CursorLeft = 0;
+									Console.CursorTop -= 1;
+									Console.WriteLine("Password> {0}", new string('*', password.Length));
+
+									if (type == "simple")
+									{
+										using (var tr = new Request(Endpoint.Path.Ticket))
+										{
+											tr.Data = new System.Collections.Generic.Dictionary<string, string>{
+												{ "account", user },
+												{ "password", password }
+											};
+
+											ticket = tr.Get<TicketResponse>() as TicketResponse;
+											if (!ticket.Successful)
+											{
+												Console.WriteLine("{0} {1}", ticket.Error, ticket.ErrorData);
+												continue;
+											}
+
+											ticketTime = DateTime.Now;
+
+											hasTicket = true;
+										}
+									}
+									else
+									{
+										chat.Connect(user, password);
+
+										if (!chat.Ticket.Successful)
+										{
+											Console.WriteLine("{0} {1}", chat.Ticket.Error, chat.Ticket.ErrorData);
+											continue;
+										}
+
+										ticket = chat.Ticket;
+										ticketTime = chat.TicketTimestamp;
+										hasTicket = true;
+									}
+								} while (!hasTicket);
+							}
+
+							if (type != "ext" && type != "comb")
+							{
+								con.Connect().Wait();
+							}
+							else
+							{
+								chat.Ticket = ticket;
+								chat.TicketTimestamp = ticketTime;
+
+								chat.Connect(user, null, true);
+							}
+						} break;
+
+					case "i":
+					case "identify":
+						{
+							string character;
+							if (data.Any())
+								character = string.Join(" ", data);
+							else
+							{
+								Console.Write("Available characters:\n  {0}\nCharacter> ", string.Join(", ", ticket.Characters));
+								character = Console.ReadLine();
+							}
+
+							if (type != "ext")
+								con.Identify(user, ticket.Ticket, character).Wait();
+							else
+								chat.Login(character);
+						} break;
+
+					case "q":
+					case "quit":
+						running = false;
+						break;
+
+					case "j":
+					case "join":
+						{
+							if (type != "ext")
+								con.SendCommand(new libflist.Connection.Commands.Client.Channel.JoinCommand {
+									Channel = data.First()
+								}).Wait();
+							else
+								chat.GetOrJoinChannel(data.First());
+						} break;
+
+					default:
+						if (cmd.Length == 3)
+						{
+							var rawCmd = libflist.Connection.Commands.CommandParser.ParseCommand(cmd.ToUpper(), string.Join(" ", data));
+
+							if (type != "ext")
+								con.SendCommand(rawCmd).Wait();
+							else
+								chat.SendCommand(rawCmd);
+						}
+						break;
+					}
+				}
+				catch(AggregateException ex)
+				{
+					Console.WriteLine("{0} exception(s) occured running that command;", ex.InnerExceptions.Count);
+					foreach (Exception inner in ex.InnerExceptions)
+						Console.WriteLine("!!  {0}: {1}\n{2}\n", inner.GetType().Name, inner.Message, inner.StackTrace);
+				}
+				catch(Exception ex)
+				{
+					Console.WriteLine("{0} occured running that command; {1}\n{2}", ex.GetType().Name, ex.Message, ex.StackTrace);
+				}
+			}
