@@ -5,41 +5,66 @@ namespace ConsoleMessenger.UI.Panels
 {
 	public class TitledPanel : Panel
 	{
+		public enum TitleType
+		{
+			FullBar,
+			GroupBox
+		}
+
 		public Control TitleControl { get; set; }
 
-		public ConsoleColor TitleColor { get; set; }
-
-		bool _InTitleRefresh;
-		public override Point InternalSize { get {
-				return _InTitleRefresh ? new Point(base.InternalSize.X, 1) : base.InternalSize - new Point(0, 1);
-			}
-		}
-		public override Point InternalPosition { get {
-				return _InTitleRefresh ? base.InternalPosition : base.InternalPosition + new Point(0, 1);
-			}
-		}
-
-		public override void Draw()
+		public override Rect Padding
 		{
-			base.Draw();
-			if (base.DrawSize.X <= 0 || base.DrawSize.Y <= 0)
-				return;
-			
-			Graphics.DrawLine(DrawPosition, DrawPosition + new Point(DrawSize.X, 0), TitleColor);
-			Console.CursorTop++;
+			get
+			{
+				return Title == TitleType.FullBar ? new Rect(0, 1, 0, 0) : new Rect(2, 2, 2, 2);
+			}
+				
+			set
+			{
+			}
+		}
+
+		public TitleType Title
+		{
+			get { return Border == BorderStyle.None ? TitleType.FullBar : TitleType.GroupBox; }
+			set
+			{
+				if (value == TitleType.FullBar)
+					Border = BorderStyle.None;
+				else if (Border == BorderStyle.None)
+					Border = BorderStyle.Outline;
+			}
+		}
+		public ConsoleColor? TitleColor { get; set; }
+
+		internal override Point GetChildOffset(Control control)
+		{
+			if (control == TitleControl)
+			{
+				switch (Title)
+				{
+				case TitleType.FullBar:
+					return new Point(0, 0);
+				case TitleType.GroupBox:
+					return new Point(2, 0);
+				}
+			}
+
+			return new Point(Padding.Left, Padding.Top);
+		}
+
+		public override void Render()
+		{
+			if (Title == TitleType.FullBar)
+				Graphics.DrawLine(DisplayPosition, DisplayPosition + new Size(Size.Width, 0), TitleColor ?? ConsoleColor.White);
+			else if (TitleControl != null)
+				Graphics.DrawLine(DisplayPosition + new Point(2, 0), DisplayPosition + new Point(2, 0) + new Size(TitleControl.Size.Width, 0), TitleColor ?? ConsoleColor.White);
+
+			base.Render();
 
 			if (TitleControl != null)
 				TitleControl.Draw();
-		}
-
-		public new void Refresh()
-		{
-			base.Refresh();
-
-			_InTitleRefresh = true;
-			if (TitleControl != null)
-				TitleControl.Refresh();
-			_InTitleRefresh = false;
 		}
 	}
 }

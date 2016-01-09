@@ -5,27 +5,20 @@ namespace ConsoleMessenger.UI.Panels
 {
 	public class VerticalPanel : Panel
 	{
-		int _RefreshTemp;
-
-		public override Point InternalPosition { get {
-				return base.InternalPosition + new Point(0, _RefreshTemp);
-			}
-		}
-		public override Point InternalSize { get {
-				return base.InternalSize - new Point(0, _RefreshTemp);
-			}
-		}
-
-		public new void Refresh()
+		internal override Point GetChildOffset(Control control)
 		{
-			base.Refresh();
+			if (!Children.Contains(control))
+				return base.GetChildOffset(control);
 
-			_RefreshTemp = 0;
-			foreach (var child in Children)
+			var cid = Children.IndexOf(control);
+			var offset = base.GetChildOffset(control);
+
+			for (int i = cid - 1; i >= 0; --i)
 			{
-				child.Refresh();
-				_RefreshTemp += child.DrawSize.Y;
+				offset += new Size(0, Children[i].Size.Height);
 			}
+
+			return offset;
 		}
 	}
 }

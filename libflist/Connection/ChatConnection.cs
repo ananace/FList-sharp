@@ -73,10 +73,11 @@ namespace libflist.Connection
 
 			_socket = new WebSocket(Endpoint.AbsoluteUri);
 
-			_socket.OnOpen += () => {
+			_socket.OnOpen += async () => {
 				if (OnConnected != null)
 					OnConnected(this, new EventArgs());
-				return Task.CompletedTask;
+
+				await Task.Run(()=> { });
 			};
 			_socket.OnClose += async (arg) => {
 				await Disconnect();

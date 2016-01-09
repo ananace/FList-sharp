@@ -118,49 +118,33 @@ namespace ConsoleMessenger.UI
 		}
 
 		ChildCollection _Children;
-
-		public virtual ConsoleColor BorderColor { get; set; }
-		public virtual bool HasBorder { get; set; }
-		public virtual int Padding { get; set; }
-
-		public override Point InternalPosition { get {
-				return base.InternalPosition + new Point(Padding + (HasBorder ? 1 : 0), Padding + (HasBorder ? 1 : 0));
-			}
-		}
-		public override Point InternalSize { get {
-				return base.InternalSize - new Point(Padding * 2 + (HasBorder ? 2 : 0), Padding * 2 + (HasBorder ? 2 : 0));
-			}
-		}
-
-		public ICollection<Control> Children { get { return _Children; } }
+		
+		public virtual Rect Padding { get; set; }
+		
+		public IList<Control> Children { get { return _Children; } }
 
 		public Panel()
 		{
 			_Children = new ChildCollection(this);
 		}
 
-		public void Dispose()
+		internal override Point GetChildOffset(Control control)
 		{
+			return new Point(Padding.Left, Padding.Top);
+		}
+
+		public new void Dispose()
+		{
+			base.Dispose();
+
 			_Children.Clear();
 			_Children = null;
 		}
 
-		public override void Draw()
+		public override void Render()
 		{
-			base.Draw();
-			if (base.DrawSize.X <= 0 || base.DrawSize.Y <= 0)
-				return;
-
-			if (HasBorder)
-				Graphics.DrawBox(base.DrawPosition, base.DrawSize, BorderColor);
-			
 			foreach (var child in _Children)
 				child.Draw();
-		}
-
-		public override void Refresh()
-		{
-			base.Refresh();
 		}
 	}
 }

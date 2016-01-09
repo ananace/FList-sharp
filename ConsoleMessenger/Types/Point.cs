@@ -3,11 +3,11 @@ using System.Diagnostics;
 
 namespace ConsoleMessenger.Types
 {
-	[DebuggerDisplay("({X}, {Y})")]
+	[DebuggerDisplay("[{X},{Y}]")]
 	public struct Point : IEquatable<Point>
 	{
-		public int X;
-		public int Y;
+		public int X { get; set; }
+		public int Y { get; set; }
 
 		public Point(int x, int y)
 		{
@@ -15,13 +15,32 @@ namespace ConsoleMessenger.Types
 			Y = y;
 		}
 
-		public static Point operator+(Point a, Point b)
+		public Point(Size sz)
+		{
+			X = sz.Width;
+			Y = sz.Height;
+		}
+
+		public static implicit operator Size(Point p)
+		{
+			return new Size(p.X, p.Y);
+		}
+
+		public static Point operator +(Point a, Point b)
 		{
 			return new Point(a.X + b.X, a.Y + b.Y);
 		}
-		public static Point operator-(Point a, Point b)
+		public static Point operator +(Point a, Size b)
+		{
+			return new Point(a.X + b.Width, a.Y + b.Height);
+		}
+		public static Point operator -(Point a, Point b)
 		{
 			return new Point(a.X - b.X, a.Y - b.Y);
+		}
+		public static Point operator -(Point a, Size b)
+		{
+			return new Point(a.X - b.Width, a.Y - b.Height);
 		}
 
 		public static Point Constrain(Point a, Point b)
@@ -31,7 +50,7 @@ namespace ConsoleMessenger.Types
 
 		public override int GetHashCode()
 		{
-			return X.GetHashCode() ^ Y.GetHashCode();
+			return X ^ Y;
 		}
 		public override bool Equals(object obj)
 		{

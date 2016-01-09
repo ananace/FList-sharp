@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -40,13 +40,13 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="JSON\Responses\TicketResponse.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Connection\ChatConnection.cs" />
     <Compile Include="JSON\Request.cs" />
     <Compile Include="JSON\Endpoint.cs" />
     <Compile Include="JSON\Endpoints\V1.cs" />
     <Compile Include="JSON\Endpoints\V2.cs" />
-    <Compile Include="JSON\Responses\TicketResponseö.cs" />
     <Compile Include="JSON\Response.cs" />
     <Compile Include="Connection\Commands\Meta\MetaCommands.cs" />
     <Compile Include="Connection\Commands\Client\Server.cs" />
@@ -78,21 +78,7 @@
     <Compile Include="Connection\Commands\Server\Character.cs" />
     <Compile Include="Util\Converters\JsonDateTimeConverter.cs" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Util\" />
-    <Folder Include="Connection\" />
-    <Folder Include="Connection\Commands\" />
-    <Folder Include="JSON\" />
-    <Folder Include="JSON\Endpoints\" />
-    <Folder Include="JSON\Responses\" />
-    <Folder Include="Connection\Commands\Client\" />
-    <Folder Include="Connection\Commands\Server\" />
-    <Folder Include="Connection\Commands\Meta\" />
-    <Folder Include="Util\Converters\" />
-    <Folder Include="Connection\Util\" />
-    <Folder Include="Connection\Types\" />
-    <Folder Include="Events\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>

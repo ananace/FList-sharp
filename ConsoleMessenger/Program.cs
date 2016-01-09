@@ -30,7 +30,7 @@ namespace ConsoleMessenger
 
 		public static void Start()
 		{
-			_OldSize = new Point(Console.BufferWidth, Console.BufferHeight);
+			_OldSize = new Point(Console.WindowWidth, Console.WindowHeight);
 			_Timer = new System.Threading.Timer(HandleTimerCallback, null, 0, 250);
 		}
 		public static void Stop()
@@ -46,7 +46,7 @@ namespace ConsoleMessenger
 
 			try
 			{
-				var newSize = new Point(Console.BufferWidth, Console.BufferHeight);
+				var newSize = new Point(Console.WindowWidth, Console.WindowHeight);
 
 				if (newSize != _OldSize)
 				{
@@ -202,9 +202,9 @@ namespace ConsoleMessenger
 							case '\x04':
 								throw new EndOfStreamException();
 
-							case 'L':
-								if (key.Modifiers.HasFlag(ConsoleModifiers.Control))
-									Redraw(true);
+							case '\f':
+								Redraw(true);
+								Console.Write(buf);
 								break;
 							}
 						} break;
@@ -262,25 +262,26 @@ namespace ConsoleMessenger
 
 		public static void Redraw(bool full = false)
 		{
-			lock(_Root)
+			if (full)
 			{
-				if (full)
-				{
-					Console.Clear();
+				Console.BackgroundColor = ConsoleColor.Black;
+				Console.ForegroundColor = ConsoleColor.White;
+				Console.SetCursorPosition(0, 0);
 
-					_Root.Fill();
-					_StatusPanel.Fill(UI.Control.FillType.Horizontal);
-					_InputPanel.Fill();
-					_MainPanel.Fill();
-					_MainPanel.Size -= new Point(0, 3);
-				}
+				Console.Clear();
 
-				_Root.Refresh();
-				_Root.Draw();
+				var size = new Size(Console.WindowWidth, Console.WindowHeight) - new Size(1, 0);
 
-				if (full)
-					Console.SetCursorPosition(_InputPanel.InternalPosition.X, _InputPanel.InternalPosition.Y);
+				_Root.Size = size;
+				_MainPanel.Size = size - new Size(0, 2);
+				_StatusPanel.Size = new Size(size.Width, 2);
+				_InputPanel.Size = new Size(size.Width, 1);
 			}
+				
+			_Root.Draw();
+
+			if (full)
+				Console.SetCursorPosition(_InputPanel.DisplayPosition.X, _InputPanel.DisplayPosition.Y);
 		}
 
 		public static void Run()
