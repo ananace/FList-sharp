@@ -78,11 +78,11 @@ namespace ConsoleMessenger.UI
 		}
 
 		public ConsoleColor? Background { get; set; }
-		public ConsoleColor Foreground { get; set; }
+		public ConsoleColor Foreground { get; set; } = ConsoleColor.White;
 		public ConsoleColor? ActiveBackground { get; set; }
-		public ConsoleColor ActiveForeground { get; set; }
+		public ConsoleColor ActiveForeground { get; set; } = ConsoleColor.White;
 		public ConsoleColor? SelectedBackground { get; set; }
-		public ConsoleColor SelectedForeground { get; set; }
+		public ConsoleColor SelectedForeground { get; set; } = ConsoleColor.White;
 
 		public ShadowStyle Shadow { get; set; }
 
@@ -119,6 +119,8 @@ namespace ConsoleMessenger.UI
 			}
 		}
 
+		public Rect Margin { get; set; }
+
 		public bool Enabled { get; set; }
 		
 		public bool IsFocused { get { return _HasFocus; }
@@ -151,13 +153,15 @@ namespace ConsoleMessenger.UI
 			}
 		}
 
+		internal virtual bool IsFocusable { get { return false; } }
 		internal virtual bool ShouldDraw { get { return _Visible && (Parent == null || Parent.ShouldDraw); } }
+		internal virtual bool NeedsRedraw { get { return _NeedsRedraw; } }
 		
 		public virtual Point DisplayPosition
 		{
 			get
 			{
-				return Parent == null ? Position : Parent.DisplayPosition + Parent.GetChildOffset(this) + Position;
+				return Parent == null ? Position : Parent.DisplayPosition + Parent.GetChildOffset(this) + Position + Margin.Position;
 			}
 		}
 
@@ -168,6 +172,19 @@ namespace ConsoleMessenger.UI
 		public void Dispose()
 		{
 			Parent = null;
+		}
+
+		public virtual void Focus()
+		{
+			if (IsFocusable)
+				IsFocused = true;
+			else if (Parent != null)
+				Parent.Focus();
+		}
+
+		public virtual void PushInput(ConsoleKeyInfo key)
+		{
+
 		}
 
 		public virtual void InvalidateLayout()
@@ -192,6 +209,11 @@ namespace ConsoleMessenger.UI
 			return new Point(1, 1);
 		}
 
+		protected void Clear()
+		{
+			Graphics.DrawFilledBox(DisplayPosition, Size, ' ', Background ?? (Parent != null ? Parent.Background : null) ?? ConsoleColor.Black);
+		}
+
 		public void Draw()
 		{
 			if (!ShouldDraw || !_NeedsRedraw)
@@ -213,7 +235,20 @@ namespace ConsoleMessenger.UI
 					Console.SetCursorPosition(DisplayPosition.X + 1, DisplayPosition.Y + 1);
 				}
 
+				var oldBack = Console.BackgroundColor;
+				var oldFront = Console.ForegroundColor;
+
+				if (Background.HasValue)
+					Console.BackgroundColor = Background.Value;
+				else if (Parent != null && Parent.Background.HasValue)
+					Console.BackgroundColor = Parent.Background.Value;
+
+				Console.ForegroundColor = Foreground;
+
 				Render();
+
+				Console.BackgroundColor = oldBack;
+				Console.ForegroundColor = oldFront;
 			}
 		}
 

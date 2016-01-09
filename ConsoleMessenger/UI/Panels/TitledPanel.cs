@@ -11,7 +11,27 @@ namespace ConsoleMessenger.UI.Panels
 			GroupBox
 		}
 
-		public Control TitleControl { get; set; }
+		Control _TitleControl;
+
+		public Control TitleControl
+		{
+			get
+			{
+				return _TitleControl;
+			}
+			set
+			{
+				if (value == _TitleControl)
+					return;
+
+				if (_TitleControl != null)
+					Children.Remove(_TitleControl);
+
+				_TitleControl = value;
+				if (!Children.Contains(_TitleControl))
+					Children.Add(_TitleControl);
+			}
+		}
 
 		public override Rect Padding
 		{
@@ -57,14 +77,24 @@ namespace ConsoleMessenger.UI.Panels
 		public override void Render()
 		{
 			if (Title == TitleType.FullBar)
+			{
+				if (TitleControl == null || TitleControl.NeedsRedraw)
 				Graphics.DrawLine(DisplayPosition, DisplayPosition + new Size(Size.Width, 0), TitleColor ?? ConsoleColor.White);
+			}
 			else if (TitleControl != null)
 				Graphics.DrawLine(DisplayPosition + new Point(2, 0), DisplayPosition + new Point(2, 0) + new Size(TitleControl.Size.Width, 0), TitleColor ?? ConsoleColor.White);
 
-			base.Render();
+			foreach (var child in Children)
+			{
+				var oldBack = Background;
+				if (child == TitleControl)
+					Background = TitleColor;
 
-			if (TitleControl != null)
-				TitleControl.Draw();
+				child.Draw();
+
+				if (child == TitleControl)
+					Background = oldBack;
+			}
 		}
 	}
 }

@@ -15,7 +15,8 @@ namespace ConsoleMessenger.UI.Panels
 
 			for (int i = cid - 1; i >= 0; --i)
 			{
-				offset += new Size(0, Children[i].Size.Height);
+				var child = Children[i];
+				offset += new Size(0, child.Size.Height + child.Margin.Height);
 			}
 
 			return offset;

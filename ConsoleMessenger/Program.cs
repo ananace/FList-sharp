@@ -10,6 +10,7 @@ using ConsoleMessenger.UI.Panels;
 using libflist;
 using libflist.JSON.Responses;
 using Newtonsoft.Json;
+using ConsoleMessenger.UI;
 
 namespace ConsoleMessenger
 {
@@ -72,7 +73,12 @@ namespace ConsoleMessenger
 		static TitledPanel _MainPanel;
 		static TitledPanel _StatusPanel;
 		static HorizontalPanel _InputPanel;
+		static ContentControl _ChannelInfo;
+		static UI.FChat.StatusBar _StatusBar;
+		static InputControl _InputBox;
 		static FChat _Chat;
+
+		static System.Threading.Timer _Redraw;
 
 		public static FChat Connection { get { return _Chat; } }
 		public static StoredTicket Ticket { get; set; }
@@ -83,17 +89,42 @@ namespace ConsoleMessenger
 			_MainPanel = new TitledPanel();
 			_StatusPanel = new TitledPanel();
 			_InputPanel = new HorizontalPanel();
+			_StatusBar = new UI.FChat.StatusBar()
+			{
+				Margin = new Rect(1, 0, 1, 0)
+			};
 
 			_MainPanel.TitleColor = ConsoleColor.Blue;
 			_StatusPanel.TitleColor = ConsoleColor.Blue;
 			_StatusPanel.Size = new Point(0, 2);
 
+			_ChannelInfo = new ContentControl()
+			{
+				Content = "[(Console)]",
+				Foreground = ConsoleColor.Gray,
+                Margin = new Rect(0, 0, 1, 0)
+			};
+			_InputBox = new InputControl()
+			{
+			};
+			_InputBox.OnTextEntered += (_, text) => TextEntry(text);
+
+			_InputPanel.Children.Add(_ChannelInfo);
+			_InputPanel.Children.Add(_InputBox);
+
+			_StatusPanel.TitleControl = _StatusBar;
+
 			_StatusPanel.Children.Add(_InputPanel);
 			_Root.Children.Add(_MainPanel);
 			_Root.Children.Add(_StatusPanel);
 
+			_Redraw = new System.Threading.Timer((_) => Redraw(), null, System.Threading.Timeout.Infinite, System.Threading.Timeout.Infinite);
+
 			ConsoleHelper.OnConsoleResized += (_, __) => {
 				Redraw(true);
+			};
+			_Root.OnVisualInvalidated += (_, __) => {
+				_Redraw.Change(10, System.Threading.Timeout.Infinite);
 			};
 		}
 
@@ -143,8 +174,6 @@ namespace ConsoleMessenger
 
 		static void InputLoop()
 		{
-			string buf = "";
-
 			Console.InputEncoding = Encoding.UTF8;
 			Console.OutputEncoding = Encoding.UTF8;
 
@@ -153,60 +182,39 @@ namespace ConsoleMessenger
 				try
 				{
 					var key = Console.ReadKey(true);
+					_InputBox.PushInput(key);
 
 					switch (key.Key)
 					{
 					case ConsoleKey.Tab:
-						throw new NotImplementedException("TODO: Tab completion.");
-
-					case ConsoleKey.Backspace:
 						{
-							buf = buf.Substring(0, buf.Length - 1);
-							Console.Write('\b');
-						} break;
+							var inp = _InputBox.Content as string;
+                            var found = TabComplete(inp);
+							if (found == null)
+								break;
 
-					case ConsoleKey.Enter:
-						{
-							var cmd = buf;
-							buf = "";
-
-							try
+							if (found.Length == 1)
 							{
-								TextEntry(cmd);
+								if (inp.Contains(' '))
+									inp = inp.Remove(inp.LastIndexOf(' ') + 1) + found.First();
+								else
+									inp = (inp.Length > 1 ? inp.Remove(1) : inp) + found.First();
 							}
-							finally
-							{
-								Console.Write(new string('\b', cmd.Length));
-							}
-						} break;
 
-					case ConsoleKey.Clear:
-						{
-							Redraw(true);
-							Console.Write(buf);
+							_InputBox.Content = inp;
 						} break;
+							
+					case ConsoleKey.Clear: Redraw(true); break;
 
 					default:
+						switch(key.KeyChar)
 						{
-							if (!char.IsControl(key.KeyChar) &&
-								!key.Modifiers.HasFlag(ConsoleModifiers.Alt) &&
-								!key.Modifiers.HasFlag(ConsoleModifiers.Control))
-							{
-								buf += key.KeyChar;
-								Console.Write(key.KeyChar);
-								break;
-							}
+						case '\x04':
+							throw new EndOfStreamException();
 
-							switch(key.KeyChar)
-							{
-							case '\x04':
-								throw new EndOfStreamException();
-
-							case '\f':
-								Redraw(true);
-								Console.Write(buf);
-								break;
-							}
+						case '\f':
+							Redraw(true);
+							break;
 						} break;
 					}
 				}
@@ -227,9 +235,41 @@ namespace ConsoleMessenger
 			}
 		}
 
-		public static void RunCommand(string Command, IEnumerable<string> Args)
+		static string[] TabComplete(string input)
 		{
-			throw new NotImplementedException("Commands not yet implemented");
+			if (!input.StartsWith("/", StringComparison.OrdinalIgnoreCase))
+				return null;
+
+			var data = input
+					.Substring(1).Split('"')
+					.Select((element, index) => index % 2 == 0  // If even index
+						? element.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)  // Split the item
+						: new string[] { element })  // Keep the entire item
+					.SelectMany(element => element);
+
+			var cmd = data.Any() ? Command.Create(data.First()) : null;
+			if (cmd == null)
+			{
+				if (!data.Any())
+					return Command.Available.ToArray();
+
+				return Command.Available.Where(c => c.StartsWith(data.First(), StringComparison.CurrentCultureIgnoreCase)).ToArray();
+			}
+
+			string[] output;
+			if (cmd.TabComplete(data.Skip(1).ToString(" "), out output))
+				return output;
+			return null;
+		}
+
+		public static void RunCommand(string command, IEnumerable<string> Args)
+		{
+			var cmd = Command.Create(command);
+
+			if (cmd == null)
+				throw new Exception(string.Format("Command not found: {0}", command));
+
+			cmd.Invoke(Args);
 		}
 
 		public static void TextEntry(string Text)
@@ -244,16 +284,7 @@ namespace ConsoleMessenger
 						: new string[] { element })  // Keep the entire item
 					.SelectMany(element => element);
 				
-				var spin = UI.Spinner.Start();
-
-				try
-				{
-					RunCommand(data.First().ToLower(), data.Skip(1));
-				}
-				finally
-				{
-					spin.Stop();
-				}
+				RunCommand(data.First().ToLower(), data.Skip(1));
 				return;
 			}
 
@@ -280,8 +311,7 @@ namespace ConsoleMessenger
 				
 			_Root.Draw();
 
-			if (full)
-				Console.SetCursorPosition(_InputPanel.DisplayPosition.X, _InputPanel.DisplayPosition.Y);
+			_InputBox.Focus();
 		}
 
 		public static void Run()
@@ -307,9 +337,11 @@ namespace ConsoleMessenger
 		public static void Main(string[] args)
 		{
 			Application.Ticket = LoadTicket();
+
 			ConsoleHelper.Start();
 			Application.Run();
 			ConsoleHelper.Stop();
+
 			SaveTicket(Application.Ticket);
 		}
 

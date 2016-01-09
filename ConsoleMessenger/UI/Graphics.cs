@@ -42,6 +42,11 @@ namespace ConsoleMessenger.UI
 			Console.ForegroundColor = oldFore;
 		}
 
+		public static void DrawFilledBox(Point p1, Size sz, char c, ConsoleColor Background = ConsoleColor.Black, ConsoleColor Foreground = ConsoleColor.White)
+		{
+			DrawFilledBox(p1, p1 + sz, c, Background, Foreground);
+		}
+
 		public static void DrawFilledBox(Point p1, Point p2, char c, ConsoleColor Background = ConsoleColor.Black, ConsoleColor Foreground = ConsoleColor.White)
 		{
 			var oldPos = new Point(Console.CursorLeft, Console.CursorTop);

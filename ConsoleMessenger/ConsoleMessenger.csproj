@@ -42,7 +42,8 @@
     <Compile Include="Types\Size.cs" />
     <Compile Include="Types\Rect.cs" />
     <Compile Include="UI\ContentControl.cs" />
-    <Compile Include="UI\Spinner.cs" />
+    <Compile Include="UI\FChat\StatusBar.cs" />
+    <Compile Include="UI\InputControl.cs" />
     <Compile Include="UI\Control.cs" />
     <Compile Include="Types\Point.cs" />
     <Compile Include="UI\Panel.cs" />
