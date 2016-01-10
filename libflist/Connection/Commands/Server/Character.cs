@@ -42,11 +42,11 @@ namespace libflist.Connection.Commands.Server.Character
 		public string Character { get; set; }
 
 		[JsonProperty(PropertyName = "gender")]
-		[JsonConverter(typeof(JsonEnumConverter))]
+		[JsonConverter(typeof(JsonEnumConverter), JsonEnumConverter.EnumHandling.Default)]
 		public CharacterGender Gender { get; set; }
 
 		[JsonProperty(PropertyName = "status")]
-		[JsonConverter(typeof(JsonEnumConverter))]
+		[JsonConverter(typeof(JsonEnumConverter), JsonEnumConverter.EnumHandling.Default)]
 		public CharacterStatus Status { get; set; }
 	}
 

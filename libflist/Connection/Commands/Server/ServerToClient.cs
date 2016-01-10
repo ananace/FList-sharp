@@ -211,11 +211,11 @@ namespace libflist.Connection.Commands.Server
 	public class ServerUptime : Command
 	{
 		[JsonProperty(PropertyName = "timestamp")]
-		[JsonConverter(typeof(JsonDateTimeConverter))]
+		[JsonConverter(typeof(JsonDateTimeConverter), JsonDateTimeConverter.TimestampPrecision.Milliseconds)]
 		public DateTime Timestamp { get; set; }
 
 		[JsonProperty(PropertyName = "starttime")]
-		[JsonConverter(typeof(JsonDateTimeConverter))]
+		[JsonConverter(typeof(JsonDateTimeConverter), JsonDateTimeConverter.TimestampPrecision.Milliseconds)]
 		public DateTime StartTime { get; set; }
 
 		[JsonProperty(PropertyName = "startstring")]

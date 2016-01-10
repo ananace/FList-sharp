@@ -9,6 +9,7 @@ using libflist.Connection.Types;
 using libflist.Events;
 using libflist.JSON.Responses;
 using libflist.Util.Converters;
+using System.Diagnostics;
 
 namespace libflist
 {
@@ -302,6 +303,25 @@ namespace libflist
 			{
 				switch (e.Command.Token)
 				{
+				case "!!!":
+					{
+						handled = true;
+
+						var err = e.Command as Connection.Commands.Meta.FailedReply;
+
+						Debug.WriteLine("Invalid command recieved: {0} - {2}\n{1}", err.CMDToken, err.Data, err.Exception.Message);
+					} break;
+
+				case "???":
+					{
+						handled = true;
+
+						var err = e.Command as Connection.Commands.Meta.UnknownReply;
+
+						Debug.WriteLine("Unknown command recieved: {0}\n{1}", err.CMDToken, err.Data);
+					}
+					break;
+
 				case "AOP":
 					{
 						handled = true;
@@ -394,6 +414,13 @@ namespace libflist
 						}
 					} break;
 
+				case "PIN":
+					{
+						handled = true;
+
+						_Connection.SendCommand(new Connection.Commands.Client.Server.PingCommand()).Wait();
+					} break;
+
 				case "PRI":
 					{
 						handled = true;
@@ -447,7 +474,7 @@ namespace libflist
 			}
 
 			if (!handled)
-				Console.WriteLine("Unhandled command; {0}", e.Command);
+				Debug.WriteLine(string.Format("Unhandled command; {0}", e.Command.Token));
 		}
 	}
 }

@@ -158,50 +158,6 @@ namespace ConsoleMessenger
 			};
 		}
 
-		static void Connect()
-		{
-			if (Ticket == null)
-				Console.WriteLine("No usable ticket found, please log in below;");
-
-			while (Ticket == null)
-			{
-				Console.Write("Username> ");
-				var user = Console.ReadLine();
-				Console.Write("Password> ");
-				var pass = Console.ReadLine();
-
-				var rand = new Random();
-				Console.CursorTop -= 1;
-				Console.CursorLeft = 0;
-				Console.WriteLine("Password> {0}", new string('*', pass.Length + rand.Next(0, pass.Length)));
-
-				_Chat.Connect(user, pass);
-
-				if (_Chat.Ticket.Successful)
-					Ticket = new StoredTicket {
-					Ticket = _Chat.Ticket,
-					Account = user,
-					Timestamp = DateTime.Now
-				};
-				else
-					Console.WriteLine("Failed to retrieve a working ticket; {0}", _Chat.Ticket.ErrorData ?? _Chat.Ticket.Error);
-			}
-
-			if (!_Chat.Connection.Connected)
-			{
-				_Chat.Ticket = Ticket.Ticket;
-				_Chat.TicketTimestamp = Ticket.Timestamp;
-				_Chat.Connect(Ticket.Account, null, true);
-			}
-		}
-		static void Login()
-		{
-			Console.WriteLine("Choose your character;\n  Available characters: {0}\nCharacter> ", string.Join(", ", _Chat.User.Characters));
-			var character = Console.ReadLine();
-
-			_Chat.Login(character);
-		}
-
 		static void InputLoop()
 		{
 			Console.InputEncoding = Encoding.UTF8;
@@ -226,9 +182,14 @@ namespace ConsoleMessenger
 							if (found.Length == 1)
 							{
 								if (inp.Contains(' '))
-									inp = inp.Remove(inp.LastIndexOf(' ') + 1) + found.First();
+								{
+									if (inp.Last() == ' ')
+										inp = inp + found.First();
+									else
+										inp = inp.Remove(inp.LastIndexOf(' ') + 1) + found.First();
+								}
 								else
-									inp = (inp.Length > 1 ? inp.Remove(1) : inp) + found.First();
+									inp = (inp.Length > 1 ? inp.Remove(1) : inp) + found.First() + ' ';
 							}
 
 							_InputBox.Content = inp;
@@ -312,6 +273,8 @@ namespace ConsoleMessenger
 
 				return Command.Available.Where(c => c.StartsWith(data.First(), StringComparison.CurrentCultureIgnoreCase)).ToArray();
 			}
+			else if (!input.Contains(' '))
+				return new string[] { input.Substring(1) };
 
 			string[] output;
 			if (cmd.TabComplete(data.Skip(1).ToString(" "), out output))
