@@ -125,35 +125,53 @@ namespace libflist.Connection
 
 		async Task _socket_OnMessage(MessageEventArgs arg)
 		{
-			using (var stream = arg.Text)
+			string token = null;
+			string json = null;
+
+			try
 			{
-				char[] data = new char[3];
-				await stream.ReadBlockAsync(data, 0, 3);
-				string token = new string(data);
+				using (var stream = arg.Text)
+				{
+					char[] data = new char[3];
+					await stream.ReadBlockAsync(data, 0, 3);
+					token = new string(data);
 
-				stream.Read();
-				var json = await stream.ReadToEndAsync();
+					stream.Read();
+					json = await stream.ReadToEndAsync();
 
-				if (PreParseCommand != null)
-					PreParseCommand(this, string.Format("{0} {1}", token, json));
+					if (PreParseCommand != null)
+						PreParseCommand(this, string.Format("{0} {1}", token, json));
 
-				var cmd = CommandParser.ParseReply(token, json);
-				if (cmd == null)
-					return;
+					var cmd = CommandParser.ParseReply(token, json);
+					if (cmd == null)
+						return;
+
+					if (OnReceivedCommand != null)
+						OnReceivedCommand(this, new CommandEventArgs(cmd));
+
+					if (cmd is Commands.Server.ServerIdentify)
+					{
+						CurrentUserRight = UserRight.User;
+						if (OnIdentified != null)
+							OnIdentified(this, new EventArgs());
+					}
+					else if (AutoPing && cmd is Commands.Server.ServerPing)
+					{
+						await SendCommand(new Commands.Client.Server.PingCommand());
+					}
+				}
+			}
+			catch(Exception ex)
+			{
+				var cmd = new Commands.Meta.FailedReply
+				{
+					CMDToken = token,
+					Data = json,
+					Exception = ex
+				};
 
 				if (OnReceivedCommand != null)
 					OnReceivedCommand(this, new CommandEventArgs(cmd));
-
-				if (cmd is Commands.Server.ServerIdentify)
-				{
-					CurrentUserRight = UserRight.User;
-					if (OnIdentified != null)
-						OnIdentified(this, new EventArgs());
-				}
-				else if (AutoPing && cmd is Commands.Server.ServerPing)
-				{
-					await SendCommand(new Commands.Client.Server.PingCommand());
-				}
 			}
 		}
 	}

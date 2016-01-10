@@ -149,7 +149,7 @@ namespace ConsoleMessenger.UI
 
 		public override void InvalidateLayout()
 		{
-			if (ResizeChildren)
+			if (Child != null && ResizeChildren)
 				Child.Size = Size - (Size)Padding.Position - Padding.Size;
 
 			InvalidateVisual();
@@ -173,6 +173,7 @@ namespace ConsoleMessenger.UI
 
 		public override void Render()
 		{
+			Graphics.DrawFilledBox(DisplayPosition, Size, ' ', Background ?? ConsoleColor.Black);
 			if (_Child != null)
 				_Child.Draw();
 		}

@@ -95,7 +95,9 @@ namespace ConsoleMessenger
 			{
 				_CurBuffer = value;
 
-				_MainPanel.Child = _ChannelBuffers[value];
+				var buf = _ChannelBuffers[value];
+                _MainPanel.Child = buf;
+				_ChannelInfo.Content = string.Format("[{0}]", (buf.Tag is Channel) ? (buf.Tag as Channel).Title : "(Console)");
 			}
 		}
 		public static int BufferCount { get { return _ChannelBuffers.Count; } }
@@ -345,8 +347,6 @@ namespace ConsoleMessenger
 		public static void Run()
 		{
 			BuildUI();
-			//Connect();
-			//Login();
 
 			Console.Title = string.Format("FChat Messenger v{0}", Assembly.GetExecutingAssembly().GetName().Version);
 
@@ -361,6 +361,8 @@ namespace ConsoleMessenger
 
 				e.Channel.OnChatMessage += (__, me) => chatBuf.PushMessage(string.Format("{0}> {1}", me.Character.Name, me.Message));
 				e.Channel.OnRollMessage += (__, me) => chatBuf.PushMessage(me.Message);
+
+				_ChannelBuffers.Add(chatBuf);
 			};
 			_Chat.OnLeaveChannel += (_, e) =>
 			{

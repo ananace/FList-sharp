@@ -35,6 +35,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Commands\JoinChat.cs" />
     <Compile Include="Commands\Login.cs" />
     <Compile Include="Commands\Connect.cs" />
     <Compile Include="Commands\Quit.cs" />
