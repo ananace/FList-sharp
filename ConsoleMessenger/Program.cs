@@ -11,6 +11,7 @@ using libflist;
 using libflist.JSON.Responses;
 using Newtonsoft.Json;
 using ConsoleMessenger.UI;
+using ConsoleMessenger.UI.FChat;
 
 namespace ConsoleMessenger
 {
@@ -308,7 +309,11 @@ namespace ConsoleMessenger
 				return;
 			}
 
-			throw new NotImplementedException("Messaging not implemented.");
+			var buffer = _ChannelBuffers[CurrentBuffer];
+			if (buffer == _ConsoleBuffer)
+				throw new Exception("Can't chat in the console, did you mean to run a command?");
+
+			(buffer.Tag as Channel).SendMessage(Text);
 		}
 
 		public static void Redraw(bool full = false)
@@ -346,6 +351,33 @@ namespace ConsoleMessenger
 			Console.Title = string.Format("FChat Messenger v{0}", Assembly.GetExecutingAssembly().GetName().Version);
 
 			_Chat.Connection.Endpoint = libflist.Connection.ChatConnection.TestingServerEndpoint;
+
+			_Chat.OnJoinChannel += (_, e) =>
+			{
+				var chatBuf = new ChannelBuffer
+				{
+					Tag = e.Channel,
+				};
+
+				e.Channel.OnChatMessage += (__, me) => chatBuf.PushMessage(string.Format("{0}> {1}", me.Character.Name, me.Message));
+				e.Channel.OnRollMessage += (__, me) => chatBuf.PushMessage(me.Message);
+			};
+			_Chat.OnLeaveChannel += (_, e) =>
+			{
+				int i = 0;
+				foreach (var c in _ChannelBuffers)
+				{
+					if (c.Tag == e.Channel)
+					{
+						if (_CurBuffer == i)
+							_CurBuffer--;
+
+						_ChannelBuffers.Remove(c);
+						break;
+					}
+					++i;
+				}
+			};
 
 			Redraw(true);
 			InputLoop();

@@ -70,6 +70,9 @@ namespace libflist
 
 		public event EventHandler<CharacterEntryEventArgs> OnOnline; // JCH
 		public event EventHandler<CharacterEntryEventArgs> OnOffline; // LCH
+		
+		public event EventHandler<ChannelEntryEventArgs> OnJoinChannel; // JCH
+		public event EventHandler<ChannelEntryEventArgs> OnLeaveChannel; // LCH
 
 		public event EventHandler<CharacterEntryEventArgs<CharacterStatus>> OnStatusChange;
 		public event EventHandler<CharacterEntryEventArgs<TypingStatus>> OnTypingChange;
@@ -289,14 +292,22 @@ namespace libflist
 					{
 						channelObj = new Channel(this, channel, channel);
 						_Channels.Add(channelObj);
+
+						if (OnJoinChannel != null)
+							OnJoinChannel(this, new ChannelEntryEventArgs(channelObj, e.Command));
 					}
 				}
 
 				handled |= channelObj.PushCommand(e.Command);
 
 				if (channelObj.IsDisposed)
+				{
 					lock (_Channels)
 						_Channels.Remove(channelObj);
+
+					if (OnLeaveChannel != null)
+						OnLeaveChannel(this, new ChannelEntryEventArgs(channelObj, e.Command));
+				}
 			}
 
 			if (!handled)

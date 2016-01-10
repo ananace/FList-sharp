@@ -86,6 +86,7 @@ namespace ConsoleMessenger.UI
 
 		public ShadowStyle Shadow { get; set; }
 
+		public object Tag { get; set; }
 		public Control Parent { get; internal set; }
 
 		public Point Position
