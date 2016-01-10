@@ -35,6 +35,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Commands\Connect.cs" />
+    <Compile Include="Commands\Quit.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Commands\ListChats.cs" />
@@ -42,6 +44,7 @@
     <Compile Include="Types\Size.cs" />
     <Compile Include="Types\Rect.cs" />
     <Compile Include="UI\ContentControl.cs" />
+    <Compile Include="UI\FChat\ChannelBuffer.cs" />
     <Compile Include="UI\FChat\StatusBar.cs" />
     <Compile Include="UI\InputControl.cs" />
     <Compile Include="UI\Control.cs" />

@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using ConsoleMessenger.Types;
+using System.Linq;
 
 namespace ConsoleMessenger.UI
 {
@@ -117,15 +118,44 @@ namespace ConsoleMessenger.UI
 			}
 		}
 
+		Control _Child;
 		ChildCollection _Children;
 		
 		public virtual Rect Padding { get; set; }
-		
-		public IList<Control> Children { get { return _Children; } }
+		public bool ResizeChildren { get; set; }
+
+		protected virtual IList<Control> Children { get { return _Children; } }
+		public virtual Control Child
+		{
+			get { return _Children.FirstOrDefault(); }
+			set
+			{
+				if (value == _Child)
+					return;
+				
+				_Children.Remove(_Child);
+				if (value != null && !_Children.Contains(value))
+					_Children.Add(value);
+
+				_Child = value;
+				InvalidateLayout();
+			}
+		}
 
 		public Panel()
 		{
 			_Children = new ChildCollection(this);
+		}
+
+		public override void InvalidateLayout()
+		{
+			if (ResizeChildren)
+				Child.Size = Size - (Size)Padding.Position - Padding.Size;
+
+			InvalidateVisual();
+
+			foreach (var child in _Children)
+				child.InvalidateLayout();
 		}
 
 		internal override Point GetChildOffset(Control control)
@@ -143,8 +173,8 @@ namespace ConsoleMessenger.UI
 
 		public override void Render()
 		{
-			foreach (var child in _Children)
-				child.Draw();
+			if (_Child != null)
+				_Child.Draw();
 		}
 	}
 }

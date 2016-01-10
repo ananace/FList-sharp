@@ -75,24 +75,52 @@ namespace ConsoleMessenger
 		static HorizontalPanel _InputPanel;
 		static ContentControl _ChannelInfo;
 		static UI.FChat.StatusBar _StatusBar;
+		static List<UI.FChat.ChannelBuffer> _ChannelBuffers = new List<UI.FChat.ChannelBuffer>();
+		static UI.FChat.ChannelBuffer _ConsoleBuffer;
 		static InputControl _InputBox;
-		static FChat _Chat;
+		static FChat _Chat = new FChat();
 
+		static int _CurBuffer = 0;
+
+		static bool _Running = true;
 		static System.Threading.Timer _Redraw;
 
 		public static FChat Connection { get { return _Chat; } }
 		public static StoredTicket Ticket { get; set; }
+		public static int CurrentBuffer
+		{
+			get { return _CurBuffer; }
+			set
+			{
+				_CurBuffer = value;
+
+				_MainPanel.Child = _ChannelBuffers[value];
+			}
+		}
+		public static int BufferCount { get { return _ChannelBuffers.Count; } }
+
+		public static bool Running { get { return _Running; } set { _Running = value; } }
 
 		static void BuildUI()
 		{
 			_Root = new VerticalPanel();
-			_MainPanel = new TitledPanel();
+			_MainPanel = new TitledPanel()
+			{
+				TitleColor = ConsoleColor.Blue,
+				ResizeChildren = true
+			};
 			_StatusPanel = new TitledPanel();
 			_InputPanel = new HorizontalPanel();
 			_StatusBar = new UI.FChat.StatusBar()
 			{
 				Margin = new Rect(1, 0, 1, 0)
 			};
+			_ConsoleBuffer = new UI.FChat.ChannelBuffer()
+			{
+				
+			};
+			_ChannelBuffers.Add(_ConsoleBuffer);
+			Debug.Listeners.Add(_ConsoleBuffer.TraceListener);
 
 			_MainPanel.TitleColor = ConsoleColor.Blue;
 			_StatusPanel.TitleColor = ConsoleColor.Blue;
@@ -113,8 +141,10 @@ namespace ConsoleMessenger
 			_InputPanel.Children.Add(_InputBox);
 
 			_StatusPanel.TitleControl = _StatusBar;
+			_StatusPanel.Child = _InputPanel;
 
-			_StatusPanel.Children.Add(_InputPanel);
+			_MainPanel.Child = _ConsoleBuffer;
+
 			_Root.Children.Add(_MainPanel);
 			_Root.Children.Add(_StatusPanel);
 
@@ -177,7 +207,7 @@ namespace ConsoleMessenger
 			Console.InputEncoding = Encoding.UTF8;
 			Console.OutputEncoding = Encoding.UTF8;
 
-			while (true)
+			while (_Running)
 			{
 				try
 				{
@@ -209,6 +239,22 @@ namespace ConsoleMessenger
 					default:
 						switch(key.KeyChar)
 						{
+						case '1':
+						case '2':
+						case '3':
+						case '4':
+						case '5':
+						case '6':
+						case '7':
+						case '8':
+						case '9':
+							{
+								int buffer = key.KeyChar - '1';
+
+								if (buffer <= BufferCount && key.Modifiers.HasFlag(ConsoleModifiers.Alt))
+									CurrentBuffer = buffer;
+							} break;
+
 						case '\x04':
 							throw new EndOfStreamException();
 
@@ -222,6 +268,17 @@ namespace ConsoleMessenger
 				{
 					return;
 				}
+				catch (TargetInvocationException ex)
+				{
+					if (ex.InnerException is AggregateException)
+					{
+						var agg = ex.InnerException as AggregateException;
+						foreach (Exception inner in agg.InnerExceptions)
+							Debug.WriteLine(inner.Message);
+					}
+					else
+						Debug.WriteLine(ex.InnerException.Message);
+				}
 				catch(AggregateException ex)
 				{
 					Debug.WriteLine("{0} exception(s) occured running that command;", ex.InnerExceptions.Count);
@@ -230,7 +287,7 @@ namespace ConsoleMessenger
 				}
 				catch(Exception ex)
 				{
-					Debug.WriteLine("{0} occured running that command; {1}\n{2}", ex.GetType().Name, ex.Message, ex.StackTrace);
+					Debug.WriteLine(ex.Message);
 				}
 			}
 		}
@@ -293,6 +350,9 @@ namespace ConsoleMessenger
 
 		public static void Redraw(bool full = false)
 		{
+			if (_Root == null)
+				return;
+
 			if (full)
 			{
 				Console.BackgroundColor = ConsoleColor.Black;
@@ -321,6 +381,8 @@ namespace ConsoleMessenger
 			//Login();
 
 			Console.Title = string.Format("FChat Messenger v{0}", Assembly.GetExecutingAssembly().GetName().Version);
+
+			_Chat.Connection.Endpoint = libflist.Connection.ChatConnection.TestingServerEndpoint;
 
 			Redraw(true);
 			InputLoop();
@@ -354,10 +416,11 @@ namespace ConsoleMessenger
 
 				if (DateTime.Now - stored.Timestamp > TimeSpan.FromHours(24))
 				{
-					Debug.WriteLine("TICKET] Old ticket has timed out.");
+					Debug.WriteLine("Old ticket has timed out, please reconnect with /connect <user> <password>");
 					return null;
 				}
 
+				Debug.WriteLine("Old ticket found, connect with /connect");
 				return stored;
 			}
 			return null;

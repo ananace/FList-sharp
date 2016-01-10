@@ -114,6 +114,13 @@ namespace libflist
 			_Connection = null;
 		}
 
+		// TODO: Split connection into several steps;
+		//   bool FChat.AquireTicket(string User, string Password);
+		//   bool FChat.Ticket.IsValid { get; }
+		//   void FChat.Connect();
+		//   void FChat.Login(string Character);
+		// For instance.
+
 		public void Connect(string User, string Password, bool UseTicket = false)
 		{
 			if (User == null)
@@ -255,7 +262,8 @@ namespace libflist
 
 		void _Connection_OnDisconnected(object sender, EventArgs e)
 		{
-			Task.Delay(15000).ContinueWith((arg) => Reconnect());
+			if (!string.IsNullOrEmpty(_Character))
+				Task.Delay(15000).ContinueWith((arg) => Reconnect());
 		}
 
 		void _Connection_OnIdentified(object sender, EventArgs e)

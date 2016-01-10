@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace ConsoleMessenger.Commands
 {
-	[Command("list")]
+	[Command("list", Description = "List available channels, either public or private")]
 	public class ListChats : Command
 	{
 		public enum ChatType
@@ -37,6 +37,7 @@ namespace ConsoleMessenger.Commands
 
 		public void Call(ChatType type)
 		{
+			// TODO: Only update if data is stale.
 			if (type == ChatType.Public)
 				Application.Connection.SendCommand(new libflist.Connection.Commands.Client.Global.GetPublicChannelsCommand());
 			else

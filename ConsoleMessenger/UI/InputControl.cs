@@ -35,8 +35,11 @@ namespace ConsoleMessenger.UI
 					{
 						var cmd = buf;
 						buf = "";
-
+							
 						Clear();
+						Console.CursorLeft -= cmd.Length;
+							
+						Content = buf;
 
 						if (OnTextEntered != null)
 							OnTextEntered(this, cmd);
