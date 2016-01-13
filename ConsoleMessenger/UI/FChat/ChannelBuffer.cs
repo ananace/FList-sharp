@@ -40,6 +40,8 @@ namespace ConsoleMessenger.UI.FChat
 
 		public class Rendered
 		{
+			internal ChannelBuffer Buffer { get; set;}
+
 			string _Message;
 			public string Message
 			{
@@ -50,16 +52,19 @@ namespace ConsoleMessenger.UI.FChat
 
 					var data = Message.Split('\n');
 					var height = data.Length;
-					Size = new Size(data.OrderByDescending(s =>
+					var size = (Buffer == null ? new Size(0, 0) : Buffer.Size);
+					Size = new Size(data.Select(s =>
 					{
 						var len = s.ANSILength();
-						if (len > Size.Width && Size.Width > 0)
+
+						if (len > size.Width && size.Width > 0)
 						{
-							height += len / Size.Width;
-							return len % Size.Width;
+							height += len / size.Width;
+							return len % size.Width;
 						}
+
 						return len;
-					}).First().ANSILength(), height);
+					}).OrderByDescending(i => i).First(), height);
 				}
 			}
 			public DateTime Timestamp { get; set; }
@@ -82,6 +87,11 @@ namespace ConsoleMessenger.UI.FChat
 
 		public void PushMessage(Rendered msg)
 		{
+			if (msg.Buffer != this)
+			{
+				msg.Buffer = this;
+				msg.Message = msg.Message;
+			}
 			_RenderedMessages.Add(msg);
 
 			if (_RenderedMessages.Count > 1000)
@@ -95,6 +105,7 @@ namespace ConsoleMessenger.UI.FChat
 			// TODO: Better pre-rendering of messages; Colors, etc
 			PushMessage(new Rendered
 			{
+				Buffer = this,
 				Message = msg,
 				Timestamp = DateTime.Now
 			});
@@ -103,7 +114,11 @@ namespace ConsoleMessenger.UI.FChat
 		public override void Render()
 		{
 			int totalHeight = 0;
-			foreach (var msg in (_RenderedMessages as IEnumerable<Rendered>).Reverse().TakeWhile(c => (totalHeight += c.Size.Height) <= Size.Height).Reverse())
+			foreach (var msg in (_RenderedMessages as IEnumerable<Rendered>)
+				.Reverse()
+				.TakeWhile(c => (totalHeight += c.Size.Height) <= Size.Height)
+				.Skip(totalHeight > Size.Height ? 1 : 0)
+				.Reverse())
 			{
 				// TODO: If message wraps around, indent to the wrap point.
 				Console.Write(msg.Timestamp.ToShortTimeString());

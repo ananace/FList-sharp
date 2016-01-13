@@ -144,7 +144,7 @@ namespace libflist.Connection.Commands.Server.Channel
 		public string Channel { get; set; }
 
 		[JsonProperty(PropertyName = "character")]
-		public User Character { get; set; }
+		public string Character { get; set; }
 	}
 
 	[Reply("LRP")]

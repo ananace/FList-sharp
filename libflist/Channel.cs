@@ -153,7 +153,7 @@ namespace libflist
 					{
 						var lch = cmd as Connection.Commands.Server.Channel.LeaveReply;
 
-						var character = GetCharacter(lch.Character.Identity);
+						var character = GetCharacter(lch.Character);
 						_Characters.Remove(character);
 
 						if (OnLeave != null)

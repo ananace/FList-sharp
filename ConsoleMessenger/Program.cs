@@ -441,17 +441,29 @@ namespace ConsoleMessenger
 			WriteMessage(Text);
 		}
 
-		public static void WriteMessage(string Text, Character inputChar = null)
+		public static void WriteMessage(string Text, Channel inputChan = null, Character inputChar = null)
 		{
 			var Char = inputChar;
 			if (Char == null)
 				Char = Connection.LocalCharacter;
 
-			var buffer = _ChannelBuffers[CurrentBuffer];
-			if (buffer == _ConsoleBuffer)
-				throw new Exception("Can't chat in the console, did you mean to run a command?");
+			var Chan = inputChan;
+			ChannelBuffer buffer = null;
+			if (Chan == null)
+			{
+				buffer = _ChannelBuffers[CurrentBuffer];
+				if (buffer == _ConsoleBuffer)
+					throw new Exception("Can't chat in the console, did you mean to run a command?");
 
-			var Chan = (buffer.Tag as Channel);
+				Chan = (buffer.Tag as Channel);
+			}
+
+			if (buffer == null)
+				buffer = _ChannelBuffers.FirstOrDefault(b => b.Tag == Chan);
+
+			if (buffer == null)
+				throw new Exception("Message to unknown channel buffer recieved; " + Text);
+
 			if (inputChar == null)
 				Chan.SendMessage(Text);
 
@@ -526,7 +538,7 @@ namespace ConsoleMessenger
 
 				e.Channel.OnChatMessage += (__, me) =>
 				{
-					WriteMessage(me.Message, me.Character);
+					WriteMessage(me.Message, me.Channel, me.Character);
                 };
 				e.Channel.OnRollMessage += (__, me) => chatBuf.PushMessage(me.Message);
 

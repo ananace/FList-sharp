@@ -436,9 +436,7 @@ namespace libflist
 								chan.PushCommand(new Connection.Commands.Server.Channel.LeaveReply
 								{
 									Channel = chan.ID,
-									Character = {
-										Identity = character.Name
-									}
+									Character = character.Name
 								});
 						}
 						break;
