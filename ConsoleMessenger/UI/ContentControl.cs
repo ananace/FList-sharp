@@ -5,14 +5,7 @@ namespace ConsoleMessenger.UI
 {
 	public class ContentControl : Control
 	{
-		public enum SizingHint
-		{
-			SizeToContent,
-			FixedSize
-		}
-
 		object _Content;
-		public SizingHint Sizing { get; set; }
 
 		public virtual object Content
 		{
@@ -26,10 +19,7 @@ namespace ConsoleMessenger.UI
 				if (OnContentChanged != null)
 					OnContentChanged(this, EventArgs.Empty);
 
-				InvalidateVisual();
-
-				if (Sizing == SizingHint.SizeToContent)
-					SizeToContent();
+				InvalidateLayout();
 			}
 		}
 
@@ -37,25 +27,39 @@ namespace ConsoleMessenger.UI
 		{
 			get
 			{
-				return (Content ?? "").ToString();
+				var drawable = (Content ?? "").ToString();
+
+				var length = drawable.Length;
+				var allowed = Size.Width;
+				if (length > allowed)
+				{
+					if (allowed <= 0)
+						return "";
+					return drawable.Substring(length - allowed, allowed);
+				}
+				return drawable;
 			}
 		}
 
 		public event EventHandler OnContentChanged;
 
-		public void SizeToContent()
+		public override void SizeToContent()
 		{
 			var toDraw = Content.ToString();
-			Size = new Size(toDraw.Length, 1);
+
+			int maxSize;
+			if (Parent != null)
+				maxSize = (Parent.Size - Parent.Padding.Size - (Size)DisplayPosition).Width;
+			else
+				maxSize = (Graphics.AvailableSize).Width;
+
+            Size = Size.Constrain(new Size(toDraw.ANSILength(), 1), new Size(maxSize, 1));
 		}
 
 		public override void Render()
 		{
 			var toDraw = ContentDrawable;
-			if (toDraw.Length > Size.Width)
-				toDraw = toDraw.Substring(0, Size.Width);
-
-			Console.Write(toDraw);
+			Graphics.WriteANSIString(toDraw);
 		}
 	}
 }

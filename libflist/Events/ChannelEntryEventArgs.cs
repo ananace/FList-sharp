@@ -23,19 +23,20 @@ namespace libflist.Events
 	public class ChannelEntryEventArgs<T> : EventArgs
 	{
 		public Channel Channel { get; private set; }
-		public T Changed { get; private set; }
+		public T Data { get; private set; }
+		public T Old { get; set; }
 		public Command Command { get; private set; }
 
 		public ChannelEntryEventArgs(Channel channel, T data, Command command)
 		{
 			Channel = channel;
-			Changed = data;
+			Data = data;
 			Command = command;
 		}
 
 		public ChannelEntryEventArgs(T data, Command command)
 		{
-			Changed = data;
+			Data = data;
 			Command = command;
 		}
 	}

@@ -28,6 +28,7 @@ namespace libflist.Events
 		public Channel Channel { get; private set; }
 		public Character Character { get; private set; }
 		public T Data { get; private set; }
+		public T Old { get; set; }
 		public Command Command { get; private set; }
 
 		public CharacterEntryEventArgs(Channel channel, Character character, T data, Command command)

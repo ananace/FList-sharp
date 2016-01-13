@@ -16,6 +16,23 @@ namespace ConsoleMessenger.UI.FChat
 			Console.Write(DateTime.Now.ToShortTimeString());
 			Console.ForegroundColor = ConsoleColor.DarkCyan;
 			Console.Write("]");
+
+			Console.CursorLeft++;
+
+			if (Application.Connection.LocalCharacter != null)
+			{
+				Console.Write("[");
+				Console.ForegroundColor = Application.Connection.LocalCharacter.GenderColor;
+				Console.Write(Application.Connection.LocalCharacter.Name);
+				Console.ForegroundColor = ConsoleColor.DarkCyan;
+				Console.Write("]");
+
+				Console.CursorLeft++;
+			}
+
+			Console.Write("[");
+
+			Console.Write("]");
 		}
 	}
 }

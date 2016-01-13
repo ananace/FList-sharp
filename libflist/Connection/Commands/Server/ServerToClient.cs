@@ -36,8 +36,19 @@ namespace libflist.Connection.Commands.Server
 	[Reply("CHA")]
 	public class ChatGetPublicChannels : Command
 	{
+		public class Channel
+		{
+			[JsonProperty(PropertyName = "name")]
+			public string Name { get; set; }
+			[JsonProperty(PropertyName = "characters")]
+			public int Count { get; set; }
+			[JsonProperty(PropertyName = "mode")]
+			[JsonConverter(typeof(JsonEnumConverter), JsonEnumConverter.EnumHandling.Lowercase)]
+			public ChannelMode Mode { get; set; }
+		}
+
 		[JsonProperty(PropertyName = "channels")]
-		public string[] Channels { get; set; }
+		public Channel[] Channels { get; set; }
 	}
 
 	[Reply("CIU")]
@@ -210,12 +221,12 @@ namespace libflist.Connection.Commands.Server
 	[Reply("UPT")]
 	public class ServerUptime : Command
 	{
-		[JsonProperty(PropertyName = "timestamp")]
-		[JsonConverter(typeof(JsonDateTimeConverter), JsonDateTimeConverter.TimestampPrecision.Milliseconds)]
+		[JsonProperty(PropertyName = "time")]
+		[JsonConverter(typeof(JsonDateTimeConverter), JsonDateTimeConverter.TimestampPrecision.Seconds)]
 		public DateTime Timestamp { get; set; }
 
 		[JsonProperty(PropertyName = "starttime")]
-		[JsonConverter(typeof(JsonDateTimeConverter), JsonDateTimeConverter.TimestampPrecision.Milliseconds)]
+		[JsonConverter(typeof(JsonDateTimeConverter), JsonDateTimeConverter.TimestampPrecision.Seconds)]
 		public DateTime StartTime { get; set; }
 
 		[JsonProperty(PropertyName = "startstring")]

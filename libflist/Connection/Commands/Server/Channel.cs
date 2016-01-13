@@ -56,7 +56,7 @@ namespace libflist.Connection.Commands.Server.Channel
 		[JsonProperty(PropertyName = "channel")]
 		public string Channel { get; set; }
 
-		[JsonProperty(PropertyName = "ops")]
+		[JsonProperty(PropertyName = "oplist")]
 		public string[] OPs { get; set; }
 	}
 

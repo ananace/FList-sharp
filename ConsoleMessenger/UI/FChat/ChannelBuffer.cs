@@ -38,7 +38,7 @@ namespace ConsoleMessenger.UI.FChat
 			}
 		}
 
-		class Rendered
+		public class Rendered
 		{
 			string _Message;
 			public string Message
@@ -49,7 +49,17 @@ namespace ConsoleMessenger.UI.FChat
 					_Message = value;
 
 					var data = Message.Split('\n');
-					Size = new Size(data.OrderByDescending(s => s.Length).First().Length, data.Length);
+					var height = data.Length;
+					Size = new Size(data.OrderByDescending(s =>
+					{
+						var len = s.ANSILength();
+						if (len > Size.Width && Size.Width > 0)
+						{
+							height += len / Size.Width;
+							return len % Size.Width;
+						}
+						return len;
+					}).First().ANSILength(), height);
 				}
 			}
 			public DateTime Timestamp { get; set; }
@@ -61,14 +71,18 @@ namespace ConsoleMessenger.UI.FChat
 		public TraceListener TraceListener { get { if (_Tracer == null) _Tracer = new DebugTracer(this); return _Tracer; } }
 		List<Rendered> _RenderedMessages = new List<Rendered>();
 
-		public void PushMessage(string msg)
+		public override void InvalidateLayout()
 		{
-			// TODO: Better pre-rendering of messages; Colors, etc
-			_RenderedMessages.Add(new Rendered
-			{
-				Message = msg,
-				Timestamp = DateTime.Now
-			});
+			// Size changed probably, recalculate message sizes.
+			foreach (var msg in _RenderedMessages)
+				msg.Message = msg.Message;
+
+			base.InvalidateLayout();
+		}
+
+		public void PushMessage(Rendered msg)
+		{
+			_RenderedMessages.Add(msg);
 
 			if (_RenderedMessages.Count > 1000)
 				_RenderedMessages.RemoveAt(0);
@@ -76,12 +90,25 @@ namespace ConsoleMessenger.UI.FChat
 			InvalidateVisual();
 		}
 
+		public void PushMessage(string msg)
+		{
+			// TODO: Better pre-rendering of messages; Colors, etc
+			PushMessage(new Rendered
+			{
+				Message = msg,
+				Timestamp = DateTime.Now
+			});
+		}
+
 		public override void Render()
 		{
-			foreach (var msg in (_RenderedMessages as IEnumerable<Rendered>).Reverse().Take(Size.Height).Reverse())
+			int totalHeight = 0;
+			foreach (var msg in (_RenderedMessages as IEnumerable<Rendered>).Reverse().TakeWhile(c => (totalHeight += c.Size.Height) <= Size.Height).Reverse())
 			{
 				// TODO: If message wraps around, indent to the wrap point.
-				Console.WriteLine("{0} {1}", msg.Timestamp.ToShortTimeString(), msg.Message);
+				Console.Write(msg.Timestamp.ToShortTimeString());
+				Console.CursorLeft++;
+				Graphics.WriteANSIString(msg.Message + "\n");
 			}
 		}
 	}

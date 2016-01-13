@@ -89,8 +89,8 @@ namespace ConsoleMessenger.UI.Panels
 				var oldBack = Background;
 				if (child == TitleControl)
 					Background = TitleColor;
-
-				child.Draw();
+				
+				child.Draw(Background != null);
 
 				if (child == TitleControl)
 					Background = oldBack;

@@ -28,11 +28,11 @@ namespace libflist
 			}
 			public void Dispose()
 			{
-				
+
 			}
 
 			public string UserName
-			{ 
+			{
 				get { return _User; }
 			}
 
@@ -55,6 +55,18 @@ namespace libflist
 			}
 		}
 
+		public sealed class KnownChannel
+		{
+			public string ID { get; set; }
+			public string Title { get; set; }
+			public ChannelMode Mode { get; set; }
+
+			public int Count { get; set; }
+
+			public bool Official { get { return ID == Title; } }
+		}
+
+		List<KnownChannel> _KnownChannels;
 		List<Channel> _Channels;
 		List<Character> _Characters;
 
@@ -68,9 +80,17 @@ namespace libflist
 		public TicketResponse Ticket { get { return _Ticket; } set { _Ticket = value; } }
 		public DateTime TicketTimestamp { get { return _TicketTime; } set { _TicketTime = value; } }
 
+		// TODO: Reload if data is stale.
+		public IReadOnlyList<KnownChannel> KnownChannels { get { return _KnownChannels; } }
+		public IEnumerable<KnownChannel> OfficialChannels { get { return _KnownChannels.Where(c => c.Official); } }
+		public IEnumerable<KnownChannel> PrivateChannels { get { return _KnownChannels.Where(c => !c.Official); } }
+
 		public event EventHandler<CharacterEntryEventArgs> OnOnline; // JCH
 		public event EventHandler<CharacterEntryEventArgs> OnOffline; // LCH
-		
+
+		public event EventHandler<ChannelEntryEventArgs<IReadOnlyList<KnownChannel>>> OnPublicChanListUpdate; // CHA
+		public event EventHandler<ChannelEntryEventArgs<IReadOnlyList<KnownChannel>>> OnPrivateChanListUpdate; // ORS
+
 		public event EventHandler<ChannelEntryEventArgs> OnJoinChannel; // JCH
 		public event EventHandler<ChannelEntryEventArgs> OnLeaveChannel; // LCH
 
@@ -93,6 +113,7 @@ namespace libflist
 
 		public FChat()
 		{
+			_KnownChannels = new List<KnownChannel>();
 			_Channels = new List<Channel>();
 			_Characters = new List<Character>();
 
@@ -109,6 +130,7 @@ namespace libflist
 		{
 			_Connection.Disconnect().Wait();
 
+			_KnownChannels = null;
 			_Channels = null;
 			_Characters = null;
 
@@ -129,7 +151,7 @@ namespace libflist
 		{
 			if (User == null)
 				throw new ArgumentNullException(nameof(User));
-			
+
 			if (!UseTicket)
 			{
 				if (Password == null)
@@ -190,8 +212,8 @@ namespace libflist
 
 			lock (_Connection)
 			{
-//				if (!_Connection.Connected)
-//					throw new Exception("Not connected.");
+				//				if (!_Connection.Connected)
+				//					throw new Exception("Not connected.");
 				if (_Connection.Identified)
 					return;
 
@@ -217,7 +239,7 @@ namespace libflist
 
 		public Character LocalCharacter
 		{
-			get { return new Character(this, User.CurrentCharacter); }
+			get { return GetCharacter(_Character); }
 		}
 
 		public Channel GetOrJoinChannel(string ID)
@@ -229,7 +251,8 @@ namespace libflist
 					return chan;
 
 				chan = new Channel(this, ID, ID);
-				SendCommand(new Connection.Commands.Client.Channel.JoinCommand {
+				SendCommand(new Connection.Commands.Client.Channel.JoinCommand
+				{
 					Channel = ID
 				});
 
@@ -280,7 +303,7 @@ namespace libflist
 			bool handled = false;
 
 			if (e.Command is Command.IChannelCommand &&
-			    !string.IsNullOrEmpty((e.Command as Command.IChannelCommand).Channel))
+				!string.IsNullOrEmpty((e.Command as Command.IChannelCommand).Channel))
 			{
 				var channel = (e.Command as Command.IChannelCommand).Channel;
 
@@ -314,173 +337,221 @@ namespace libflist
 			{
 				switch (e.Command.Token)
 				{
-				case "!!!":
-					{
-						handled = true;
-
-						var err = e.Command as Connection.Commands.Meta.FailedReply;
-
-						Debug.WriteLine("Invalid command recieved: {0} - {2}\n{1}", err.CMDToken, err.Data, err.Exception.Message);
-					} break;
-
-				case "???":
-					{
-						handled = true;
-
-						var err = e.Command as Connection.Commands.Meta.UnknownReply;
-
-						Debug.WriteLine("Unknown command recieved: {0}\n{1}", err.CMDToken, err.Data);
-					}
-					break;
-
-				case "AOP":
-					{
-						handled = true;
-
-						var aop = e.Command as Connection.Commands.Server.ChatMakeOP;
-						var character = GetCharacter(aop.Character);
-
-						if (OnGivenOP != null)
-							OnGivenOP(this, new CharacterEntryEventArgs(character, aop));
-					} break;
-
-				case "DOP":
-					{
-						handled = true;
-
-						var dop = e.Command as Connection.Commands.Server.ChatRemoveOP;
-						var character = GetCharacter(dop.Character);
-
-						if (OnRemovedOP != null)
-							OnRemovedOP(this, new CharacterEntryEventArgs(character, dop));
-					} break;
-
-				case "ERR":
-					{
-						handled = true;
-
-						var err = e.Command as Connection.Commands.Server.ChatError;
-
-						if (OnErrorMessage != null)
-							OnErrorMessage(this, new ChannelEntryEventArgs<string>(err.Error, err));
-					} break;
-
-				case "FLN":
-					{
-						handled = true;
-
-						var fln = e.Command as Connection.Commands.Server.Character.OfflineReply;
-						var character = GetCharacter(fln.Character);
-						if (character == null)
+					case "!!!":
 						{
-							character = new Character(this, fln.Character);
+							handled = true;
+
+							var err = e.Command as Connection.Commands.Meta.FailedReply;
+
+							Debug.WriteLine("Invalid command recieved: {0} - {2}\n{1}", err.CMDToken, err.Data, err.Exception.Message);
+						}
+						break;
+
+					case "???":
+						{
+							handled = true;
+
+							var err = e.Command as Connection.Commands.Meta.UnknownReply;
+
+							Debug.WriteLine("Unknown command recieved: {0}\n{1}", err.CMDToken, err.Data);
+						}
+						break;
+
+					case "AOP":
+						{
+							handled = true;
+
+							var aop = e.Command as Connection.Commands.Server.ChatMakeOP;
+							var character = GetCharacter(aop.Character);
+
+							if (OnGivenOP != null)
+								OnGivenOP(this, new CharacterEntryEventArgs(character, aop));
+						}
+						break;
+						
+					case "CHA":
+						{
+							handled = true;
+
+							var cha = e.Command as Connection.Commands.Server.ChatGetPublicChannels;
+
+							var oldList = _KnownChannels;
+							_KnownChannels = new List<KnownChannel>();
+							_KnownChannels.AddRange(oldList.Where(c => !c.Official));
+							_KnownChannels.AddRange(cha.Channels.Select(c => new KnownChannel { Count = c.Count, ID = c.Name, Title = c.Name, Mode = c.Mode }));
+
+							if (OnPublicChanListUpdate != null)
+								OnPublicChanListUpdate(this, new ChannelEntryEventArgs<IReadOnlyList<KnownChannel>>(_KnownChannels, cha) { Old = oldList });
+						}
+						break;
+
+					case "DOP":
+						{
+							handled = true;
+
+							var dop = e.Command as Connection.Commands.Server.ChatRemoveOP;
+							var character = GetCharacter(dop.Character);
+
+							if (OnRemovedOP != null)
+								OnRemovedOP(this, new CharacterEntryEventArgs(character, dop));
+						}
+						break;
+
+					case "ERR":
+						{
+							handled = true;
+
+							var err = e.Command as Connection.Commands.Server.ChatError;
+
+							if (OnErrorMessage != null)
+								OnErrorMessage(this, new ChannelEntryEventArgs<string>(err.Error, err));
+						}
+						break;
+
+					case "FLN":
+						{
+							handled = true;
+
+							var fln = e.Command as Connection.Commands.Server.Character.OfflineReply;
+							var character = GetCharacter(fln.Character);
+							if (character == null)
+							{
+								character = new Character(this, fln.Character);
+
+								if (OnOffline != null)
+									OnOffline(this, new CharacterEntryEventArgs(character, fln));
+
+								break;
+							}
 
 							if (OnOffline != null)
 								OnOffline(this, new CharacterEntryEventArgs(character, fln));
-							
-							break;
-						}
 
-						if (OnOffline != null)
-							OnOffline(this, new CharacterEntryEventArgs(character, fln));
-
-						_Characters.Remove(character);
-
-						foreach (var chan in _Channels.Where(c => c.Characters.Contains(character)))
-							chan.PushCommand(new Connection.Commands.Server.Channel.LeaveReply {
-							Channel = chan.ID,
-							Character = {
-								Identity = character.Name
+							lock (_Characters)
+							{
+								_Characters.Remove(character);
 							}
-						});
-					} break;
 
-				case "NLN":
-					{
-						handled = true;
-
-						var nln = e.Command as Connection.Commands.Server.Character.OnlineReply;
-
-						var character = GetOrCreateCharacter(nln.Character);
-						character.Gender = nln.Gender;
-						character.Status = nln.Status;
-
-						if (OnOnline != null)
-							OnOnline(this, new CharacterEntryEventArgs(character, nln));
-					} break;
-
-				case "LIS":
-					{
-						handled = true;
-
-						var lis = e.Command as Connection.Commands.Server.UserListReply;
-
-						foreach (var character in lis.CharacterData)
-						{
-							var charObj = GetOrCreateCharacter(character[0]);
-
-							charObj.Gender = JsonEnumConverter.Convert<CharacterGender>(character[1]);
-							charObj.Status = JsonEnumConverter.Convert<CharacterStatus>(character[2]);
-							charObj.StatusMessage = character[3];
+							foreach (var chan in _Channels.Where(c => c.Characters.Contains(character)))
+								chan.PushCommand(new Connection.Commands.Server.Channel.LeaveReply
+								{
+									Channel = chan.ID,
+									Character = {
+										Identity = character.Name
+									}
+								});
 						}
-					} break;
+						break;
 
-				case "PIN":
-					{
-						handled = true;
+					case "NLN":
+						{
+							handled = true;
 
-						_Connection.SendCommand(new Connection.Commands.Client.Server.PingCommand()).Wait();
-					} break;
+							var nln = e.Command as Connection.Commands.Server.Character.OnlineReply;
 
-				case "PRI":
-					{
-						handled = true;
+							var character = GetOrCreateCharacter(nln.CharacterName);
+							character.Gender = nln.Gender;
+							character.Status = nln.Status;
 
-						var pri = e.Command as Connection.Commands.Server.Character.SendMessageReply;
-						var character = GetCharacter(pri.Character);
+							if (OnOnline != null)
+								OnOnline(this, new CharacterEntryEventArgs(character, nln));
+						}
+						break;
 
-						character.IsTyping = false;
+					case "LIS":
+						{
+							handled = true;
 
-						if (OnPrivateMessage != null)
-							OnPrivateMessage(this, new CharacterMessageEventArgs(character, pri.Message, pri));
-					} break;
+							var lis = e.Command as Connection.Commands.Server.UserListReply;
 
-				case "STA":
-					{
-						handled = true;
+							foreach (var character in lis.CharacterData)
+							{
+								var charObj = GetOrCreateCharacter(character[0]);
 
-						var sta = e.Command as Connection.Commands.Server.Character.StatusReply;
-						var character = GetCharacter(sta.Character);
+								charObj.Gender = JsonEnumConverter.Convert<CharacterGender>(character[1]);
+								charObj.Status = JsonEnumConverter.Convert<CharacterStatus>(character[2]);
+								charObj.StatusMessage = character[3];
+							}
+						}
+						break;
 
-						character.Status = sta.Status;
-						character.StatusMessage = sta.Message;
+					case "ORS":
+						{
+							handled = true;
 
-						if (OnStatusChange != null)
-							OnStatusChange(this, new CharacterEntryEventArgs<CharacterStatus>(character, sta.Status, sta));
-					} break;
+							var ors = e.Command as Connection.Commands.Server.PrivateChannelListReply;
 
-				case "SYS":
-					{
-						handled = true;
+							var oldList = _KnownChannels;
+							_KnownChannels = new List<KnownChannel>();
+							_KnownChannels.AddRange(oldList.Where(c => c.Official));
+							_KnownChannels.AddRange(ors.Channels.Select(c => new KnownChannel { Count = c.Count, ID = c.ID, Title = c.Title }));
 
-						var sys = e.Command as Connection.Commands.Server.SysReply;
+							if (OnPrivateChanListUpdate != null)
+								OnPrivateChanListUpdate(this, new ChannelEntryEventArgs<IReadOnlyList<KnownChannel>>(_KnownChannels, ors) { Old = oldList });
+						}
+						break;
 
-						if (OnSYSMessage != null)
-							OnSYSMessage(this, new ChannelEntryEventArgs<string>(sys.Message, sys));
-					} break;
+					case "PIN":
+						{
+							handled = true;
 
-				case "TPN":
-					{
-						handled = true;
+							_Connection.SendCommand(new Connection.Commands.Client.Server.PingCommand()).Wait();
+						}
+						break;
 
-						var tpn = e.Command as Connection.Commands.Server.Character.TypingReply;
-						var character = GetCharacter(tpn.Character);
+					case "PRI":
+						{
+							handled = true;
 
-						character.IsTyping = tpn.Status == TypingStatus.Typing;
+							var pri = e.Command as Connection.Commands.Server.Character.SendMessageReply;
+							var character = GetCharacter(pri.Character);
 
-						if (OnTypingChange != null)
-							OnTypingChange(this, new CharacterEntryEventArgs<TypingStatus>(character, tpn.Status, tpn));
-					} break;
+							character.IsTyping = false;
+
+							if (OnPrivateMessage != null)
+								OnPrivateMessage(this, new CharacterMessageEventArgs(character, pri.Message, pri));
+						}
+						break;
+
+					case "STA":
+						{
+							handled = true;
+
+							var sta = e.Command as Connection.Commands.Server.Character.StatusReply;
+							var character = GetCharacter(sta.Character);
+
+							character.Status = sta.Status;
+							character.StatusMessage = sta.Message;
+
+							if (OnStatusChange != null)
+								OnStatusChange(this, new CharacterEntryEventArgs<CharacterStatus>(character, sta.Status, sta));
+						}
+						break;
+
+					case "SYS":
+						{
+							handled = true;
+
+							var sys = e.Command as Connection.Commands.Server.SysReply;
+
+							if (OnSYSMessage != null)
+								OnSYSMessage(this, new ChannelEntryEventArgs<string>(sys.Message, sys));
+						}
+						break;
+
+					case "TPN":
+						{
+							handled = true;
+
+							var tpn = e.Command as Connection.Commands.Server.Character.TypingReply;
+							var character = GetCharacter(tpn.Character);
+
+							character.IsTyping = tpn.Status == TypingStatus.Typing;
+
+							if (OnTypingChange != null)
+								OnTypingChange(this, new CharacterEntryEventArgs<TypingStatus>(character, tpn.Status, tpn));
+						}
+						break;
 				}
 			}
 

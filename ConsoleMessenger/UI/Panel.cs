@@ -120,11 +120,10 @@ namespace ConsoleMessenger.UI
 
 		Control _Child;
 		ChildCollection _Children;
-		
-		public virtual Rect Padding { get; set; }
+
 		public bool ResizeChildren { get; set; }
 
-		protected virtual IList<Control> Children { get { return _Children; } }
+		public virtual IList<Control> Children { get { return _Children; } }
 		public virtual Control Child
 		{
 			get { return _Children.FirstOrDefault(); }
@@ -132,7 +131,7 @@ namespace ConsoleMessenger.UI
 			{
 				if (value == _Child)
 					return;
-				
+
 				_Children.Remove(_Child);
 				if (value != null && !_Children.Contains(value))
 					_Children.Add(value);
@@ -152,7 +151,7 @@ namespace ConsoleMessenger.UI
 			if (Child != null && ResizeChildren)
 				Child.Size = Size - (Size)Padding.Position - Padding.Size;
 
-			InvalidateVisual();
+			base.InvalidateLayout();
 
 			foreach (var child in _Children)
 				child.InvalidateLayout();
@@ -173,9 +172,9 @@ namespace ConsoleMessenger.UI
 
 		public override void Render()
 		{
-			Graphics.DrawFilledBox(DisplayPosition, Size, ' ', Background ?? ConsoleColor.Black);
-			if (_Child != null)
-				_Child.Draw();
+			// Graphics.DrawFilledBox(DisplayPosition, Size, ' ', Background ?? ConsoleColor.Black);
+			foreach (var child in _Children)
+				child.Draw(Background != null);
 		}
 	}
 }

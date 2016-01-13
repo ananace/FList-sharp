@@ -23,41 +23,49 @@ namespace ConsoleMessenger.UI
 			{
 				switch (key.Key)
 				{
-				case ConsoleKey.Backspace:
-					{
-						buf = buf.Substring(0, buf.Length - 1);
-
-						Console.Write("\b \b");
-					}
-					break;
-
-				case ConsoleKey.Enter:
-					{
-						var cmd = buf;
-						buf = "";
-							
-						Clear();
-						Console.CursorLeft -= cmd.Length;
-							
-						Content = buf;
-
-						if (OnTextEntered != null)
-							OnTextEntered(this, cmd);
-					}
-					break;
-
-				default:
-					{
-						if (!char.IsControl(key.KeyChar) &&
-							!key.Modifiers.HasFlag(ConsoleModifiers.Alt) &&
-							!key.Modifiers.HasFlag(ConsoleModifiers.Control))
+					case ConsoleKey.Backspace:
 						{
-							buf += key.KeyChar;
-							Console.Write(key.KeyChar);
-							break;
+							if (string.IsNullOrEmpty(buf))
+								break;
+
+							buf = buf.Substring(0, buf.Length - 1);
+
+							var old = Console.BackgroundColor;
+							Console.BackgroundColor = Background ?? ConsoleColor.Black;
+							Console.Write("\b \b");
+							Console.BackgroundColor = old;
 						}
-					}
-					break;
+						break;
+
+					case ConsoleKey.Enter:
+						{
+							var cmd = buf;
+							buf = "";
+
+							var displayed = ContentDrawable;
+
+							Clear();
+							Console.CursorLeft -= displayed.ANSILength();
+
+							Content = buf;
+
+							if (OnTextEntered != null)
+								OnTextEntered(this, cmd);
+						}
+						break;
+
+					default:
+						{
+							if (!char.IsControl(key.KeyChar) &&
+								!key.Modifiers.HasFlag(ConsoleModifiers.Alt) &&
+								!key.Modifiers.HasFlag(ConsoleModifiers.Control))
+							{
+								buf += key.KeyChar;
+								Console.Write(key.KeyChar);
+								break;
+							}
+						}
+						break;
 				}
 			}
 			finally

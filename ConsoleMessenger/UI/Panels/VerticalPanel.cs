@@ -23,12 +23,6 @@ namespace ConsoleMessenger.UI.Panels
 
 			return offset;
 		}
-
-		public override void Render()
-		{
-			foreach (var child in base.Children)
-				child.Draw();
-		}
 	}
 }
 

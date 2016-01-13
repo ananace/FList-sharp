@@ -7,6 +7,7 @@ namespace libflist.Util.Converters
 	{
 		public enum TimestampPrecision
 		{
+			Seconds,
 			Milliseconds,
 			Microseconds,
 			Nanoseconds
@@ -30,10 +31,12 @@ namespace libflist.Util.Converters
 			if (reader.TokenType != JsonToken.Integer)
 				throw new JsonSerializationException("Can't deserialize datetime, wrong data in JSON");
 
-			var t = long.Parse((string)reader.Value);
+			var t = (long)reader.Value;
 
 			switch (Precision)
 			{
+			case TimestampPrecision.Seconds:
+				return Epoch.AddSeconds(t);
 			case TimestampPrecision.Milliseconds:
 				return Epoch.AddMilliseconds(t);
 			case TimestampPrecision.Microseconds:
@@ -51,6 +54,8 @@ namespace libflist.Util.Converters
 
 			switch (Precision)
 			{
+			case TimestampPrecision.Seconds:
+				writer.WriteValue((long)timestamp.TotalSeconds); break;
 			case TimestampPrecision.Milliseconds:
 				writer.WriteValue((long)timestamp.TotalMilliseconds); break;
 			case TimestampPrecision.Microseconds:

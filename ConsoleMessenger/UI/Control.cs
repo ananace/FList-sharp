@@ -30,12 +30,21 @@ namespace ConsoleMessenger.UI
 			Dark
 		}
 
+		public enum SizingHint
+		{
+			FixedSize,
+            ShrinkToFit,
+			FillAvailable
+		}
+		
 		Point _Position;
 		Size _Size;
+		SizingHint _SizeHint;
 
 		bool _HasFocus;
 		bool _NeedsRedraw = true;
 		bool _Visible = true;
+		bool _UpdatingLayout;
 
 		public BorderStyle Border { get; set; }
 		internal string BorderBrush
@@ -46,13 +55,13 @@ namespace ConsoleMessenger.UI
 				{
 					case BorderStyle.Filled:
 						return "████ ████";
-                    case BorderStyle.BlockOutline:
+					case BorderStyle.BlockOutline:
 						return "▄▄▄█ █▀▀▀";
 					case BorderStyle.Outline:
 						return "┌─┐│ │└─┘";
 					case BorderStyle.DoubleOutline:
 						return "╔═╗║ ║╚═╝";
-						
+
 					default:
 						return null;
 				}
@@ -73,7 +82,7 @@ namespace ConsoleMessenger.UI
 
 					default:
 						return '\0';
-                }
+				}
 			}
 		}
 
@@ -89,6 +98,17 @@ namespace ConsoleMessenger.UI
 		public object Tag { get; set; }
 		public Control Parent { get; internal set; }
 
+		public SizingHint Sizing
+		{ 
+			get { return _SizeHint; }
+			set
+			{
+				if (_SizeHint == value) return;
+
+				_SizeHint = value;
+				InvalidateLayout();
+			}
+		}
 		public Point Position
 		{
 			get { return _Position; }
@@ -120,11 +140,14 @@ namespace ConsoleMessenger.UI
 			}
 		}
 
-		public Rect Margin { get; set; }
+		public virtual Rect Margin { get; set; }
+		public virtual Rect Padding { get; set; }
 
 		public bool Enabled { get; set; }
-		
-		public bool IsFocused { get { return _HasFocus; }
+
+		public bool IsFocused
+		{
+			get { return _HasFocus; }
 			internal set
 			{
 				if (value != _HasFocus)
@@ -139,7 +162,8 @@ namespace ConsoleMessenger.UI
 			}
 		}
 
-		public bool IsVisible {
+		public bool IsVisible
+		{
 			get
 			{
 				return _Visible;
@@ -157,7 +181,7 @@ namespace ConsoleMessenger.UI
 		internal virtual bool IsFocusable { get { return false; } }
 		internal virtual bool ShouldDraw { get { return _Visible && (Parent == null || Parent.ShouldDraw); } }
 		internal virtual bool NeedsRedraw { get { return _NeedsRedraw; } }
-		
+
 		public virtual Point DisplayPosition
 		{
 			get
@@ -190,7 +214,34 @@ namespace ConsoleMessenger.UI
 
 		public virtual void InvalidateLayout()
 		{
-			InvalidateVisual();
+			if (_UpdatingLayout) return;
+
+			_UpdatingLayout = true;
+			try
+			{
+				if (_SizeHint == SizingHint.FillAvailable)
+				{
+					if (Parent != null)
+						Size = Parent.Size - Parent.Padding.Size;
+					else
+						Size = Graphics.AvailableSize;
+				}
+				else if (_SizeHint == SizingHint.ShrinkToFit)
+				{
+					SizeToContent();
+				}
+
+				InvalidateVisual();
+			}
+			finally
+			{
+				_UpdatingLayout = false;
+			}
+		}
+
+		public virtual void SizeToContent()
+		{
+
 		}
 
 		public virtual void InvalidateVisual()
@@ -215,9 +266,9 @@ namespace ConsoleMessenger.UI
 			Graphics.DrawFilledBox(DisplayPosition, Size, ' ', Background ?? (Parent != null ? Parent.Background : null) ?? ConsoleColor.Black);
 		}
 
-		public void Draw()
+		public void Draw(bool force = false)
 		{
-			if (!ShouldDraw || !_NeedsRedraw)
+			if (!force && (!ShouldDraw || !_NeedsRedraw))
 				return;
 
 			_NeedsRedraw = false;
@@ -240,11 +291,24 @@ namespace ConsoleMessenger.UI
 				var oldFront = Console.ForegroundColor;
 
 				if (Background.HasValue)
+				{
 					Console.BackgroundColor = Background.Value;
+					Point borderOffset = (Border == BorderStyle.None ? new Point(0, 0) : new Point(1, 1));
+					Size borderSize = (Border == BorderStyle.None ? new Size(0, 0) : new Size(2, 2));
+
+					if (Size >= borderSize)
+						Graphics.DrawFilledBox(DisplayPosition + borderOffset, Size - borderSize, ' ', Background.Value);
+				}
 				else if (Parent != null && Parent.Background.HasValue)
 					Console.BackgroundColor = Parent.Background.Value;
 
 				Console.ForegroundColor = Foreground;
+				
+				if (Shadow != ShadowStyle.None)
+				{
+					Graphics.DrawLine(DisplayPosition + new Size(0, Size.Height + 1), DisplayPosition + Size + new Size(1, 1), Parent != null ? Parent.Background ?? ConsoleColor.Black : ConsoleColor.Black, Console.BackgroundColor, ShadowBrush);
+					Graphics.DrawLine(DisplayPosition + new Size(Size.Width + 1, 0), DisplayPosition + Size + new Size(1, 1), Parent != null ? Parent.Background ?? ConsoleColor.Black : ConsoleColor.Black, Console.BackgroundColor, ShadowBrush);
+				}
 
 				Render();
 

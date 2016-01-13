@@ -21,6 +21,40 @@ namespace ConsoleMessenger
 		{
 			return string.Join(joiner, en);
 		}
+
+		public static string LongestCommonPrefix(this IEnumerable<string> strs, StringComparison compare = StringComparison.CurrentCulture)
+		{
+			var stringbuilder = new StringBuilder();
+			if (strs == null || !strs.Any())
+			{
+				return stringbuilder.ToString();
+			}
+
+			for (int i = 0; ; i++)
+			{
+				char ch = char.MaxValue;
+				foreach (var str in strs)
+				{
+					if (i >= str.Length)
+					{
+						return stringbuilder.ToString();
+					}
+
+					if (ch == char.MaxValue)
+					{
+						ch = str[i];
+					}
+					else
+					{
+						if (string.Compare(str[i].ToString(), ch.ToString(), compare) != 0)
+						{
+							return stringbuilder.ToString();
+						}
+					}
+				}
+				stringbuilder.Append(ch);
+			}
+		}
 	}
 
 	public static class ConsoleHelper
@@ -70,7 +104,8 @@ namespace ConsoleMessenger
 			public DateTime Timestamp { get; set; }
 		}
 
-		static VerticalPanel _Root;
+		static Panel _Root;
+		static VerticalPanel _RootStack;
 		static TitledPanel _MainPanel;
 		static TitledPanel _StatusPanel;
 		static HorizontalPanel _InputPanel;
@@ -96,7 +131,7 @@ namespace ConsoleMessenger
 				_CurBuffer = value;
 
 				var buf = _ChannelBuffers[value];
-                _MainPanel.Child = buf;
+				_MainPanel.Child = buf;
 				_ChannelInfo.Content = string.Format("[{0}]", (buf.Tag is Channel) ? (buf.Tag as Channel).Title : "(Console)");
 			}
 		}
@@ -106,21 +141,29 @@ namespace ConsoleMessenger
 
 		static void BuildUI()
 		{
-			_Root = new VerticalPanel();
+			_Root = new Panel();
+			_RootStack = new VerticalPanel()
+			{
+				Sizing = Control.SizingHint.FillAvailable
+			};
 			_MainPanel = new TitledPanel()
 			{
 				TitleColor = ConsoleColor.Blue,
 				ResizeChildren = true
 			};
 			_StatusPanel = new TitledPanel();
-			_InputPanel = new HorizontalPanel();
+			_InputPanel = new HorizontalPanel()
+			{
+				Background = ConsoleColor.Black,
+				Padding = new Rect(0, 0, 1, 0)
+			};
 			_StatusBar = new UI.FChat.StatusBar()
 			{
 				Margin = new Rect(1, 0, 1, 0)
 			};
 			_ConsoleBuffer = new UI.FChat.ChannelBuffer()
 			{
-				
+				Background = ConsoleColor.Black
 			};
 			_ChannelBuffers.Add(_ConsoleBuffer);
 			Debug.Listeners.Add(_ConsoleBuffer.TraceListener);
@@ -133,10 +176,12 @@ namespace ConsoleMessenger
 			{
 				Content = "[(Console)]",
 				Foreground = ConsoleColor.Gray,
-                Margin = new Rect(0, 0, 1, 0)
+				Margin = new Rect(0, 0, 1, 0),
+				Sizing = Control.SizingHint.ShrinkToFit
 			};
 			_InputBox = new InputControl()
 			{
+				Sizing = Control.SizingHint.ShrinkToFit
 			};
 			_InputBox.OnTextEntered += (_, text) => TextEntry(text);
 
@@ -148,15 +193,19 @@ namespace ConsoleMessenger
 
 			_MainPanel.Child = _ConsoleBuffer;
 
-			_Root.Children.Add(_MainPanel);
-			_Root.Children.Add(_StatusPanel);
+			_RootStack.Children.Add(_MainPanel);
+			_RootStack.Children.Add(_StatusPanel);
+
+			_Root.Child = _RootStack;
 
 			_Redraw = new System.Threading.Timer((_) => Redraw(), null, System.Threading.Timeout.Infinite, System.Threading.Timeout.Infinite);
 
-			ConsoleHelper.OnConsoleResized += (_, __) => {
+			ConsoleHelper.OnConsoleResized += (_, __) =>
+			{
 				Redraw(true);
 			};
-			_Root.OnVisualInvalidated += (_, __) => {
+			_Root.OnVisualInvalidated += (_, __) =>
+			{
 				_Redraw.Change(10, System.Threading.Timeout.Infinite);
 			};
 		}
@@ -175,57 +224,117 @@ namespace ConsoleMessenger
 
 					switch (key.Key)
 					{
-					case ConsoleKey.Tab:
-						{
-							var inp = _InputBox.Content as string;
-                            var found = TabComplete(inp);
-							if (found == null)
-								break;
-
-							if (found.Length == 1)
+						case ConsoleKey.Tab:
 							{
-								if (inp.Contains(' '))
+								var inp = _InputBox.Content as string;
+								var completion = TabComplete(inp);
+								if (completion == null || !completion.Found.Any())
+									break;
+
+									var completions = completion.Found;
+
+								var firstSpace = completion.TruePrefix.IndexOf(' ');
+								var needsQuotes = firstSpace > -1 && firstSpace < completion.TruePrefix.Length-1;
+
+								if (inp.EndsWith("\"", StringComparison.OrdinalIgnoreCase))
+									inp = inp.Substring(0, inp.Length - 1);
+								inp = inp.Substring(0, inp.Length - completion.Prefix.Length);
+								if (inp.EndsWith("\"", StringComparison.OrdinalIgnoreCase))
+									inp = inp.Substring(0, inp.Length - 1);
+
+								if (completions.Length == 1)
 								{
-									if (inp.Last() == ' ')
-										inp = inp + found.First();
-									else
-										inp = inp.Remove(inp.LastIndexOf(' ') + 1) + found.First();
+									inp += (needsQuotes ? "\"" : "") + completions.First() + (needsQuotes ? "\"" : "");
 								}
 								else
-									inp = (inp.Length > 1 ? inp.Remove(1) : inp) + found.First() + ' ';
+								{
+									inp += (needsQuotes ? "\"" : "") + completion.TruePrefix;
+									/*
+									var ncompletions = completions.Length;
+									int last = -1;
+
+									for (int p = 0; p < completions[0].Length; p++)
+									{
+										char c = completions[0][p];
+
+
+										for (int i = 1; i < ncompletions; i++)
+										{
+											if (completions[i].Length < p)
+												goto mismatch;
+
+											if (completions[i][p] != c)
+											{
+												goto mismatch;
+											}
+										}
+										last = p;
+									}
+									mismatch:
+									//var prefix = completion.Prefix;
+									if (last != -1)
+									{
+										inp += (needsQuotes ? "\"" : "") + completions[0].Substring(0, last + 1);
+
+										// Adjust the completions to skip the common prefix
+										//prefix += completions[0].Substring(0, last + 1);
+										//for (int i = 0; i < completions.Length; i++)
+										//	completions[i] = completions[i].Substring(last + 1);
+									}
+									*/
+									/*
+									var msg = (needsQuotes ? "\"" + found.First().Full + "\"" : found.First().Full);
+									if (inp.Contains('"'))
+									{
+										inp = inp.Remove(inp.LastIndexOf('"')) + msg;
+									}
+									else if (inp.Contains(' '))
+									{
+										// TODO: Remove anything of the to-complete that might exist in buffer already
+										if (inp.Last() == ' ')
+											inp = inp + msg;
+										else
+											inp = inp.Remove(inp.LastIndexOf(' ') + 1) + msg;
+									}
+									else
+										inp = (inp.Length > 1 ? inp.Remove(1) : inp) + found.First() + ' ';
+										*/
+								}
+
+								_InputBox.Content = inp;
 							}
-
-							_InputBox.Content = inp;
-						} break;
-							
-					case ConsoleKey.Clear: Redraw(true); break;
-
-					default:
-						switch(key.KeyChar)
-						{
-						case '1':
-						case '2':
-						case '3':
-						case '4':
-						case '5':
-						case '6':
-						case '7':
-						case '8':
-						case '9':
-							{
-								int buffer = key.KeyChar - '1';
-
-								if (buffer <= BufferCount && key.Modifiers.HasFlag(ConsoleModifiers.Alt))
-									CurrentBuffer = buffer;
-							} break;
-
-						case '\x04':
-							throw new EndOfStreamException();
-
-						case '\f':
-							Redraw(true);
 							break;
-						} break;
+
+						case ConsoleKey.Clear: Redraw(true); break;
+
+						default:
+							switch (key.KeyChar)
+							{
+								case '1':
+								case '2':
+								case '3':
+								case '4':
+								case '5':
+								case '6':
+								case '7':
+								case '8':
+								case '9':
+									{
+										int buffer = key.KeyChar - '1';
+
+										if (buffer <= BufferCount && key.Modifiers.HasFlag(ConsoleModifiers.Alt))
+											CurrentBuffer = buffer;
+									}
+									break;
+
+								case '\x04':
+									throw new EndOfStreamException();
+
+								case '\f':
+									Redraw(true);
+									break;
+							}
+							break;
 					}
 				}
 				catch (EndOfStreamException)
@@ -243,20 +352,20 @@ namespace ConsoleMessenger
 					else
 						Debug.WriteLine(ex.InnerException.Message);
 				}
-				catch(AggregateException ex)
+				catch (AggregateException ex)
 				{
 					Debug.WriteLine("{0} exception(s) occured running that command;", ex.InnerExceptions.Count);
 					foreach (Exception inner in ex.InnerExceptions)
 						Debug.WriteLine("!!  {0}: {1}\n{2}\n", inner.GetType().Name, inner.Message, inner.StackTrace);
 				}
-				catch(Exception ex)
+				catch (Exception ex)
 				{
 					Debug.WriteLine(ex.Message);
 				}
 			}
 		}
 
-		static string[] TabComplete(string input)
+		static Command.CompleteResult TabComplete(string input)
 		{
 			if (!input.StartsWith("/", StringComparison.OrdinalIgnoreCase))
 				return null;
@@ -268,21 +377,39 @@ namespace ConsoleMessenger
 						: new string[] { element })  // Keep the entire item
 					.SelectMany(element => element);
 
+			IEnumerable<string> avail = null;
 			var cmd = data.Any() ? Command.Create(data.First()) : null;
+			var used = "";
 			if (cmd == null)
 			{
 				if (!data.Any())
-					return Command.Available.ToArray();
-
-				return Command.Available.Where(c => c.StartsWith(data.First(), StringComparison.CurrentCultureIgnoreCase)).ToArray();
+					avail = Command.Available
+						.Select(c => c + " ");
+				else
+				{
+					used = data.First();
+					avail = Command.Available
+						.Where(c => c.StartsWith(data.First(), StringComparison.CurrentCultureIgnoreCase))
+						.Select(c => c + " ");
+				}
 			}
 			else if (!input.Contains(' '))
-				return new string[] { input.Substring(1) };
+				return new Command.CompleteResult { Prefix = "", TruePrefix = "", Found = new string[] { " " } };
+			else
+			{
+				string[] output;
+				used = data.Skip(1).ToString(" ");
+				if (cmd.TabComplete(used, out output))
+					avail = output;
+				else
+					return null;
+			}
 
-			string[] output;
-			if (cmd.TabComplete(data.Skip(1).ToString(" "), out output))
-				return output;
-			return null;
+			var trueprefix = avail.LongestCommonPrefix(StringComparison.CurrentCultureIgnoreCase);
+			var prefix = trueprefix;
+			if (prefix.Length > used.Length)
+				prefix = prefix.Substring(0, used.Length);
+			return new Command.CompleteResult { Prefix = prefix, TruePrefix = trueprefix, Found = avail.ToArray() };
 		}
 
 		public static void RunCommand(string command, IEnumerable<string> Args)
@@ -306,16 +433,42 @@ namespace ConsoleMessenger
 						? element.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)  // Split the item
 						: new string[] { element })  // Keep the entire item
 					.SelectMany(element => element);
-				
+
 				RunCommand(data.First().ToLower(), data.Skip(1));
 				return;
 			}
+
+			WriteMessage(Text);
+		}
+
+		public static void WriteMessage(string Text, Character inputChar = null)
+		{
+			var Char = inputChar;
+			if (Char == null)
+				Char = Connection.LocalCharacter;
 
 			var buffer = _ChannelBuffers[CurrentBuffer];
 			if (buffer == _ConsoleBuffer)
 				throw new Exception("Can't chat in the console, did you mean to run a command?");
 
-			(buffer.Tag as Channel).SendMessage(Text);
+			var Chan = (buffer.Tag as Channel);
+			if (inputChar == null)
+				Chan.SendMessage(Text);
+
+			if (Text.StartsWith("/me", StringComparison.OrdinalIgnoreCase))
+				buffer.PushMessage(string.Format("{3} {2}{0}\x1b[0m {1}",
+					Char.Name,
+					Text.Length > 3 ? Text.Substring(4) : "",
+					Char.GenderColor.ANSIColor() + (inputChar == null ? "\x1b[40;1m" : ""),
+					Char.StatusColor.ANSIColor() + Char.StatusChar
+					));
+			else
+				buffer.PushMessage(string.Format("{3} {2}{0}\x1b[0m: {1}",
+					Char.Name,
+					Text,
+					Char.GenderColor.ANSIColor() + (inputChar == null ? "\x1b[40;1m" : ""),
+					Char.StatusColor.ANSIColor() + Char.StatusChar
+					));
 		}
 
 		public static void Redraw(bool full = false)
@@ -331,14 +484,17 @@ namespace ConsoleMessenger
 
 				Console.Clear();
 
-				var size = new Size(Console.WindowWidth, Console.WindowHeight) - new Size(1, 0);
+				var size = Graphics.AvailableSize;
 
 				_Root.Size = size;
 				_MainPanel.Size = size - new Size(0, 2);
 				_StatusPanel.Size = new Size(size.Width, 2);
 				_InputPanel.Size = new Size(size.Width, 1);
+
+				_Root.InvalidateLayout();
+				_Root.InvalidateVisual();
 			}
-				
+
 			_Root.Draw();
 
 			_InputBox.Focus();
@@ -350,19 +506,32 @@ namespace ConsoleMessenger
 
 			Console.Title = string.Format("FChat Messenger v{0}", Assembly.GetExecutingAssembly().GetName().Version);
 
-			_Chat.Connection.Endpoint = libflist.Connection.ChatConnection.TestingServerEndpoint;
+			//_Chat.Connection.Endpoint = libflist.Connection.ChatConnection.TestingServerEndpoint;
+			_Chat.Connection.Endpoint = libflist.Connection.ChatConnection.LiveServerEndpoint;
+
+			_Chat.Connection.OnIdentified += (_, __) => _StatusBar.InvalidateVisual();
+
+			_Chat.OnErrorMessage += (_, e) =>
+			{
+				_ConsoleBuffer.PushMessage((e.Command as libflist.Connection.Commands.Server.ChatError).Error);
+			};
 
 			_Chat.OnJoinChannel += (_, e) =>
 			{
 				var chatBuf = new ChannelBuffer
 				{
 					Tag = e.Channel,
+					Background = ConsoleColor.Black
 				};
 
-				e.Channel.OnChatMessage += (__, me) => chatBuf.PushMessage(string.Format("{0}> {1}", me.Character.Name, me.Message));
+				e.Channel.OnChatMessage += (__, me) =>
+				{
+					WriteMessage(me.Message, me.Character);
+                };
 				e.Channel.OnRollMessage += (__, me) => chatBuf.PushMessage(me.Message);
 
 				_ChannelBuffers.Add(chatBuf);
+				CurrentBuffer = _ChannelBuffers.Count - 1;
 			};
 			_Chat.OnLeaveChannel += (_, e) =>
 			{

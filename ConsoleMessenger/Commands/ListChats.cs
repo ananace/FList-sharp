@@ -19,14 +19,10 @@ namespace ConsoleMessenger.Commands
 		public override bool TabComplete(string input, out string[] possibilities)
 		{
 			string[] Possible = { "public", "private" };
-
-			if (string.IsNullOrWhiteSpace(input))
-			{
-				possibilities = Possible;
-				return true;
-			}
-
-			possibilities = Possible.Where(p => p.StartsWith(input, StringComparison.OrdinalIgnoreCase)).ToArray();
+			
+			possibilities = Possible
+				.Where(p => p.StartsWith(input, StringComparison.OrdinalIgnoreCase))
+				.ToArray();
 			return possibilities.Any();
 		}
 

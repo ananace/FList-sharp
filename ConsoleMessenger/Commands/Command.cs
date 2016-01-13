@@ -3,17 +3,32 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 
 namespace ConsoleMessenger
 {
 	public abstract class Command
 	{
+		public sealed class CompleteResult
+		{
+			public string Prefix { get; set; }
+			public string TruePrefix { get; set; }
+			public string[] Found { get; set; }
+		}
+
 		public string Name { get { return GetType().GetCustomAttribute<CommandAttribute>().Name; } }
-		
+
 		public virtual bool TabComplete(string input, out string[] possibilities)
 		{
-			possibilities = new string[0];
+			possibilities = null;
 			return false;
+		}
+
+		private Array CastArray(Type type, IEnumerable<string> Inp)
+		{
+			var conv = TypeDescriptor.GetConverter(type);
+			//var temp = Array.CreateInstance(type, Inp.Count());
+			return Inp.Select(v => conv.ConvertFromString(v)).ToArray();
 		}
 
 		public void Invoke(IEnumerable<string> args)
@@ -21,7 +36,7 @@ namespace ConsoleMessenger
 			var method = GetType()
 				.GetMethods()
 				.Where(m => m.Name == "Call" &&
-					m.GetParameters().Length == args.Count())
+					m.GetParameters().Length == args.Count() || (m.GetParameters().Any() && m.GetParameters().Last().ParameterType.IsArray))
 				.FirstOrDefault();
 
 			if (method == null)
@@ -31,11 +46,45 @@ namespace ConsoleMessenger
 						return string.Format("{0} {1}", Name, m.GetParameters().Select(p => "<" + p.Name + ">").ToString(" "));
 					}).ToString("\n- /")));
 
-			method.Invoke(this, args.Zip(method.GetParameters(), (arg, type) => new { type, arg }).Select(a =>
+			ParameterInfo[] parameters = method.GetParameters();
+			bool hasParams = false;
+			if (parameters.Length > 0)
 			{
-				var conv = TypeDescriptor.GetConverter(a.type.ParameterType);
-				return conv.ConvertFromString(a.arg);
-			}).ToArray());
+				hasParams = parameters.Last().GetCustomAttribute<ParamArrayAttribute>() != null || parameters.Last().ParameterType.IsArray;
+			}
+
+			object[] input = args.ToArray();
+			object[] realParams = new object[parameters.Length];
+			
+			int lastParamPosition = parameters.Length - 1;
+
+			int i = 0;
+			foreach (var arg in input.Zip(method.GetParameters(), (Arg, Type) => new { Arg, Type.ParameterType }))
+			{
+				if (hasParams && i >= lastParamPosition)
+					break;
+
+				var conv = TypeDescriptor.GetConverter(arg.ParameterType);
+				realParams[i] = conv.ConvertFromString(input[i++] as string);
+			}
+
+			if (hasParams)
+			{
+				var arr = input;
+
+				Type paramsType = parameters.Last().ParameterType.GetElementType();
+				Array extra = Array.CreateInstance(paramsType, arr.Length - lastParamPosition);
+				var conv = TypeDescriptor.GetConverter(paramsType);
+				i = 0;
+				foreach (var toCopy in arr.Skip(lastParamPosition))
+					extra.SetValue(conv.ConvertFromString(toCopy as string), i++);
+
+				realParams[lastParamPosition] = extra;
+			}
+
+			input = realParams;
+
+			method.Invoke(this, input);
 		}
 
 		static Dictionary<string, Type> _CommandTypes;
@@ -47,9 +96,21 @@ namespace ConsoleMessenger
 
 			foreach (var cmd in Assembly.GetExecutingAssembly().GetTypes().Where(t => t.BaseType == typeof(Command)))
 			{
-				var att = cmd.GetCustomAttribute<CommandAttribute>();
-				if (att != null)
+				foreach (var att in cmd.GetCustomAttributes().Where(a => a.GetType() == typeof(CommandAttribute)).Select(a => a as CommandAttribute))
+				{
+					var wrong = cmd.GetMethods().Where(m => m.Name == "Call").Where(m =>
+					{
+						return m.GetParameters().Count(p => p.ParameterType.IsArray) > 1 ||
+							(m.GetParameters().Count(p => p.ParameterType.IsArray) == 1 &&
+							!m.GetParameters().Last().ParameterType.IsArray);
+					}).FirstOrDefault();
+
+					if (wrong != null)
+						throw new Exception(string.Format("Command {0} ({1}) has invalid call function; {2}", att.Name, cmd.FullName,
+							string.Format("{0}({1})", wrong.Name, wrong.GetParameters().Select(p => p.ParameterType + " " + p.Name))));
+
 					_CommandTypes[att.Name.ToLower()] = cmd;
+				}
 			}
 		}
 
@@ -62,6 +123,7 @@ namespace ConsoleMessenger
 		}
 	}
 
+	[AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
 	public class CommandAttribute : Attribute
 	{
 		public string Name { get; private set; }

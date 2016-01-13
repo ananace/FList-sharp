@@ -3,9 +3,18 @@ using System.Linq;
 
 namespace ConsoleMessenger.Commands
 {
-	[Command("join", Description = "List available channels, either public or private")]
+	[Command("join", Description = "Joins an available channel")]
 	public class Join : Command
 	{
+		public override bool TabComplete(string input, out string[] possibilities)
+		{
+			possibilities = Application.Connection.OfficialChannels
+				.Where(p => p.Title.StartsWith(input, StringComparison.OrdinalIgnoreCase))
+				.Select(p => p.Title)
+				.ToArray();
+			return possibilities.Any();
+		}
+
 		public void Call(string name)
 		{
 			Application.Connection.SendCommand(new libflist.Connection.Commands.Client.Channel.JoinCommand

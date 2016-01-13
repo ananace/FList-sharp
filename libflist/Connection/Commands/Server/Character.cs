@@ -38,8 +38,13 @@ namespace libflist.Connection.Commands.Server.Character
 	[Reply("NLN")]
 	public class OnlineReply : Command, Command.ICharacterCommand
 	{
+		[JsonIgnore]
+		public string CharacterName { get { return Character ?? Identity; } }
+
 		[JsonProperty(PropertyName = "character")]
 		public string Character { get; set; }
+		[JsonProperty(PropertyName = "identity")]
+		public string Identity { get; set; }
 
 		[JsonProperty(PropertyName = "gender")]
 		[JsonConverter(typeof(JsonEnumConverter), JsonEnumConverter.EnumHandling.Default)]

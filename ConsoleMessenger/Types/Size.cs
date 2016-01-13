@@ -35,6 +35,31 @@ namespace ConsoleMessenger.Types
 			return new Size(a.Width - b.Width, a.Height - b.Height);
 		}
 
+		public static bool operator >(Size a, Size b)
+		{
+			return a.Width > b.Width && a.Height > b.Height;
+		}
+		public static bool operator >=(Size a, Size b)
+		{
+			return a.Width >= b.Width && a.Height >= b.Height;
+		}
+		public static bool operator <(Size a, Size b)
+		{
+			return a.Width < b.Width && a.Height < b.Height;
+		}
+		public static bool operator <=(Size a, Size b)
+		{
+			return a.Width <= b.Width && a.Height <= b.Height;
+		}
+		public static bool operator ==(Size a, Size b)
+		{
+			return a.Equals(b);
+		}
+		public static bool operator !=(Size a, Size b)
+		{
+			return !a.Equals(b);
+		}
+
 		public static Size Constrain(Size a, Size b)
 		{
 			return new Size(a.Width > b.Width ? b.Width : a.Width, a.Height > b.Height ? b.Height : a.Height);
@@ -53,14 +78,6 @@ namespace ConsoleMessenger.Types
 		public bool Equals(Size other)
 		{
 			return Width == other.Width && Height == other.Height;
-		}
-		public static bool operator==(Size a, Size b)
-		{
-			return a.Equals(b);
-		}
-		public static bool operator!=(Size a, Size b)
-		{
-			return !a.Equals(b);
 		}
 	}
 }

@@ -9,13 +9,9 @@ namespace ConsoleMessenger.Commands
 	{
 		public override bool TabComplete(string input, out string[] possibilities)
 		{
-			if (string.IsNullOrWhiteSpace(input))
-			{
-				possibilities = Application.Connection.User.Characters.ToArray();
-				return true;
-			}
-
-			possibilities = Application.Connection.User.Characters.Where(p => p.StartsWith(input, StringComparison.OrdinalIgnoreCase)).ToArray();
+			possibilities = Application.Connection.User.Characters
+				.Where(p => p.StartsWith(input, StringComparison.OrdinalIgnoreCase))
+				.ToArray();
 			return possibilities.Any();
 		}
 
