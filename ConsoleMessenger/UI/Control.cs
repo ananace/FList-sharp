@@ -5,38 +5,6 @@ namespace ConsoleMessenger.UI
 {
 	public abstract class Control : IDisposable
 	{
-		public enum BorderStyle
-		{
-			None,
-			Filled,
-			BlockOutline,
-			Outline,
-			DoubleOutline
-		}
-
-		public enum FillType
-		{
-			Horizontal,
-			Vertical,
-			Both
-		}
-
-		public enum ShadowStyle
-		{
-			None,
-
-			Light,
-			Medium,
-			Dark
-		}
-
-		public enum SizingHint
-		{
-			FixedSize,
-            ShrinkToFit,
-			FillAvailable
-		}
-		
 		Point _Position;
 		Size _Size;
 		SizingHint _SizeHint;

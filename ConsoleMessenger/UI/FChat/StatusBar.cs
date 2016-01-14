@@ -1,11 +1,29 @@
 ﻿using System;
+using System.Linq;
 
 namespace ConsoleMessenger.UI.FChat
 {
-	class StatusBar : Control
+	class StatusBar : ContentControl
 	{
-		libflist.FChat Chat { get; set; }
+		libflist.FChat _Chat;
+		public libflist.FChat Chat
+		{
+			get { return _Chat; }
+			set
+			{
+				if (_Chat == value) return;
+				if (_Chat != null)
+				{
+					_Chat.Connection.OnIdentified -= (_, __) => RebuildString();
+				}
 
+				_Chat = value;
+
+				_Chat.Connection.OnIdentified += (_, __) => RebuildString();
+				_Chat.OnJoinChannel += (_, __) => RebuildString();
+				_Chat.OnLeaveChannel += (_, __) => RebuildString();
+			}
+        }
 
 
 		public override void Render()
@@ -19,20 +37,22 @@ namespace ConsoleMessenger.UI.FChat
 
 			Console.CursorLeft++;
 
-			if (Application.Connection.LocalCharacter != null)
-			{
-				Console.Write("[");
-				Console.ForegroundColor = Application.Connection.LocalCharacter.GenderColor;
-				Console.Write(Application.Connection.LocalCharacter.Name);
-				Console.ForegroundColor = ConsoleColor.DarkCyan;
-				Console.Write("]");
+			Graphics.WriteANSIString(ContentDrawable);
+		}
 
-				Console.CursorLeft++;
-			}
+		private void RebuildString()
+		{
+			var oB = "[".Color(ConsoleColor.DarkCyan);
+			var cB = "]".Color(ConsoleColor.DarkCyan) + " ";
 
-			Console.Write("[");
-
-			Console.Write("]");
+			int i = 0;
+			Content = string.Format("{0}{1}{2}",
+				_Chat.LocalCharacter != null ?
+					oB + _Chat.LocalCharacter.Name.Color(_Chat.LocalCharacter.GenderColor) + cB:
+					"",
+				oB /* TODO <cur chan number>:<chan name> */ + cB,
+				oB + "Act: " + string.Join(",",_Chat.JoinedChannels.Select(c => i++)) + cB // FIXME Actually show activity, not just buffers
+				);
 		}
 	}
 }

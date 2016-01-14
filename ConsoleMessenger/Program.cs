@@ -144,7 +144,7 @@ namespace ConsoleMessenger
 			_Root = new Panel();
 			_RootStack = new VerticalPanel()
 			{
-				Sizing = Control.SizingHint.FillAvailable
+				Sizing = SizingHint.FillAvailable
 			};
 			_MainPanel = new TitledPanel()
 			{
@@ -159,11 +159,13 @@ namespace ConsoleMessenger
 			};
 			_StatusBar = new UI.FChat.StatusBar()
 			{
+				Chat = _Chat,
 				Margin = new Rect(1, 0, 1, 0)
 			};
 			_ConsoleBuffer = new UI.FChat.ChannelBuffer()
 			{
-				Background = ConsoleColor.Black
+				Background = ConsoleColor.Black,
+				Foreground = ConsoleColor.Gray
 			};
 			_ChannelBuffers.Add(_ConsoleBuffer);
 			Debug.Listeners.Add(_ConsoleBuffer.TraceListener);
@@ -177,11 +179,11 @@ namespace ConsoleMessenger
 				Content = "[(Console)]",
 				Foreground = ConsoleColor.Gray,
 				Margin = new Rect(0, 0, 1, 0),
-				Sizing = Control.SizingHint.ShrinkToFit
+				Sizing = SizingHint.ShrinkToFit
 			};
 			_InputBox = new InputControl()
 			{
-				Sizing = Control.SizingHint.ShrinkToFit
+				Sizing = SizingHint.ShrinkToFit
 			};
 			_InputBox.OnTextEntered += (_, text) => TextEntry(text);
 
@@ -231,10 +233,10 @@ namespace ConsoleMessenger
 								if (completion == null || !completion.Found.Any())
 									break;
 
-									var completions = completion.Found;
+								var completions = completion.Found;
 
 								var firstSpace = completion.TruePrefix.IndexOf(' ');
-								var needsQuotes = firstSpace > -1 && firstSpace < completion.TruePrefix.Length-1;
+								var needsQuotes = firstSpace > -1 && firstSpace < completion.TruePrefix.Length - 1;
 
 								if (inp.EndsWith("\"", StringComparison.OrdinalIgnoreCase))
 									inp = inp.Substring(0, inp.Length - 1);
@@ -468,18 +470,20 @@ namespace ConsoleMessenger
 				Chan.SendMessage(Text);
 
 			if (Text.StartsWith("/me", StringComparison.OrdinalIgnoreCase))
-				buffer.PushMessage(string.Format("{3} {2}{0}\x1b[0m {1}",
-					Char.Name,
-					Text.Length > 3 ? Text.Substring(4) : "",
-					Char.GenderColor.ANSIColor() + (inputChar == null ? "\x1b[40;1m" : ""),
-					Char.StatusColor.ANSIColor() + Char.StatusChar
+				buffer.PushMessage(string.Format("{2} {0} {1}",
+					inputChar == null ?
+						Char.Name.Color(Char.GenderColor).BackgroundColor(ConsoleColor.DarkGray) :
+						Char.Name.Color(Char.GenderColor),
+					Text.Length > 3 ? Text.Substring(4).Color(ConsoleColor.White) : "",
+					Char.StatusChar.ToString().Color(Char.StatusColor)
 					));
 			else
-				buffer.PushMessage(string.Format("{3} {2}{0}\x1b[0m: {1}",
-					Char.Name,
+				buffer.PushMessage(string.Format("{2} {0}: {1}",
+					inputChar == null ?
+						Char.Name.Color(Char.GenderColor).BackgroundColor(ConsoleColor.DarkGray) :
+						Char.Name.Color(Char.GenderColor),
 					Text,
-					Char.GenderColor.ANSIColor() + (inputChar == null ? "\x1b[40;1m" : ""),
-					Char.StatusColor.ANSIColor() + Char.StatusChar
+					Char.StatusChar.ToString().Color(Char.StatusColor)
 					));
 		}
 
@@ -533,13 +537,14 @@ namespace ConsoleMessenger
 				var chatBuf = new ChannelBuffer
 				{
 					Tag = e.Channel,
-					Background = ConsoleColor.Black
+					Background = ConsoleColor.Black,
+					Foreground = ConsoleColor.Gray
 				};
 
 				e.Channel.OnChatMessage += (__, me) =>
 				{
 					WriteMessage(me.Message, me.Channel, me.Character);
-                };
+				};
 				e.Channel.OnRollMessage += (__, me) => chatBuf.PushMessage(me.Message);
 
 				_ChannelBuffers.Add(chatBuf);

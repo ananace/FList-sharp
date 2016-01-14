@@ -85,6 +85,8 @@ namespace libflist
 		public IEnumerable<KnownChannel> OfficialChannels { get { return _KnownChannels.Where(c => c.Official); } }
 		public IEnumerable<KnownChannel> PrivateChannels { get { return _KnownChannels.Where(c => !c.Official); } }
 
+		public IEnumerable<Channel> JoinedChannels { get { return _Channels; } }
+
 		public event EventHandler<CharacterEntryEventArgs> OnOnline; // JCH
 		public event EventHandler<CharacterEntryEventArgs> OnOffline; // LCH
 

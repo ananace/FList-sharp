@@ -45,6 +45,19 @@ namespace ConsoleMessenger.UI
 
 			return string.Format("\x1b[{0}{1}m", background ? c + 10 : c, b ? ";1" : "");
 		}
+
+		public static string BackgroundColor(this string String, ConsoleColor color)
+		{
+			if (String.EndsWith("\x1b[0m", StringComparison.OrdinalIgnoreCase))
+				String = String.Substring(0, String.Length - 4);
+			return string.Format("{0}{1}\x1b[0m", color.ANSIColor(true), String);
+		}
+		public static string Color(this string String, ConsoleColor color)
+		{
+			if (String.EndsWith("\x1b[0m", StringComparison.OrdinalIgnoreCase))
+				String = String.Substring(0, String.Length - 4);
+			return string.Format("{0}{1}\x1b[0m", color.ANSIColor(), String);
+		}
 	}
 
 	public static class Graphics

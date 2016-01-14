@@ -59,6 +59,7 @@
     <Compile Include="UI\Panels\VerticalPanel.cs" />
     <Compile Include="UI\Panels\TitledPanel.cs" />
     <Compile Include="UI\Panels\HorizontalPanel.cs" />
+    <Compile Include="UI\Types.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\libflist\libflist.csproj">
