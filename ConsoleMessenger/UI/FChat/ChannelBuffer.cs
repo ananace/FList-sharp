@@ -34,7 +34,7 @@ namespace ConsoleMessenger.UI.FChat
 
 			public override void WriteLine(string message)
 			{
-				_Buf.PushMessage(message);
+				_Buf.PushMessage("-".Color(ConsoleColor.Blue) + "!" + "-".Color(ConsoleColor.Blue) + " " + message);
 			}
 		}
 
@@ -113,12 +113,20 @@ namespace ConsoleMessenger.UI.FChat
 
 		public override void Render()
 		{
+			List<Rendered> toDraw = new List<Rendered>();
 			int totalHeight = 0;
 			foreach (var msg in (_RenderedMessages as IEnumerable<Rendered>)
-				.Reverse()
-				.TakeWhile(c => (totalHeight += c.Size.Height) <= Size.Height)
-				.Skip(totalHeight > Size.Height ? 1 : 0)
-				.Reverse())
+				.Reverse().TakeWhile(p =>
+				{
+					if (totalHeight + p.Size.Height > Size.Height)
+					{
+						totalHeight = Size.Height;
+						return false;
+					}
+
+					totalHeight += p.Size.Height;
+					return true;
+				}).Reverse())
 			{
 				// TODO: If message wraps around, indent to the wrap point.
 				Console.Write(msg.Timestamp.ToShortTimeString());
