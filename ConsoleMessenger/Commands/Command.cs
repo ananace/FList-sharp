@@ -16,6 +16,8 @@ namespace ConsoleMessenger
 			public string[] Found { get; set; }
 		}
 
+		object _Caller;
+		protected object Caller { get { return _Caller; } }
 		public string Name { get { return GetType().GetCustomAttribute<CommandAttribute>().Name; } }
 
 		public virtual bool TabComplete(string input, out string[] possibilities)
@@ -31,7 +33,7 @@ namespace ConsoleMessenger
 			return Inp.Select(v => conv.ConvertFromString(v)).ToArray();
 		}
 
-		public void Invoke(IEnumerable<string> args)
+		public void Invoke(IEnumerable<string> args, object sender = null)
 		{
 			var method = GetType()
 				.GetMethods()
@@ -84,7 +86,9 @@ namespace ConsoleMessenger
 
 			input = realParams;
 
+			_Caller = sender;
 			method.Invoke(this, input);
+			_Caller = null;
 		}
 
 		static Dictionary<string, Type> _CommandTypes;

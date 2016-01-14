@@ -185,7 +185,7 @@ namespace ConsoleMessenger
 			{
 				Sizing = SizingHint.ShrinkToFit
 			};
-			_InputBox.OnTextEntered += (_, text) => TextEntry(text);
+			_InputBox.OnTextEntered += (box, text) => TextEntry(text, box);
 
 			_InputPanel.Children.Add(_ChannelInfo);
 			_InputPanel.Children.Add(_InputBox);
@@ -414,17 +414,17 @@ namespace ConsoleMessenger
 			return new Command.CompleteResult { Prefix = prefix, TruePrefix = trueprefix, Found = avail.ToArray() };
 		}
 
-		public static void RunCommand(string command, IEnumerable<string> Args)
+		public static void RunCommand(string command, IEnumerable<string> Args, object source = null)
 		{
 			var cmd = Command.Create(command);
 
 			if (cmd == null)
 				throw new Exception(string.Format("Command not found: {0}", command));
 
-			cmd.Invoke(Args);
+			cmd.Invoke(Args, source);
 		}
 
-		public static void TextEntry(string Text)
+		public static void TextEntry(string Text, object source = null)
 		{
 			if (Text.StartsWith("/", StringComparison.OrdinalIgnoreCase))
 			{
@@ -436,7 +436,7 @@ namespace ConsoleMessenger
 						: new string[] { element })  // Keep the entire item
 					.SelectMany(element => element);
 
-				RunCommand(data.First().ToLower(), data.Skip(1));
+				RunCommand(data.First().ToLower(), data.Skip(1), source);
 				return;
 			}
 

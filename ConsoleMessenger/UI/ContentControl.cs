@@ -41,7 +41,7 @@ namespace ConsoleMessenger.UI
 			}
 		}
 
-		public event EventHandler OnContentChanged;
+		public virtual event EventHandler OnContentChanged;
 
 		public override void SizeToContent()
 		{

@@ -19,6 +19,9 @@ namespace ConsoleMessenger.Commands
 
 		public void Call(string username, string password)
 		{
+			if (Caller is UI.InputControl)
+				(Caller as UI.InputControl).PopHistory(); // Don't store the connect command
+
 			Debug.WriteLine(string.Format("Connecting with username {0}", username));
 			Application.Connection.Connect(username, password);
 
