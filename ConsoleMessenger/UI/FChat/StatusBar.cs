@@ -14,14 +14,16 @@ namespace ConsoleMessenger.UI.FChat
 				if (_Chat == value) return;
 				if (_Chat != null)
 				{
-					_Chat.Connection.OnIdentified -= (_, __) => RebuildString();
+					_Chat.Connection.OnIdentified -= OnEvent;
+					_Chat.OnJoinChannel -= OnEvent;
+					_Chat.OnLeaveChannel -= OnEvent;
 				}
 
 				_Chat = value;
 
-				_Chat.Connection.OnIdentified += (_, __) => RebuildString();
-				_Chat.OnJoinChannel += (_, __) => RebuildString();
-				_Chat.OnLeaveChannel += (_, __) => RebuildString();
+				_Chat.Connection.OnIdentified += OnEvent;
+				_Chat.OnJoinChannel += OnEvent;
+				_Chat.OnLeaveChannel += OnEvent;
 			}
         }
 
@@ -40,6 +42,10 @@ namespace ConsoleMessenger.UI.FChat
 			Graphics.WriteANSIString(ContentDrawable);
 		}
 
+		private void OnEvent(object a, object b)
+		{
+			RebuildString();
+		}
 		private void RebuildString()
 		{
 			var oB = "[".Color(ConsoleColor.DarkCyan);

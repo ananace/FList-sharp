@@ -251,56 +251,8 @@ namespace ConsoleMessenger
 								else
 								{
 									inp += (needsQuotes ? "\"" : "") + completion.TruePrefix;
-									/*
-									var ncompletions = completions.Length;
-									int last = -1;
 
-									for (int p = 0; p < completions[0].Length; p++)
-									{
-										char c = completions[0][p];
-
-
-										for (int i = 1; i < ncompletions; i++)
-										{
-											if (completions[i].Length < p)
-												goto mismatch;
-
-											if (completions[i][p] != c)
-											{
-												goto mismatch;
-											}
-										}
-										last = p;
-									}
-									mismatch:
-									//var prefix = completion.Prefix;
-									if (last != -1)
-									{
-										inp += (needsQuotes ? "\"" : "") + completions[0].Substring(0, last + 1);
-
-										// Adjust the completions to skip the common prefix
-										//prefix += completions[0].Substring(0, last + 1);
-										//for (int i = 0; i < completions.Length; i++)
-										//	completions[i] = completions[i].Substring(last + 1);
-									}
-									*/
-									/*
-									var msg = (needsQuotes ? "\"" + found.First().Full + "\"" : found.First().Full);
-									if (inp.Contains('"'))
-									{
-										inp = inp.Remove(inp.LastIndexOf('"')) + msg;
-									}
-									else if (inp.Contains(' '))
-									{
-										// TODO: Remove anything of the to-complete that might exist in buffer already
-										if (inp.Last() == ' ')
-											inp = inp + msg;
-										else
-											inp = inp.Remove(inp.LastIndexOf(' ') + 1) + msg;
-									}
-									else
-										inp = (inp.Length > 1 ? inp.Remove(1) : inp) + found.First() + ' ';
-										*/
+									// TODO: Show available tab-completions
 								}
 
 								_InputBox.Content = inp;

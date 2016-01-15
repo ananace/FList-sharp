@@ -85,7 +85,7 @@ namespace ConsoleMessenger.UI
 
 					case ConsoleKey.Delete:
 						{
-							if (_Cursor >= buf.Length - 1)
+							if (_Cursor >= buf.Length)
 								break;
 
 							buf.Remove(_Cursor, 1);
