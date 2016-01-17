@@ -6,6 +6,8 @@ using WebSocketSharp;
 using libflist.Connection.Commands;
 using libflist.Connection.Types;
 using libflist.Connection.Util;
+using System.IO;
+using System.Text;
 
 namespace libflist.Connection
 {
@@ -42,13 +44,13 @@ namespace libflist.Connection
 
 		public void Dispose()
 		{
-			Disconnect().Wait();
+			Disconnect();
 
 			_commands = null;
 			Endpoint = null;
 		}
 
-		public async Task Disconnect(CloseStatusCode code = CloseStatusCode.Normal, string reason = null)
+		public void Disconnect(CloseStatusCode code = CloseStatusCode.Normal, string reason = null)
 		{
 			if (_socket == null)
 				return;
@@ -57,40 +59,38 @@ namespace libflist.Connection
 			_socket = null;
 
 			if (sock.IsAlive)
-				await sock.CloseAsync(code, reason);
+				sock.Close(code, reason);
 			
 			CurrentUserRight = UserRight.Disconnected;
 		}
 
-		public async Task Connect()
+		public void Connect()
 		{
 			if (Endpoint == null)
 				throw new ArgumentNullException(nameof(Endpoint));
 
-			await Disconnect(reason: "Reconnecting.");
+			Disconnect(reason: "Reconnecting.");
 
 			CurrentUserRight = UserRight.Disconnected;
 
 			_socket = new WebSocket(Endpoint.AbsoluteUri);
 
-			_socket.OnOpen += async () => {
+			_socket.OnOpen += (_, __) => {
 				if (OnConnected != null)
 					OnConnected(this, new EventArgs());
-
-				await Task.Run(()=> { });
 			};
-			_socket.OnClose += async (arg) => {
-				await Disconnect();
+			_socket.OnClose += (_, __) => {
+				Disconnect();
 
 				if (OnDisconnected != null)
 					OnDisconnected(this, new EventArgs());
 			};
 			_socket.OnMessage += _socket_OnMessage;
 
-			await _socket.ConnectAsync();
+			_socket.Connect();
 		}
 
-		public async Task Identify(string Username, string Ticket, string Character)
+		public void Identify(string Username, string Ticket, string Character)
 		{
 			if (Username == null)
 				throw new ArgumentNullException(nameof(Username));
@@ -99,14 +99,14 @@ namespace libflist.Connection
 			if (Character == null)
 				throw new ArgumentNullException(nameof(Character));
 
-			await SendCommand(new Commands.Client.Connection.IdentifyCommand {
+			SendCommand(new Commands.Client.Connection.IdentifyCommand {
 				Ticket = Ticket,
 				Account = Username,
 				Character = Character
 			});
 		}
 
-		public async Task SendCommand(Command cmd)
+		public void SendCommand(Command cmd)
 		{
 			if (cmd == null)
 				throw new ArgumentNullException(nameof(cmd));
@@ -117,27 +117,27 @@ namespace libflist.Connection
 			if (att.MinRight > CurrentUserRight)
 				throw new Exception("Not allowed to send command");
 
-			await _socket.SendAsync(cmd.ToString());
+			_socket.Send(cmd.ToString());
 
 			if (OnSentCommand != null)
 				OnSentCommand(this, new CommandEventArgs(cmd));
 		}
 
-		async Task _socket_OnMessage(MessageEventArgs arg)
+		void _socket_OnMessage(object sender, MessageEventArgs arg)
 		{
 			string token = null;
 			string json = null;
 
 			try
 			{
-				using (var stream = arg.Text)
+				using (var reader = new StringReader(arg.Data))
 				{
 					char[] data = new char[3];
-					await stream.ReadBlockAsync(data, 0, 3);
+					reader.Read(data, 0, 3);
 					token = new string(data);
 
-					stream.Read();
-					json = await stream.ReadToEndAsync();
+					reader.Read();
+					json = reader.ReadToEnd();
 
 					if (PreParseCommand != null)
 						PreParseCommand(this, string.Format("{0} {1}", token, json));
@@ -157,7 +157,7 @@ namespace libflist.Connection
 					}
 					else if (AutoPing && cmd is Commands.Server.ServerPing)
 					{
-						await SendCommand(new Commands.Client.Server.PingCommand());
+						SendCommand(new Commands.Client.Server.PingCommand());
 					}
 				}
 			}

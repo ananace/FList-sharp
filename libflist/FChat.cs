@@ -66,10 +66,16 @@ namespace libflist
 			public bool Official { get { return ID == Title; } }
 		}
 
+		static readonly TimeSpan OFFICIAL_TIMEOUT = TimeSpan.FromMinutes(5);
+		static readonly TimeSpan PRIVATE_TIMEOUT = TimeSpan.FromMinutes(1);
+
+		DateTime _LastPublicUpdate;
+		DateTime _LastPrivateUpdate;
 		List<KnownChannel> _KnownChannels;
 		List<Channel> _Channels;
 		List<Character> _Characters;
 
+		ServerVariables _Variables;
 		ChatConnection _Connection;
 		TicketResponse _Ticket;
 		DateTime _TicketTime;
@@ -82,8 +88,26 @@ namespace libflist
 
 		// TODO: Reload if data is stale.
 		public IReadOnlyList<KnownChannel> KnownChannels { get { return _KnownChannels; } }
-		public IEnumerable<KnownChannel> OfficialChannels { get { return _KnownChannels.Where(c => c.Official); } }
-		public IEnumerable<KnownChannel> PrivateChannels { get { return _KnownChannels.Where(c => !c.Official); } }
+		public IEnumerable<KnownChannel> OfficialChannels
+		{
+			get
+			{
+				if (DateTime.Now - _LastPublicUpdate > OFFICIAL_TIMEOUT)
+					SendCommand(new Connection.Commands.Client.Global.GetPublicChannelsCommand());
+
+				return _KnownChannels.Where(c => c.Official);
+			}
+		}
+		public IEnumerable<KnownChannel> PrivateChannels
+		{
+			get
+			{
+				if (DateTime.Now - _LastPrivateUpdate > PRIVATE_TIMEOUT)
+					SendCommand(new Connection.Commands.Client.Global.GetPrivateChannelsCommand());
+
+				return _KnownChannels.Where(c => !c.Official);
+			}
+		}
 
 		public IEnumerable<Channel> JoinedChannels { get { return _Channels; } }
 
@@ -118,6 +142,7 @@ namespace libflist
 			_KnownChannels = new List<KnownChannel>();
 			_Channels = new List<Channel>();
 			_Characters = new List<Character>();
+			_Variables = new ServerVariables();
 
 			_Connection = new ChatConnection();
 
@@ -130,8 +155,9 @@ namespace libflist
 
 		public void Dispose()
 		{
-			_Connection.Disconnect().Wait();
+			_Connection.Disconnect();
 
+			_Variables.Clear();
 			_KnownChannels = null;
 			_Channels = null;
 			_Characters = null;
@@ -175,17 +201,18 @@ namespace libflist
 			}
 
 			_User = User;
+			_Variables.Clear();
 
 			lock (_Connection)
 			{
-				_Connection.Connect().Wait();
+				_Connection.Connect();
 			}
 		}
 
 		public void Disconnect()
 		{
 			lock (_Connection)
-				_Connection.Disconnect().Wait();
+				_Connection.Disconnect();
 		}
 
 		public void Reconnect(bool AutoLogin = true)
@@ -196,12 +223,13 @@ namespace libflist
 			if (DateTime.Now - _TicketTime > TimeSpan.FromHours(24))
 				throw new ArgumentException("Ticket has timed out, reconnect is not possible");
 
+			_Variables.Clear();
 			lock (_Connection)
 			{
-				_Connection.Connect().Wait();
+				_Connection.Connect();
 
 				if (AutoLogin)
-					_Connection.Identify(_User, _Ticket.Ticket, _Character).Wait();
+					_Connection.Identify(_User, _Ticket.Ticket, _Character);
 			}
 		}
 
@@ -214,13 +242,14 @@ namespace libflist
 
 			lock (_Connection)
 			{
-				//				if (!_Connection.Connected)
-				//					throw new Exception("Not connected.");
+				if (!_Connection.Connected)
+					throw new Exception("Not connected.");
+
 				if (_Connection.Identified)
 					return;
 
 				_Character = Character;
-				_Connection.Identify(_User, _Ticket.Ticket, _Character).Wait();
+				_Connection.Identify(_User, _Ticket.Ticket, _Character);
 			}
 		}
 
@@ -229,8 +258,13 @@ namespace libflist
 			if (cmd.GetType().GetCustomAttribute<ReplyAttribute>() != null)
 				throw new ArgumentException("Can't send server replies", nameof(cmd));
 
+			if (cmd is Connection.Commands.Client.Global.GetPublicChannelsCommand)
+				_LastPublicUpdate = DateTime.Now;
+			if (cmd is Connection.Commands.Client.Global.GetPrivateChannelsCommand)
+				_LastPrivateUpdate = DateTime.Now;
+
 			lock (_Connection)
-				_Connection.SendCommand(cmd).Wait();
+				_Connection.SendCommand(cmd);
 		}
 
 
@@ -297,7 +331,7 @@ namespace libflist
 
 		void _Connection_OnIdentified(object sender, EventArgs e)
 		{
-			_Connection.SendCommand(new Connection.Commands.Client.Server.UptimeCommand()).Wait();
+			_Connection.SendCommand(new Connection.Commands.Client.Server.UptimeCommand());
 		}
 
 		void _Connection_OnReceivedCommand(object sender, Connection.Util.CommandEventArgs e)
@@ -495,7 +529,7 @@ namespace libflist
 						{
 							handled = true;
 
-							_Connection.SendCommand(new Connection.Commands.Client.Server.PingCommand()).Wait();
+							_Connection.SendCommand(new Connection.Commands.Client.Server.PingCommand());
 						}
 						break;
 
@@ -550,6 +584,16 @@ namespace libflist
 
 							if (OnTypingChange != null)
 								OnTypingChange(this, new CharacterEntryEventArgs<TypingStatus>(character, tpn.Status, tpn));
+						}
+						break;
+
+					case "VAR":
+						{
+							handled = true;
+
+							var var = e.Command as Connection.Commands.Server.ServerVariable;
+
+							_Variables.SetVariable(var.Name, var.Value);
 						}
 						break;
 				}

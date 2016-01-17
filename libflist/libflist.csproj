@@ -33,11 +33,12 @@
     </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Net.Http" />
-    <Reference Include="websocket-sharp.clone">
-      <HintPath>..\packages\websocket-sharp.clone.2.0.0\lib\net45\websocket-sharp.clone.dll</HintPath>
-    </Reference>
     <Reference Include="mscorlib" />
     <Reference Include="System.Core" />
+    <Reference Include="websocket-sharp, Version=1.0.2.36589, Culture=neutral, PublicKeyToken=5660b08a1845a91e, processorArchitecture=MSIL">
+      <HintPath>..\packages\WebSocketSharp.1.0.3-rc9\lib\websocket-sharp.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="JSON\Responses\TicketResponse.cs" />
@@ -51,6 +52,7 @@
     <Compile Include="Connection\Commands\Meta\MetaCommands.cs" />
     <Compile Include="Connection\Commands\Client\Server.cs" />
     <Compile Include="Connection\Commands\Server\ServerToClient.cs" />
+    <Compile Include="ServerVariables.cs" />
     <Compile Include="Util\Converters\JsonEnumConverter.cs" />
     <Compile Include="Util\EnumValueAttribute.cs" />
     <Compile Include="Connection\Commands\Client\Connection.cs" />
