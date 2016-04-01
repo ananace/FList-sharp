@@ -19,7 +19,7 @@ namespace ConsoleMessenger.Commands
 		public void Call()
 		{
 			Debug.WriteLine("Available commands are:");
-			Debug.WriteLine(string.Join(", ", Command.Available.Select(t => t.Key).OrderBy(t => t)));
+			Debug.WriteLine("  " + string.Join(", ", Command.Available.Select(t => t.Key).OrderBy(t => t)));
 			Debug.WriteLine("More help with: /help <command>");
 		}
 

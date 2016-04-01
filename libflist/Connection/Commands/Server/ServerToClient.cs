@@ -122,6 +122,8 @@ namespace libflist.Connection.Commands.Server
 	{
 		public enum IgnoreAction
 		{
+			Init,
+
 			Add,
 			Delete,
 			List,

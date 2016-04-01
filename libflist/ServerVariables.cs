@@ -40,6 +40,8 @@ namespace libflist
 			_OtherVars[name] = value;
 		}
 
+		public int Connected { get { return (int)(_OtherVars["__connected"] ?? 0); } }
+
 		public int ChatMax { get { return (int)(_OtherVars["chat_max"] ?? 0); } }
 		public float ChatTimeout { get { return (int)(_OtherVars["msg_flood"] ?? 0); } }
 		public int PrivateMax { get { return (int)(_OtherVars["priv_max"] ?? 0); } }

@@ -80,6 +80,7 @@ namespace libflist
 		string _User;
 		string _Character;
 
+		public ServerVariables Variables { get { return _Variables; } }
 		public ChatConnection Connection { get { return _Connection; } }
 		public TicketResponse Ticket { get; set; }
 		public DateTime TicketTimestamp { get; set; }
@@ -393,6 +394,17 @@ namespace libflist
 						}
 						break;
 
+					case "ADL":
+						{
+							handled = true;
+
+							var adl = e.Command as Connection.Commands.Server.ChatOPList;
+
+							// TODO: Handle OP list properly.
+							Debug.WriteLine($"Recieved OP list with {adl.OPs.Length} entries.");
+						}
+						break;
+
 					case "AOP":
 						{
 							handled = true;
@@ -418,6 +430,16 @@ namespace libflist
 
 							if (OnPublicChanListUpdate != null)
 								OnPublicChanListUpdate(this, new ChannelEntryEventArgs<IReadOnlyList<KnownChannel>>(_KnownChannels, cha) { Old = oldList });
+						}
+						break;
+
+					case "CON":
+						{
+							handled = true;
+
+							var con = e.Command as Connection.Commands.Server.ServerConnected;
+
+							_Variables.SetVariable("__connected", con.ConnectedUsers);
 						}
 						break;
 
@@ -474,6 +496,62 @@ namespace libflist
 									Channel = chan.ID,
 									Character = character.Name
 								});
+						}
+						break;
+
+					case "FRL":
+						{
+							handled = true;
+							var frl = e.Command as Connection.Commands.Server.FriendListReply;
+
+							Debug.WriteLine($"Recieved {frl.FriendsAndBookmarks.Length} friends and bookmarks");
+						}
+						break;
+
+					case "HLO":
+						{
+							handled = true;
+
+							var hlo = e.Command as Connection.Commands.Server.ServerHello;
+
+							// TODO: Properly report server hello.
+							Debug.WriteLine(hlo.Message);
+						}
+						break;
+
+					case "IDN":
+						{
+							handled = true;
+
+							var idn = e.Command as Connection.Commands.Server.ServerIdentify;
+
+							// TODO: Handle identifying properly
+							Debug.WriteLine($"Identified as {idn.Character}");
+						}
+						break;
+
+					case "IGN":
+						{
+							handled = true;
+
+							var ign = e.Command as Connection.Commands.Server.IgnoreListReply;
+
+							// TODO: Handle ignores
+
+							switch(ign.Action)
+							{
+								case libflist.Connection.Commands.Server.IgnoreListReply.IgnoreAction.Init:
+									Debug.WriteLine($"Initial ignore list received. {ign.Characters.Length} entries.");
+									break;
+
+								case libflist.Connection.Commands.Server.IgnoreListReply.IgnoreAction.Add:
+									Debug.WriteLine($"TODO: Add {ign.Character} to ignore list.");
+									break;
+
+								case libflist.Connection.Commands.Server.IgnoreListReply.IgnoreAction.Delete:
+									Debug.WriteLine($"TODO: Remove {ign.Character} from ignore list.");
+									break;
+							}
 						}
 						break;
 
@@ -584,6 +662,20 @@ namespace libflist
 
 							if (OnTypingChange != null)
 								OnTypingChange(this, new CharacterEntryEventArgs<TypingStatus>(character, tpn.Status, tpn));
+						}
+						break;
+
+					case "UPT":
+						{
+							handled = true;
+
+							var upt = e.Command as Connection.Commands.Server.ServerUptime;
+
+							_Variables.SetVariable("__boot_time", upt.StartTime);
+							_Variables.SetVariable("__users", upt.CurrentUsers);
+							_Variables.SetVariable("__channels", upt.Channels);
+							_Variables.SetVariable("__connections", upt.AcceptedConnections);
+							_Variables.SetVariable("__peak", upt.PeakUsers);
 						}
 						break;
 
