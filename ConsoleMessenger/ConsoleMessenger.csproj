@@ -19,6 +19,7 @@
     <WarningLevel>4</WarningLevel>
     <ExternalConsole>true</ExternalConsole>
     <PlatformTarget>x86</PlatformTarget>
+    <Externalconsole>true</Externalconsole>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
     <Optimize>true</Optimize>
@@ -60,6 +61,7 @@
     <Compile Include="UI\Panels\TitledPanel.cs" />
     <Compile Include="UI\Panels\HorizontalPanel.cs" />
     <Compile Include="UI\Types.cs" />
+    <Compile Include="Commands\Help.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\libflist\libflist.csproj">

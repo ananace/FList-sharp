@@ -256,6 +256,7 @@ namespace ConsoleMessenger
 								}
 
 								_InputBox.Content = inp;
+								_InputBox.Cursor = inp.Length;
 							}
 							break;
 
@@ -343,8 +344,8 @@ namespace ConsoleMessenger
 				{
 					used = data.First();
 					avail = Command.Available
-						.Where(c => c.StartsWith(data.First(), StringComparison.CurrentCultureIgnoreCase))
-						.Select(c => c + " ");
+						.Where(c => c.Key.StartsWith(data.First(), StringComparison.CurrentCultureIgnoreCase))
+						.Select(c => c.Key + " ");
 				}
 			}
 			else if (!input.Contains(' '))

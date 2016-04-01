@@ -92,7 +92,27 @@ namespace ConsoleMessenger
 		}
 
 		static readonly Dictionary<string, Type> _CommandTypes = new Dictionary<string, Type>();
-		public static IEnumerable<string> Available { get { return _CommandTypes.Select(t => t.Key); } }
+		public static IEnumerable<string> Names { get { return _CommandTypes.Keys; } }
+		public static IEnumerable<KeyValuePair<string, CommandAttribute>> Available
+		{
+			get
+			{
+				foreach (var cmd in _CommandTypes)
+				{
+					yield return new KeyValuePair<string, CommandAttribute>(cmd.Key, cmd.Value
+						.GetCustomAttributes<CommandAttribute>()
+						.First());
+				}
+			}
+		}
+
+		public static CommandAttribute GetCommand(string name)
+		{
+			if (!_CommandTypes.ContainsKey(name))
+				return null;
+
+			return _CommandTypes[name].GetCustomAttributes<CommandAttribute>().First();
+		}
 
 		static Command()
 		{
@@ -120,10 +140,9 @@ namespace ConsoleMessenger
 
 		public static Command Create(string name)
 		{
-			if (_CommandTypes.ContainsKey(name.ToLower()))
-				return Assembly.GetExecutingAssembly().CreateInstance(_CommandTypes[name.ToLower()].FullName) as Command;
-
-			return null;
+			return _CommandTypes.ContainsKey(name.ToLower()) 
+				? Assembly.GetExecutingAssembly().CreateInstance(_CommandTypes[name.ToLower()].FullName) as Command 
+				: null;
 		}
 	}
 
