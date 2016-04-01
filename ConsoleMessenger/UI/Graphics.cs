@@ -13,9 +13,7 @@ namespace ConsoleMessenger.UI
 			return (data.First() + data.Skip(1).Select(s =>
 			{
 				int i = s.IndexOf('m');
-				if (i >= 0)
-					return s.Substring(i + 1);
-				return s;
+				return i >= 0 ? s.Substring(i + 1) : s;
 			}).ToString("")).Length;
 		}
 
@@ -140,6 +138,9 @@ namespace ConsoleMessenger.UI
 
 			Console.BackgroundColor = oldBack;
 			Console.ForegroundColor = oldFore;
+
+			if (p.HasValue)
+				Console.SetCursorPosition(oldPos.X, oldPos.Y);
 		}
 
 		public static void DrawChar(Point p, char c, ConsoleColor Background = ConsoleColor.Black, ConsoleColor Foreground = ConsoleColor.White)
@@ -193,6 +194,9 @@ namespace ConsoleMessenger.UI
 
 			var tmp = new string(c, p2.X - p1.X);
 
+			Console.BackgroundColor = Background;
+			Console.ForegroundColor = Foreground;
+
 			for (int y = p1.Y; y != p2.Y; y += Math.Sign(p2.Y - p1.Y))
 			{
 				Console.SetCursorPosition(p1.X, y);
@@ -233,7 +237,7 @@ namespace ConsoleMessenger.UI
 		}
 
 		#region internal
-		private static void Swap<T>(ref T lhs, ref T rhs) { T temp; temp = lhs; lhs = rhs; rhs = temp; }
+		static void Swap<T>(ref T lhs, ref T rhs) { T temp; temp = lhs; lhs = rhs; rhs = temp; }
 
 		public delegate bool PlotFunction(int x, int y);
 

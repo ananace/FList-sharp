@@ -247,10 +247,12 @@ namespace ConsoleMessenger.UI
 
 				if (Border != BorderStyle.None)
 				{
-					var brush = BorderBrush;
 					if (!Background.HasValue)
-						brush = brush.Replace(' ', '\0');
-					Graphics.DrawBox(DisplayPosition, Size, BorderBrush, Background ?? (Parent != null ? Parent.Background : null) ?? ConsoleColor.Black, Foreground);
+						Graphics.DrawBox(DisplayPosition,
+							Size, 
+							BorderBrush,
+							Background ?? (Parent != null ? Parent.Background : null) ?? ConsoleColor.Black,
+							Foreground);
 
 					Console.SetCursorPosition(DisplayPosition.X + 1, DisplayPosition.Y + 1);
 				}
@@ -274,8 +276,16 @@ namespace ConsoleMessenger.UI
 				
 				if (Shadow != ShadowStyle.None)
 				{
-					Graphics.DrawLine(DisplayPosition + new Size(0, Size.Height + 1), DisplayPosition + Size + new Size(1, 1), Parent != null ? Parent.Background ?? ConsoleColor.Black : ConsoleColor.Black, Console.BackgroundColor, ShadowBrush);
-					Graphics.DrawLine(DisplayPosition + new Size(Size.Width + 1, 0), DisplayPosition + Size + new Size(1, 1), Parent != null ? Parent.Background ?? ConsoleColor.Black : ConsoleColor.Black, Console.BackgroundColor, ShadowBrush);
+					Graphics.DrawLine(DisplayPosition + new Size(0, Size.Height + 1),
+						DisplayPosition + Size + new Size(1, 1),
+						Parent != null ? Parent.Background ?? ConsoleColor.Black : ConsoleColor.Black,
+						Console.BackgroundColor,
+						ShadowBrush);
+					Graphics.DrawLine(DisplayPosition + new Size(Size.Width + 1, 0),
+						DisplayPosition + Size + new Size(1, 1),
+						Parent != null ? Parent.Background ?? ConsoleColor.Black : ConsoleColor.Black,
+						Console.BackgroundColor,
+						ShadowBrush);
 				}
 
 				Render();

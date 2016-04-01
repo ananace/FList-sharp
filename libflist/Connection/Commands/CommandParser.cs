@@ -8,8 +8,8 @@ namespace libflist.Connection.Commands
 {
 	public static class CommandParser
 	{
-		static Dictionary<string, Type> _CommandTypes = new Dictionary<string, Type>();
-		static Dictionary<string, Type> _ReplyTypes = new Dictionary<string, Type>();
+		static readonly Dictionary<string, Type> _CommandTypes = new Dictionary<string, Type>();
+		static readonly Dictionary<string, Type> _ReplyTypes = new Dictionary<string, Type>();
 		public static bool AllowMeta { get; set; } = true;
 
 		public static IEnumerable<string> ImplementedCommands
@@ -51,13 +51,15 @@ namespace libflist.Connection.Commands
 		{
 			if (!_CommandTypes.ContainsKey(Token))
 			{
-				if (CommandParser.AllowMeta && !(AllowMeta.HasValue && AllowMeta.Value == false) || (AllowMeta.HasValue && AllowMeta.Value))
+				if (CommandParser.AllowMeta
+					&& !(AllowMeta.HasValue && !AllowMeta.Value)
+					|| (AllowMeta.HasValue && AllowMeta.Value))
 					return new Meta.UnknownCommand { CMDToken = Token, Data = JSON };
 			}
 			else
 			{
 				var type = _CommandTypes[Token];
-				if (!type.GetProperties().Where(p => p.GetCustomAttribute<JsonIgnoreAttribute>() == null).Any())
+				if (type.GetProperties().All(p => p.GetCustomAttribute<JsonIgnoreAttribute>() != null))
 					return type.Assembly.CreateInstance(type.FullName) as Command;
 
 				try
@@ -66,7 +68,9 @@ namespace libflist.Connection.Commands
 				}
 				catch (Exception ex)
 				{
-					if (CommandParser.AllowMeta && !(AllowMeta.HasValue && AllowMeta.Value == false) || (AllowMeta.HasValue && AllowMeta.Value))
+					if (CommandParser.AllowMeta
+						&& !(AllowMeta.HasValue && !AllowMeta.Value)
+						|| (AllowMeta.HasValue && AllowMeta.Value))
 						return new Meta.FailedCommand { CMDToken = Token, Data = JSON, Exception = ex };
 				}
 			}
@@ -78,13 +82,15 @@ namespace libflist.Connection.Commands
 		{
 			if (!_ReplyTypes.ContainsKey(Token))
 			{
-				if (CommandParser.AllowMeta && !(AllowMeta.HasValue && AllowMeta.Value == false) || (AllowMeta.HasValue && AllowMeta.Value))
+				if (CommandParser.AllowMeta
+					&& !(AllowMeta.HasValue && !AllowMeta.Value)
+					|| (AllowMeta.HasValue && AllowMeta.Value))
 					return new Meta.UnknownReply { CMDToken = Token, Data = JSON };
 			}
 			else
 			{
 				var type = _ReplyTypes[Token];
-				if (!type.GetProperties().Where(p => p.GetCustomAttribute<JsonIgnoreAttribute>() == null).Any())
+				if (type.GetProperties().All(p => p.GetCustomAttribute<JsonIgnoreAttribute>() != null))
 					return type.Assembly.CreateInstance(type.FullName) as Command;
 
 				try
@@ -93,7 +99,9 @@ namespace libflist.Connection.Commands
 				}
 				catch (Exception ex)
 				{
-					if (CommandParser.AllowMeta && !(AllowMeta.HasValue && AllowMeta.Value == false) || (AllowMeta.HasValue && AllowMeta.Value))
+					if (CommandParser.AllowMeta
+						&& !(AllowMeta.HasValue && !AllowMeta.Value)
+						|| (AllowMeta.HasValue && AllowMeta.Value))
 						return new Meta.FailedReply { CMDToken = Token, Data = JSON, Exception = ex };
 				}
 			}

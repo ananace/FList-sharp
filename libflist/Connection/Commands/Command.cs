@@ -13,11 +13,14 @@ namespace libflist.Connection.Commands
 			get
 			{
 				dynamic att = GetType().GetCustomAttribute<CommandAttribute>();
+				if (att != null)
+					return att.Token;
 
-				if (att == null)
-					att = GetType().GetCustomAttribute<ReplyAttribute>();
-				
-				return att.Token;
+				att = GetType().GetCustomAttribute<ReplyAttribute>();
+				if (att != null)
+					return att.Token;
+
+				return null;
 			}
 		}
 
@@ -43,10 +46,10 @@ namespace libflist.Connection.Commands
 		{
 			var type = GetType();
 			var mmb = type.GetProperties().Where(p => p.GetCustomAttribute<JsonIgnoreAttribute>() == null);
-			if (!mmb.Any())
-				return Token;
 
-			return string.Format("{0} {1}", Token, JsonConvert.SerializeObject(this, Formatting.None));
+			return !mmb.Any()
+				? Token
+				: string.Format("{0} {1}", Token, JsonConvert.SerializeObject(this, Formatting.None));
 		}
 
 		public interface ICharacterCommand

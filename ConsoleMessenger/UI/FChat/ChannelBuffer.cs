@@ -113,7 +113,7 @@ namespace ConsoleMessenger.UI.FChat
 
 		public override void Render()
 		{
-			List<Rendered> toDraw = new List<Rendered>();
+			//List<Rendered> toDraw = new List<Rendered>();
 			int totalHeight = 0;
 			foreach (var msg in (_RenderedMessages as IEnumerable<Rendered>)
 				.Reverse().TakeWhile(p =>

@@ -20,12 +20,12 @@ namespace libflist
 			{
 				switch (Status)
 				{
-					case CharacterStatus.Away: return 'Ⓐ';
-					case CharacterStatus.Busy: return 'Ⓑ';
-					case CharacterStatus.DND: return 'Ⓓ';
-					case CharacterStatus.Idle: return 'Ⓘ';
-					case CharacterStatus.Looking: return 'Ⓛ';
-					case CharacterStatus.Rewarded: return '♕';
+				case CharacterStatus.Away: return '●';
+				case CharacterStatus.Busy: return '●';
+				case CharacterStatus.DND: return '●';
+				case CharacterStatus.Idle: return '●';
+				case CharacterStatus.Looking: return '●';
+				case CharacterStatus.Rewarded: return '☺';
 				}
 
 				return '○';
@@ -100,7 +100,10 @@ namespace libflist
 
 		public void SendMessage(string message)
 		{
-
+			Chat.SendCommand(new libflist.Connection.Commands.Client.Character.SendMessageCommand {
+				Character = Name,
+				Message = message
+			});
 		}
 
 		public void SendCommand(Command cmd)

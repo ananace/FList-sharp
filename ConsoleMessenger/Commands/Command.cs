@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 
 namespace ConsoleMessenger
 {
@@ -26,7 +25,7 @@ namespace ConsoleMessenger
 			return false;
 		}
 
-		private Array CastArray(Type type, IEnumerable<string> Inp)
+		static Array CastArray(Type type, IEnumerable<string> Inp)
 		{
 			var conv = TypeDescriptor.GetConverter(type);
 			//var temp = Array.CreateInstance(type, Inp.Count());
@@ -37,9 +36,10 @@ namespace ConsoleMessenger
 		{
 			var method = GetType()
 				.GetMethods()
-				.Where(m => m.Name == "Call" &&
-					m.GetParameters().Length == args.Count() || (m.GetParameters().Any() && m.GetParameters().Last().ParameterType.IsArray))
-				.FirstOrDefault();
+				.FirstOrDefault(m => m.Name == "Call"
+					&& m.GetParameters().Length == args.Count()
+					|| (m.GetParameters().Any()
+						&& m.GetParameters().Last().ParameterType.IsArray));
 
 			if (method == null)
 				throw new ArgumentException(string.Format("No function with given arguments found, possible functions are:\n- /{0}",
@@ -56,7 +56,7 @@ namespace ConsoleMessenger
 			}
 
 			object[] input = args.ToArray();
-			object[] realParams = new object[parameters.Length];
+			var realParams = new object[parameters.Length];
 			
 			int lastParamPosition = parameters.Length - 1;
 
@@ -91,23 +91,23 @@ namespace ConsoleMessenger
 			_Caller = null;
 		}
 
-		static Dictionary<string, Type> _CommandTypes;
+		static readonly Dictionary<string, Type> _CommandTypes = new Dictionary<string, Type>();
 		public static IEnumerable<string> Available { get { return _CommandTypes.Select(t => t.Key); } }
 
 		static Command()
 		{
-			_CommandTypes = new Dictionary<string, Type>();
-
 			foreach (var cmd in Assembly.GetExecutingAssembly().GetTypes().Where(t => t.BaseType == typeof(Command)))
 			{
 				foreach (var att in cmd.GetCustomAttributes().Where(a => a.GetType() == typeof(CommandAttribute)).Select(a => a as CommandAttribute))
 				{
-					var wrong = cmd.GetMethods().Where(m => m.Name == "Call").Where(m =>
-					{
-						return m.GetParameters().Count(p => p.ParameterType.IsArray) > 1 ||
-							(m.GetParameters().Count(p => p.ParameterType.IsArray) == 1 &&
-							!m.GetParameters().Last().ParameterType.IsArray);
-					}).FirstOrDefault();
+					var wrong = cmd.GetMethods()
+						.Where(m => m.Name == "Call")
+						.FirstOrDefault(m => m.GetParameters()
+							.Count(p => p.ParameterType.IsArray) > 1 
+								|| (m.GetParameters()
+									.Count(p => p.ParameterType.IsArray) == 1
+								&& !m.GetParameters()
+									.Last().ParameterType.IsArray));
 
 					if (wrong != null)
 						throw new Exception(string.Format("Command {0} ({1}) has invalid call function; {2}", att.Name, cmd.FullName,

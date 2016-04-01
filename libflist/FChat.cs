@@ -75,19 +75,18 @@ namespace libflist
 		List<Channel> _Channels;
 		List<Character> _Characters;
 
-		ServerVariables _Variables;
+		readonly ServerVariables _Variables;
 		ChatConnection _Connection;
-		TicketResponse _Ticket;
-		DateTime _TicketTime;
 		string _User;
 		string _Character;
 
 		public ChatConnection Connection { get { return _Connection; } }
-		public TicketResponse Ticket { get { return _Ticket; } set { _Ticket = value; } }
-		public DateTime TicketTimestamp { get { return _TicketTime; } set { _TicketTime = value; } }
+		public TicketResponse Ticket { get; set; }
+		public DateTime TicketTimestamp { get; set; }
 
 		// TODO: Reload if data is stale.
 		public IReadOnlyList<KnownChannel> KnownChannels { get { return _KnownChannels; } }
+
 		public IEnumerable<KnownChannel> OfficialChannels
 		{
 			get
@@ -163,7 +162,7 @@ namespace libflist
 			_Characters = null;
 
 			_Character = null;
-			_Ticket = null;
+			Ticket = null;
 			_User = null;
 			_Connection = null;
 		}
@@ -192,11 +191,11 @@ namespace libflist
 						{ "password", Password }
 					};
 
-					_Ticket = jr.Get<TicketResponse>() as TicketResponse;
-					if (!_Ticket.Successful)
+					Ticket = jr.Get<TicketResponse>() as TicketResponse;
+					if (!Ticket.Successful)
 						return;
 
-					_TicketTime = DateTime.Now;
+					TicketTimestamp = DateTime.Now;
 				}
 			}
 
@@ -217,10 +216,10 @@ namespace libflist
 
 		public void Reconnect(bool AutoLogin = true)
 		{
-			if (_Ticket == null || _User == null)
-				throw new ArgumentNullException(nameof(_Ticket));
+			if (Ticket == null || _User == null)
+				throw new ArgumentNullException(nameof(Ticket));
 
-			if (DateTime.Now - _TicketTime > TimeSpan.FromHours(24))
+			if (DateTime.Now - TicketTimestamp > TimeSpan.FromHours(24))
 				throw new ArgumentException("Ticket has timed out, reconnect is not possible");
 
 			_Variables.Clear();
@@ -229,7 +228,7 @@ namespace libflist
 				_Connection.Connect();
 
 				if (AutoLogin)
-					_Connection.Identify(_User, _Ticket.Ticket, _Character);
+					_Connection.Identify(_User, Ticket.Ticket, _Character);
 			}
 		}
 
@@ -237,7 +236,7 @@ namespace libflist
 		{
 			if (Character == null)
 				throw new ArgumentNullException(nameof(Character));
-			if (!_Ticket.Characters.Contains(Character))
+			if (!Ticket.Characters.Contains(Character))
 				throw new ArgumentException("Unknown character specified", nameof(Character));
 
 			lock (_Connection)
@@ -249,7 +248,7 @@ namespace libflist
 					return;
 
 				_Character = Character;
-				_Connection.Identify(_User, _Ticket.Ticket, _Character);
+				_Connection.Identify(_User, Ticket.Ticket, _Character);
 			}
 		}
 
@@ -270,7 +269,7 @@ namespace libflist
 
 		public UserAccount User
 		{
-			get { return new UserAccount(_Ticket, _User, _Character); }
+			get { return new UserAccount(Ticket, _User, _Character); }
 		}
 
 		public Character LocalCharacter
@@ -325,8 +324,9 @@ namespace libflist
 
 		void _Connection_OnDisconnected(object sender, EventArgs e)
 		{
+			// TODO: Count reconnect attempts.
 			if (!string.IsNullOrEmpty(_Character))
-				Task.Delay(15000).ContinueWith((arg) => Reconnect());
+				Task.Delay(15000).ContinueWith(_ => Reconnect());
 		}
 
 		void _Connection_OnIdentified(object sender, EventArgs e)

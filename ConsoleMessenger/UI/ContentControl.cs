@@ -33,9 +33,7 @@ namespace ConsoleMessenger.UI
 				var allowed = Size.Width;
 				if (length > allowed)
 				{
-					if (allowed <= 0)
-						return "";
-					return drawable.Substring(length - allowed, allowed);
+					return allowed <= 0 ? "" : drawable.Substring(length - allowed, allowed);
 				}
 				return drawable;
 			}
@@ -47,11 +45,9 @@ namespace ConsoleMessenger.UI
 		{
 			var toDraw = Content.ToString();
 
-			int maxSize;
-			if (Parent != null)
-				maxSize = (Parent.Size - Parent.Padding.Size - (Size)DisplayPosition).Width;
-			else
-				maxSize = (Graphics.AvailableSize).Width;
+			int maxSize = Parent != null
+				? (Parent.Size - Parent.Padding.Size - (Size)DisplayPosition).Width 
+				: (Graphics.AvailableSize).Width;
 
             Size = Size.Constrain(new Size(toDraw.ANSILength(), 1), new Size(maxSize, 1));
 		}

@@ -10,7 +10,6 @@ namespace ConsoleMessenger.UI
 		public override event EventHandler OnContentChanged;
 
 		List<string> _History;
-		int _Cursor;
 		int _HistoryPtr;
 		string _HistoryCmd;
 
@@ -20,7 +19,7 @@ namespace ConsoleMessenger.UI
 			_History.RemoveAt(_History.Count - 1);
 		}
 
-		public int Cursor { get { return _Cursor; } set { _Cursor = value; } }
+		public int Cursor { get; set; }
 
 		public override object Content
 		{
@@ -43,8 +42,8 @@ namespace ConsoleMessenger.UI
 				sb.Clear();
 				sb.Insert(0, str);
 
-				if (_Cursor > sb.Length)
-					_Cursor = sb.Length;
+				if (Cursor > sb.Length)
+					Cursor = sb.Length;
 
 				if (OnContentChanged != null)
 					OnContentChanged(this, EventArgs.Empty);
@@ -69,133 +68,126 @@ namespace ConsoleMessenger.UI
 			var buf = base.Content as StringBuilder;
 			var before = buf.ToString();
 
-			try
+			switch (key.Key)
 			{
-				switch (key.Key)
+			case ConsoleKey.Backspace:
 				{
-					case ConsoleKey.Backspace:
-						{
-							if (buf.Length == 0 || _Cursor < 1)
-								break;
-
-							buf.Remove(--_Cursor, 1);
-							InvalidateVisual();
-						}
+					if (buf.Length == 0 || Cursor < 1)
 						break;
 
-					case ConsoleKey.Delete:
-						{
-							if (_Cursor >= buf.Length)
-								break;
+					buf.Remove(--Cursor, 1);
+					InvalidateVisual();
+				}
+				break;
 
-							buf.Remove(_Cursor, 1);
-							InvalidateVisual();
-						}
+			case ConsoleKey.Delete:
+				{
+					if (Cursor >= buf.Length)
 						break;
 
-					case ConsoleKey.LeftArrow:
-						if (_Cursor > 0)
-						{
-							_Cursor--;
-							Console.CursorLeft--;
-						}
-						break;
-					case ConsoleKey.RightArrow:
-						if (_Cursor < buf.Length)
-						{
-							_Cursor++;
-							Console.CursorLeft++;
-						}
-						break;
-					case ConsoleKey.UpArrow:
-						{
-							if (_HistoryPtr + 1 >= _History.Count)
-								break;
+					buf.Remove(Cursor, 1);
+					InvalidateVisual();
+				}
+				break;
 
-							if (_HistoryPtr < 0 && buf.Length > 0)
-								_HistoryCmd = buf.ToString();
-
-							++_HistoryPtr;
-							buf.Clear();
-
-							buf.Append(_History[_History.Count - _HistoryPtr - 1]);
-							_Cursor = buf.Length;
-						}
-						break;
-					case ConsoleKey.DownArrow:
-						{
-							if (_HistoryPtr < 0)
-								break;
-
-							--_HistoryPtr;
-							buf.Clear();
-
-							if (_HistoryPtr >= 0)
-								buf.Append(_History[_History.Count - _HistoryPtr - 1]);
-							else
-								buf.Append(_HistoryCmd);
-
-							_Cursor = buf.Length;
-						}
+			case ConsoleKey.LeftArrow:
+				if (Cursor > 0)
+				{
+					Cursor--;
+					Console.CursorLeft--;
+				}
+				break;
+			case ConsoleKey.RightArrow:
+				if (Cursor < buf.Length)
+				{
+					Cursor++;
+					Console.CursorLeft++;
+				}
+				break;
+			case ConsoleKey.UpArrow:
+				{
+					if (_HistoryPtr + 1 >= _History.Count)
 						break;
 
-					case ConsoleKey.Home:
-						Console.CursorLeft -= _Cursor;
-						_Cursor = 0;
+					if (_HistoryPtr < 0 && buf.Length > 0)
+						_HistoryCmd = buf.ToString();
+
+					++_HistoryPtr;
+					buf.Clear();
+
+					buf.Append(_History[_History.Count - _HistoryPtr - 1]);
+					Cursor = buf.Length;
+				}
+				break;
+			case ConsoleKey.DownArrow:
+				{
+					if (_HistoryPtr < 0)
 						break;
 
-					case ConsoleKey.End:
-						Console.CursorLeft += buf.Length - _Cursor;
-						_Cursor = buf.Length;
-						break;
+					--_HistoryPtr;
+					buf.Clear();
 
-					case ConsoleKey.Enter:
-						{
-							var cmd = buf.ToString();
+					if (_HistoryPtr >= 0)
+						buf.Append(_History[_History.Count - _HistoryPtr - 1]);
+					else
+						buf.Append(_HistoryCmd);
 
-							var displayed = ContentDrawable;
+					Cursor = buf.Length;
+				}
+				break;
+
+			case ConsoleKey.Home:
+				Console.CursorLeft -= Cursor;
+				Cursor = 0;
+				break;
+
+			case ConsoleKey.End:
+				Console.CursorLeft += buf.Length - Cursor;
+				Cursor = buf.Length;
+				break;
+
+			case ConsoleKey.Enter:
+				{
+					var cmd = buf.ToString();
+
+					var displayed = ContentDrawable;
 							
-							Clear();
-							buf.Clear();
-							_Cursor = 0;
+					Clear();
+					buf.Clear();
+					Cursor = 0;
 
-							_HistoryCmd = null;
-							_HistoryPtr = -1;
-							_History.Add(cmd);
-							if (_History.Count > HistoryLength)
-								_History.RemoveAt(0);
+					_HistoryCmd = null;
+					_HistoryPtr = -1;
+					_History.Add(cmd);
+					if (_History.Count > HistoryLength)
+						_History.RemoveAt(0);
 
-							if (OnTextEntered != null)
-								OnTextEntered(this, cmd);
-						}
-						break;
-
-					default:
-						{
-							if (!char.IsControl(key.KeyChar) &&
-								!key.Modifiers.HasFlag(ConsoleModifiers.Alt) &&
-								!key.Modifiers.HasFlag(ConsoleModifiers.Control))
-							{
-								buf.Insert(_Cursor++, key.KeyChar.ToString());
-								Console.Write(key.KeyChar);
-								break;
-							}
-						}
-						break;
+					if (OnTextEntered != null)
+						OnTextEntered(this, cmd);
 				}
+				break;
 
-
-				if (buf.ToString() != before)
+			default:
 				{
-					if (OnContentChanged != null)
-						OnContentChanged(this, EventArgs.Empty);
-
-					InvalidateLayout();
+					if (!char.IsControl(key.KeyChar) &&
+					      !key.Modifiers.HasFlag(ConsoleModifiers.Alt) &&
+					      !key.Modifiers.HasFlag(ConsoleModifiers.Control))
+					{
+						buf.Insert(Cursor++, key.KeyChar.ToString());
+						Console.Write(key.KeyChar);
+						break;
+					}
 				}
+				break;
 			}
-			finally
-			{
 
+
+			if (buf.ToString() != before)
+			{
+				if (OnContentChanged != null)
+					OnContentChanged(this, EventArgs.Empty);
+
+				InvalidateLayout();
 			}
 		}
 
@@ -203,7 +195,7 @@ namespace ConsoleMessenger.UI
 		{
 			base.Focus();
 
-			Console.SetCursorPosition(DisplayPosition.X + _Cursor, DisplayPosition.Y);
+			Console.SetCursorPosition(DisplayPosition.X + Cursor, DisplayPosition.Y);
 		}
 		
 		public override void Render()
@@ -211,7 +203,7 @@ namespace ConsoleMessenger.UI
 			var toDraw = (base.Content as StringBuilder).ToString();
 			Console.Write(toDraw);
 
-			Console.SetCursorPosition(DisplayPosition.X + _Cursor, DisplayPosition.Y);
+			Console.SetCursorPosition(DisplayPosition.X + Cursor, DisplayPosition.Y);
 		}
 	}
 }

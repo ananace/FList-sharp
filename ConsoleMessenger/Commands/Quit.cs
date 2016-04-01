@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace ConsoleMessenger.Commands
+﻿namespace ConsoleMessenger.Commands
 {
 	[Command("quit")]
 	class Quit : Command
