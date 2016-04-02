@@ -60,6 +60,14 @@ namespace ConsoleMessenger.UI
 
 	public static class Graphics
 	{
+		static bool IsLinux
+		{
+			get {
+				int p = (int)Environment.OSVersion.Platform;
+				return (p == 4 || p == 6 || p == 128);
+			}
+		}
+
 		public static Size AvailableSize
 		{
 			get
@@ -79,62 +87,65 @@ namespace ConsoleMessenger.UI
 			if (p.HasValue)
 				Console.SetCursorPosition(p.Value.X, p.Value.Y);
 
-			do
-			{
-				var found = data.IndexOf('\x1b');
-				if (found > 0)
+			if (IsLinux)
+				Console.Write(String);
+			else
+				do
 				{
-					Console.Write(data.Substring(0, found));
-					data = data.Remove(0, found);
-				}
-				else if (found == 0)
-				{
-					var end = data.IndexOf('m');
-					var ansi = data.Substring(1, end - 1);
-					data = data.Remove(0, end + 1);
-
-					if (ansi[0] != '[')
-						continue;
-
-					IEnumerable<int> cmd = ansi.Substring(1).Split(';').Select(c => int.Parse(c));
-					int code = cmd.First();
-					cmd = cmd.Skip(1);
-
-					bool bold = cmd.FirstOrDefault() == 1;
-					switch (code)
+					var found = data.IndexOf('\x1b');
+					if (found > 0)
 					{
-						case 0:
-							Console.ForegroundColor = oldFore;
-							Console.BackgroundColor = oldBack;
-							break;
-
-						case 30: Console.ForegroundColor = bold ? ConsoleColor.Gray : ConsoleColor.Black; break;
-						case 31: Console.ForegroundColor = bold ? ConsoleColor.Red : ConsoleColor.DarkRed; break;
-						case 32: Console.ForegroundColor = bold ? ConsoleColor.Green : ConsoleColor.DarkGreen; break;
-						case 33: Console.ForegroundColor = bold ? ConsoleColor.Yellow : ConsoleColor.DarkYellow; break;
-						case 34: Console.ForegroundColor = bold ? ConsoleColor.Blue : ConsoleColor.DarkBlue; break;
-						case 35: Console.ForegroundColor = bold ? ConsoleColor.Magenta : ConsoleColor.DarkMagenta; break;
-						case 36: Console.ForegroundColor = bold ? ConsoleColor.Cyan : ConsoleColor.DarkCyan; break;
-						case 37: Console.ForegroundColor = bold ? ConsoleColor.White : ConsoleColor.DarkGray; break;
-						case 39: Console.ForegroundColor = oldFore; break;
-
-						case 40: Console.BackgroundColor = bold ? ConsoleColor.Gray : ConsoleColor.Black; break;
-						case 41: Console.BackgroundColor = bold ? ConsoleColor.Red : ConsoleColor.DarkRed; break;
-						case 42: Console.BackgroundColor = bold ? ConsoleColor.Green : ConsoleColor.DarkGreen; break;
-						case 43: Console.BackgroundColor = bold ? ConsoleColor.Yellow : ConsoleColor.DarkYellow; break;
-						case 44: Console.BackgroundColor = bold ? ConsoleColor.Blue : ConsoleColor.DarkBlue; break;
-						case 45: Console.BackgroundColor = bold ? ConsoleColor.Magenta : ConsoleColor.DarkMagenta; break;
-						case 46: Console.BackgroundColor = bold ? ConsoleColor.Cyan : ConsoleColor.DarkCyan; break;
-						case 47: Console.BackgroundColor = bold ? ConsoleColor.White : ConsoleColor.DarkGray; break;
-						case 49: Console.BackgroundColor = oldBack; break;
+						Console.Write(data.Substring(0, found));
+						data = data.Remove(0, found);
 					}
-				}
-				else
-				{
-					Console.Write(data);
-					break;
-				}
-			} while (!string.IsNullOrEmpty(data));
+					else if (found == 0)
+					{
+						var end = data.IndexOf('m');
+						var ansi = data.Substring(1, end - 1);
+						data = data.Remove(0, end + 1);
+
+						if (ansi[0] != '[')
+							continue;
+
+						IEnumerable<int> cmd = ansi.Substring(1).Split(';').Select(c => int.Parse(c));
+						int code = cmd.First();
+						cmd = cmd.Skip(1);
+
+						bool bold = cmd.FirstOrDefault() == 1;
+						switch (code)
+						{
+							case 0:
+								Console.ForegroundColor = oldFore;
+								Console.BackgroundColor = oldBack;
+								break;
+
+							case 30: Console.ForegroundColor = bold ? ConsoleColor.Gray : ConsoleColor.Black; break;
+							case 31: Console.ForegroundColor = bold ? ConsoleColor.Red : ConsoleColor.DarkRed; break;
+							case 32: Console.ForegroundColor = bold ? ConsoleColor.Green : ConsoleColor.DarkGreen; break;
+							case 33: Console.ForegroundColor = bold ? ConsoleColor.Yellow : ConsoleColor.DarkYellow; break;
+							case 34: Console.ForegroundColor = bold ? ConsoleColor.Blue : ConsoleColor.DarkBlue; break;
+							case 35: Console.ForegroundColor = bold ? ConsoleColor.Magenta : ConsoleColor.DarkMagenta; break;
+							case 36: Console.ForegroundColor = bold ? ConsoleColor.Cyan : ConsoleColor.DarkCyan; break;
+							case 37: Console.ForegroundColor = bold ? ConsoleColor.White : ConsoleColor.DarkGray; break;
+							case 39: Console.ForegroundColor = oldFore; break;
+
+							case 40: Console.BackgroundColor = bold ? ConsoleColor.Gray : ConsoleColor.Black; break;
+							case 41: Console.BackgroundColor = bold ? ConsoleColor.Red : ConsoleColor.DarkRed; break;
+							case 42: Console.BackgroundColor = bold ? ConsoleColor.Green : ConsoleColor.DarkGreen; break;
+							case 43: Console.BackgroundColor = bold ? ConsoleColor.Yellow : ConsoleColor.DarkYellow; break;
+							case 44: Console.BackgroundColor = bold ? ConsoleColor.Blue : ConsoleColor.DarkBlue; break;
+							case 45: Console.BackgroundColor = bold ? ConsoleColor.Magenta : ConsoleColor.DarkMagenta; break;
+							case 46: Console.BackgroundColor = bold ? ConsoleColor.Cyan : ConsoleColor.DarkCyan; break;
+							case 47: Console.BackgroundColor = bold ? ConsoleColor.White : ConsoleColor.DarkGray; break;
+							case 49: Console.BackgroundColor = oldBack; break;
+						}
+					}
+					else
+					{
+						Console.Write(data);
+						break;
+					}
+				} while (!string.IsNullOrEmpty(data));
 
 			Console.BackgroundColor = oldBack;
 			Console.ForegroundColor = oldFore;

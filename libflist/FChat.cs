@@ -380,7 +380,7 @@ namespace libflist
 
 							var err = e.Command as Connection.Commands.Meta.FailedReply;
 
-							Debug.WriteLine("Invalid command recieved: {0} - {2}\n{1}", err.CMDToken, err.Data, err.Exception.Message);
+							Debug.WriteLine("Invalid command recieved: {0} - {2}\n{1}", err.CMDToken, err.Data, err.Exception);
 						}
 						break;
 
