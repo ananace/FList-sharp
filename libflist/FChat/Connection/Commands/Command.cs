@@ -2,9 +2,16 @@
 using System.Linq;
 using System.Reflection;
 using Newtonsoft.Json;
+using libflist.FChat;
 
 namespace libflist.Connection.Commands
 {
+	public enum CommandSource
+	{
+		Client,
+		Server
+	}
+
 	public abstract class Command
 	{
 		[JsonIgnore]
@@ -25,24 +32,9 @@ namespace libflist.Connection.Commands
 		}
 
 		[JsonIgnore]
-		public bool IsCommand
-		{
-			get
-			{
-				return GetType().GetCustomAttribute<CommandAttribute>() != null;	
-			}
-		}
-
-		[JsonIgnore]
-		public bool IsReply
-		{
-			get
-			{
-				return GetType().GetCustomAttribute<ReplyAttribute>() != null;	
-			}
-		}
-
-		public override string ToString()
+		public CommandSource Source { get { return GetType().GetCustomAttribute<CommandAttribute>() != null ? CommandSource.Client : CommandSource.Server; } }
+		
+		public string Serialize()
 		{
 			var type = GetType();
 			var mmb = type.GetProperties().Where(p => p.GetCustomAttribute<JsonIgnoreAttribute>() == null);

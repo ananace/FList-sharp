@@ -83,6 +83,7 @@ namespace libflist.Connection.Types
 
 	public enum CharacterStatus
 	{
+		Offline,
 		Online,
 		Looking,
 		Busy,

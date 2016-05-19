@@ -5,9 +5,9 @@ namespace libflist.Connection.Util
 {
 	public sealed class CommandEventArgs : EventArgs
 	{
-		public Command Command { get; private set; }
+		public string Command { get; private set; }
 
-		public CommandEventArgs(Command cmd)
+		public CommandEventArgs(string cmd)
 		{
 			Command = cmd;
 		}

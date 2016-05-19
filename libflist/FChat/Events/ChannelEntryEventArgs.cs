@@ -1,5 +1,6 @@
 ﻿using System;
 using libflist.Connection.Commands;
+using libflist.FChat;
 
 namespace libflist.Events
 {

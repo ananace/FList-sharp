@@ -5,7 +5,7 @@ using libflist.Connection.Commands;
 using libflist.Connection.Types;
 using libflist.Events;
 
-namespace libflist
+namespace libflist.FChat
 {
 	public class Channel : IDisposable
 	{
@@ -17,47 +17,25 @@ namespace libflist
 		ChannelStatus _Status;
 
 		public bool IsDisposed { get; private set; }
-		public FChat Chat { get; private set; }
+		public FChatConnection Connection { get; private set; }
 
 		public string Title { get; private set; }
 		public string ID { get; private set; }
 		public string Description { get; private set; }
 
+		public bool Joined { get { return true; } }
 		public bool Official { get { return Title == ID; } }
-		public ChannelMode Mode { get; private set; }
-		public ChannelStatus Status { get { return Title == ID ? ChannelStatus.Public : _Status; } }
+		public ChannelMode ChatMode { get; private set; }
+		public ChannelStatus PrivacyStatus { get { return Title == ID ? ChannelStatus.Public : _Status; } }
 
 		public Character Owner { get { return GetCharacter(_OwnerName); } }
 		public IReadOnlyCollection<Character> OPs { get { return _OPs; } }
 		public IReadOnlyCollection<Character> Characters { get { return _Characters; } }
 		public IReadOnlyCollection<Character> Banlist { get { return _Banlist; } }
-
-		public event EventHandler<CharacterEntryEventArgs> OnJoin; // JCH
-		public event EventHandler<CharacterEntryEventArgs> OnLeave; // LCH
-		public event EventHandler<ChannelEntryEventArgs> OnInfo; // ICH
-
-		public event EventHandler<ChannelEntryEventArgs<string>> OnDescriptionChange; // CDS
-		public event EventHandler<ChannelEntryEventArgs<ChannelMode>> OnModeChange; // RMO
-		public event EventHandler<ChannelEntryEventArgs<Character>> OnOwnerChange; // CSO
-		public event EventHandler<ChannelEntryEventArgs<ChannelStatus>> OnStatusChange; // RST
-		public event EventHandler<ChannelEntryEventArgs<string>> OnTitleChange; // JCH?
-
-		public event EventHandler<CharacterEntryEventArgs> OnGivenOP; // COA
-		public event EventHandler<CharacterEntryEventArgs> OnRemovedOP; // COR
-
-		public event EventHandler<AdminActionEventArgs> OnKicked; // CKU
-		public event EventHandler<AdminActionEventArgs> OnBanned; // CBU
-		public event EventHandler<AdminActionEventArgs> OnUnbanned; // CUB
-		public event EventHandler<AdminActionEventArgs> OnTimedout; // CTU
-
-		public event EventHandler<CharacterMessageEventArgs> OnLFRPMessage; // LRP
-		public event EventHandler<CharacterMessageEventArgs> OnChatMessage; // MSG
-		public event EventHandler<CharacterMessageEventArgs> OnRollMessage; // RLL
-		public event EventHandler<ChannelEntryEventArgs<string>> OnSYSMessage; // SYS
-
-		internal Channel(FChat Chat, string ID, string Title)
+		
+		internal Channel(FChatConnection Connection, string ID, string Title)
 		{
-			this.Chat = Chat;
+			this.Connection = Connection;
 			this.ID = ID;
 			this.Title = Title;
 
@@ -73,14 +51,14 @@ namespace libflist
 			_OwnerName = null;
 			_OPs = null;
 			_Characters = null;
-			Chat = null;
+			Connection = null;
 
 			IsDisposed = true;
 		}
 
 		public Character GetCharacter(string Name)
 		{
-			return Chat.GetOrCreateCharacter(Name);
+			return Connection.GetOrCreateCharacter(Name);
 		}
 
 		public void SendLFRP(string message)
@@ -118,7 +96,7 @@ namespace libflist
 
 		public void SendCommand(Command cmd)
 		{
-			Chat.SendCommand(cmd);
+			Connection.SendCommand(cmd);
 		}
 
 		public bool PushCommand(Command cmd)
@@ -132,7 +110,7 @@ namespace libflist
 					{
 						var jch = cmd as Connection.Commands.Server.Channel.JoinReply;
 
-						var character = new Character(Chat, jch.Character.Identity);
+						var character = new Character(Connection, jch.Character.Identity);
 						_Characters.Add(character);
 
 						if (OnJoin != null)
@@ -159,7 +137,7 @@ namespace libflist
 						if (OnLeave != null)
 							OnLeave(this, new CharacterEntryEventArgs(this, character, lch));
 
-						if (character.Name == Chat.User.CurrentCharacter)
+						if (character.Name == Connection.User.CurrentCharacter)
 							Dispose();
 					}
 					return true;
@@ -171,7 +149,7 @@ namespace libflist
 						Mode = ich.Mode;
 
 						foreach (var user in ich.Users)
-							_Characters.Add(new Character(Chat, user.Identity));
+							_Characters.Add(new Character(Connection, user.Identity));
 
 						if (OnInfo != null)
 							OnInfo(this, new ChannelEntryEventArgs(this, ich));

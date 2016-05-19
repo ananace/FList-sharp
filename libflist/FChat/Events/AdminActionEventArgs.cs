@@ -1,16 +1,17 @@
 ﻿using System;
 using libflist.Connection.Commands;
+using libflist.FChat;
 
 namespace libflist.Events
 {
 	public class AdminActionEventArgs : EventArgs
 	{
-		public Channel Channel { get; private set; }
-		public Character Character { get; private set; }
-		public Character Admin { get; private set; }
+		public IChannel Channel { get; private set; }
+		public ICharacter Character { get; private set; }
+		public ICharacter Admin { get; private set; }
 		public Command Command { get; private set; }
 
-		public AdminActionEventArgs(Channel channel, Character character, Character admin, Command command)
+		public AdminActionEventArgs(IChannel channel, ICharacter character, ICharacter admin, Command command)
 		{
 			Channel = channel;
 			Character = character;

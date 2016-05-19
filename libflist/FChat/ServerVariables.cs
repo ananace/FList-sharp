@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace libflist
+namespace libflist.FChat
 {
 	public class ServerVariables : IReadOnlyDictionary<string, object>
 	{

@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Linq;
-using libflist.Connection.Commands;
 using libflist.Connection.Types;
 
-namespace libflist
+namespace libflist.FChat
 {
 	public class Character : IDisposable
 	{
-		public FChat Chat { get; private set; }
+		public FChatConnection Connection { get; private set; }
 
 		public string Name { get; private set; }
 		public CharacterGender Gender { get; internal set; }
@@ -79,16 +78,16 @@ namespace libflist
 		public bool IsDisposed { get; private set; }
 		public bool IsTyping { get; internal set; }
 
-		internal Character(FChat Chat, string Name)
+		internal Character(FChatConnection Connection, string Name)
 		{
-			this.Chat = Chat;
+			this.Connection = Connection;
 			this.Name = Name;
 		}
 
 		public void Dispose()
 		{
 			Name = null;
-			Chat = null;
+			Connection = null;
 
 			IsDisposed = true;
 		}
@@ -100,15 +99,10 @@ namespace libflist
 
 		public void SendMessage(string message)
 		{
-			Chat.SendCommand(new libflist.Connection.Commands.Client.Character.SendMessageCommand {
+			Connection.SendCommand(new libflist.Connection.Commands.Client.Character.SendMessageCommand {
 				Character = Name,
 				Message = message
 			});
-		}
-
-		public void SendCommand(Command cmd)
-		{
-			Chat.SendCommand(cmd);
 		}
 	}
 }
