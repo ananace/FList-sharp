@@ -28,9 +28,9 @@ namespace ConsoleMessenger.Commands
 			if (channel == null && !name.StartsWith("ADH-"))
 				throw new ArgumentException(string.Format("Unknown channel {0}", name), nameof(name));
 
-			Application.Connection.SendCommand(new libflist.Connection.Commands.Client.Channel.JoinCommand
+			Application.Connection.SendCommand(new libflist.FChat.Commands.Client.Channel.JoinCommand
 			{
-				Channel = channel.ID
+				Channel = (channel != null ? channel.ID : name)
 			});
 		}
 	}

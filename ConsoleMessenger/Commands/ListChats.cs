@@ -35,9 +35,9 @@ namespace ConsoleMessenger.Commands
 		{
 			// TODO: Only update if data is stale.
 			if (type == ChatType.Public)
-				Application.Connection.SendCommand(new libflist.Connection.Commands.Client.Global.GetPublicChannelsCommand());
+				Application.Connection.SendCommand(new libflist.FChat.Commands.Client.Global.GetPublicChannelsCommand());
 			else
-				Application.Connection.SendCommand(new libflist.Connection.Commands.Client.Global.GetPrivateChannelsCommand());
+				Application.Connection.SendCommand(new libflist.FChat.Commands.Client.Global.GetPrivateChannelsCommand());
 		}
 	}
 }

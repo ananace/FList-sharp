@@ -98,247 +98,158 @@ namespace libflist.FChat
 			Connection.SendCommand(cmd);
 		}
 
-		public bool PushCommand(Command cmd)
+		public void PushCommand(Command cmd)
 		{
 			if (cmd.Source == CommandSource.Client)
-				return false;
+				return;
 
 			switch (cmd.Token)
 			{
-				case "JCH":
-					{
-						var jch = cmd as Commands.Server.Channel.JoinReply;
+			case "JCH":
+				{
+					var jch = cmd as Commands.Server.Channel.JoinReply;
 
-						var character = new Character(Connection, jch.Character.Identity);
-						_Characters.Add(character);
+					var character = new Character(Connection, jch.Character.Identity);
+					_Characters.Add(character);
 
-						if (OnJoin != null)
-							OnJoin(this, new CharacterEntryEventArgs(this, character, jch));
+					if (!string.IsNullOrEmpty(jch.Title))
+						Title = jch.Title;
+				}
+				return;
 
-						if (!string.IsNullOrEmpty(jch.Title))
-						{
-							var oldTitle = Title;
-							Title = jch.Title;
+			case "LCH":
+				{
+					var lch = cmd as Commands.Server.Channel.LeaveReply;
 
-							if (oldTitle != Title && OnTitleChange != null)
-								OnTitleChange(this, new ChannelEntryEventArgs<string>(this, Title, jch) { Old = oldTitle });
-						}
-					}
-					return true;
+					var character = GetCharacter(lch.Character);
+					_Characters.Remove(character);
 
-				case "LCH":
-					{
-						var lch = cmd as Commands.Server.Channel.LeaveReply;
+					if (character.Name == Connection.LocalCharacter.Name)
+						Dispose();
+				}
+				return;
 
-						var character = GetCharacter(lch.Character);
-						_Characters.Remove(character);
+			case "ICH":
+				{
+					var ich = cmd as Commands.Server.Channel.InitialDataReply;
 
-						if (OnLeave != null)
-							OnLeave(this, new CharacterEntryEventArgs(this, character, lch));
+					ChatMode = ich.Mode;
 
-						if (character.Name == Connection.User.CurrentCharacter)
-							Dispose();
-					}
-					return true;
+					foreach (var user in ich.Users)
+						_Characters.Add(new Character(Connection, user.Identity));
+				}
+				return;
 
-				case "ICH":
-					{
-						var ich = cmd as Commands.Server.Channel.InitialDataReply;
+			case "COL":
+				{
+					var col = cmd as Commands.Server.Channel.OPListReply;
 
-						Mode = ich.Mode;
+					foreach (var op in col.OPs)
+						if (!string.IsNullOrWhiteSpace(op))
+							_OPs.Add(GetCharacter(op));
+				}
+				return;
 
-						foreach (var user in ich.Users)
-							_Characters.Add(new Character(Connection, user.Identity));
+			case "CDS":
+				{
+					var cds = cmd as Commands.Server.Channel.ChangeDescriptionReply;
 
-						if (OnInfo != null)
-							OnInfo(this, new ChannelEntryEventArgs(this, ich));
-					}
-					return true;
+					Description = cds.Description;
+				}
+				return;
 
-				case "COL":
-					{
-						var col = cmd as Commands.Server.Channel.OPListReply;
+			case "RMO":
+				{
+					var rmo = cmd as Commands.Server.Channel.SetModeReply;
 
-						foreach (var op in col.OPs)
-							if (!string.IsNullOrWhiteSpace(op))
-								_OPs.Add(GetCharacter(op));
-					}
-					return true;
+					ChatMode = rmo.Mode;
+				}
+				return;
 
+			case "CSO":
+				{
+					var cso = cmd as Commands.Server.Channel.SetOwnerReply;
 
-				case "LRP":
-					{
-						var lrp = cmd as Commands.Server.Channel.SendLFRPReply;
-						var character = GetCharacter(lrp.Character);
+					_OwnerName = cso.Character;
+				}
+				return;
 
-						if (OnLFRPMessage != null)
-							OnLFRPMessage(this, new CharacterMessageEventArgs(this, character, lrp.AD, lrp));
-					}
-					return true;
-				case "MSG":
-					{
-						var msg = cmd as Commands.Server.Channel.SendMessageReply;
-						var character = GetCharacter(msg.Character);
+			case "RST":
+				{
+					var rst = cmd as Commands.Server.Channel.SetStatusReply;
 
-						if (OnChatMessage != null)
-							OnChatMessage(this, new CharacterMessageEventArgs(this, character, msg.Message, msg));
-					}
-					return true;
+					_Status = rst.Status;
+				}
+				return;
 
-				case "RLL":
-					{
-						var rll = cmd as Commands.Server.Channel.SendRollReply;
-						var character = GetCharacter(rll.Character);
+			case "COA":
+				{
+					var coa = cmd as Commands.Server.Channel.MakeOPReply;
 
-						if (OnRollMessage != null)
-							OnRollMessage(this, new CharacterMessageEventArgs(this, character, rll.Message, rll));
-					}
-					return true;
+					var character = GetCharacter(coa.Character);
+					_OPs.Add(character);
+				}
+				return;
 
-				case "SYS":
-					{
-						var sys = cmd as Commands.Server.SysReply;
+			case "COR":
+				{
+					var cor = cmd as Commands.Server.Channel.RemoveOPReply;
 
-						if (OnSYSMessage != null)
-							OnSYSMessage(this, new ChannelEntryEventArgs<string>(this, sys.Message, sys));
-					}
-					return true;
+					var character = GetCharacter(cor.Character);
+					_OPs.Remove(character);
+				}
+				return;
 
-				case "CDS":
-					{
-						var cds = cmd as Commands.Server.Channel.ChangeDescriptionReply;
+			case "CKU":
+				{
+					var cku = cmd as Commands.Server.Channel.KickCharacterReply;
 
-						var oldDesc = Description;
-						Description = cds.Description;
+					var character = GetCharacter(cku.Character);
+					var admin = GetCharacter(cku.OP);
+					_Characters.Remove(character);
 
-						if (OnDescriptionChange != null)
-							OnDescriptionChange(this, new ChannelEntryEventArgs<string>(cds.Description, cds) { Old = oldDesc });
-					}
-					return true;
+					if (_OPs.Contains(character))
+						_OPs.Remove(character);
+				}
+				return;
 
-				case "RMO":
-					{
-						var rmo = cmd as Commands.Server.Channel.SetModeReply;
+			case "CBU":
+				{
+					var cbu = cmd as Commands.Server.Channel.BanCharacterReply;
 
-						var oldMode = Mode;
-						Mode = rmo.Mode;
+					var character = GetCharacter(cbu.Character);
+					var admin = GetCharacter(cbu.OP);
+					_Characters.Remove(character);
 
-						if (OnModeChange != null)
-							OnModeChange(this, new ChannelEntryEventArgs<ChannelMode>(this, rmo.Mode, rmo) { Old = oldMode });
-					}
-					return true;
-
-				case "CSO":
-					{
-						var cso = cmd as Commands.Server.Channel.SetOwnerReply;
-
-						var oldOwner = GetCharacter(_OwnerName);
-						var owner = GetCharacter(cso.Character);
-                        _OwnerName = cso.Character;
-
-						if (OnOwnerChange != null)
-							OnOwnerChange(this, new ChannelEntryEventArgs<Character>(this, owner, cso) { Old = oldOwner });
-					}
-					return true;
-
-				case "RST":
-					{
-						var rst = cmd as Commands.Server.Channel.SetStatusReply;
-
-						var oldStatus = _Status;
-						_Status = rst.Status;
-
-						if (OnStatusChange != null)
-							OnStatusChange(this, new ChannelEntryEventArgs<ChannelStatus>(this, rst.Status, rst) { Old = oldStatus });
-					}
-					return true;
-
-				case "COA":
-					{
-						var coa = cmd as Commands.Server.Channel.MakeOPReply;
-
-						var character = GetCharacter(coa.Character);
-						_OPs.Add(character);
-
-						if (OnGivenOP != null)
-							OnGivenOP(this, new CharacterEntryEventArgs(this, character, coa));
-					}
-					return true;
-				case "COR":
-					{
-						var cor = cmd as Commands.Server.Channel.RemoveOPReply;
-
-						var character = GetCharacter(cor.Character);
+					if (_OPs.Contains(character))
 						_OPs.Remove(character);
 
-						if (OnRemovedOP != null)
-							OnRemovedOP(this, new CharacterEntryEventArgs(this, character, cor));
-					}
-					return true;
+					_Banlist.Add(character);
+				}
+				return;
 
-				case "CKU":
-					{
-						var cku = cmd as Commands.Server.Channel.KickCharacterReply;
+			case "CUB":
+				{
+					var cub = cmd as Commands.Server.Channel.UnbanCharacterReply;
 
-						var character = GetCharacter(cku.Character);
-						var admin = GetCharacter(cku.OP);
-						_Characters.Remove(character);
+					var character = GetCharacter(cub.Character);
 
-						if (_OPs.Contains(character))
-							_OPs.Remove(character);
+					_Banlist.Remove(character);
+				}
+				return;
 
-						if (OnKicked != null)
-							OnKicked(this, new AdminActionEventArgs(this, character, admin, cku));
-					}
-					return true;
-				case "CBU":
-					{
-						var cbu = cmd as Commands.Server.Channel.BanCharacterReply;
+			case "CTU":
+				{
+					var ctu = cmd as Commands.Server.Channel.TimeoutCharacterReply;
 
-						var character = GetCharacter(cbu.Character);
-						var admin = GetCharacter(cbu.OP);
-						_Characters.Remove(character);
+					var character = GetCharacter(ctu.Character);
+					_Characters.Remove(character);
 
-						if (_OPs.Contains(character))
-							_OPs.Remove(character);
-
-						_Banlist.Add(character);
-
-						if (OnBanned != null)
-							OnBanned(this, new AdminActionEventArgs(this, character, admin, cbu));
-					}
-					return true;
-				case "CUB":
-					{
-						var cub = cmd as Commands.Server.Channel.UnbanCharacterReply;
-
-						var character = GetCharacter(cub.Character);
-						var admin = GetCharacter(cub.OP);
-
-						_Banlist.Remove(character);
-
-						if (OnUnbanned != null)
-							OnUnbanned(this, new AdminActionEventArgs(this, character, admin, cub));
-					}
-					return true;
-				case "CTU":
-					{
-						var ctu = cmd as Commands.Server.Channel.TimeoutCharacterReply;
-
-						var character = GetCharacter(ctu.Character);
-						var admin = GetCharacter(ctu.OP);
-						_Characters.Remove(character);
-
-						if (_OPs.Contains(character))
-							_OPs.Remove(character);
-
-						if (OnTimedout != null)
-							OnTimedout(this, new AdminActionEventArgs(this, character, admin, ctu));
-					}
-					return true;
+					if (_OPs.Contains(character))
+						_OPs.Remove(character);
+				}
+				return;
 			}
-
-			return false;
 		}
 	}
 }

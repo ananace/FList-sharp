@@ -7,7 +7,7 @@ using System.Reflection;
 using System.Text;
 using ConsoleMessenger.Types;
 using ConsoleMessenger.UI.Panels;
-using libflist;
+using libflist.FChat;
 using libflist.JSON.Responses;
 using Newtonsoft.Json;
 using ConsoleMessenger.UI;
@@ -114,14 +114,14 @@ namespace ConsoleMessenger
 		static List<UI.FChat.ChannelBuffer> _ChannelBuffers = new List<UI.FChat.ChannelBuffer>();
 		static UI.FChat.ChannelBuffer _ConsoleBuffer;
 		static InputControl _InputBox;
-		static FChat _Chat = new FChat();
+		static FChatConnection _Chat = new FChatConnection();
 
 		static int _CurBuffer = 0;
 
 		static bool _Running = true;
 		static System.Threading.Timer _Redraw;
 
-		public static FChat Connection { get { return _Chat; } }
+		public static FChatConnection Connection { get { return _Chat; } }
 		public static StoredTicket Ticket { get; set; }
 		public static int CurrentBuffer
 		{
@@ -475,17 +475,15 @@ namespace ConsoleMessenger
 
 			Console.Title = string.Format("FChat Messenger v{0}", Assembly.GetExecutingAssembly().GetName().Version);
 
-			//_Chat.Connection.Endpoint = libflist.Connection.ChatConnection.TestingServerEndpoint;
-			_Chat.Connection.Endpoint = libflist.Connection.ChatConnection.LiveServerEndpoint;
+			//_Chat.Endpoint = FChatConnection.TestingServerEndpoint;
+			_Chat.Endpoint = FChatConnection.LiveServerEndpoint;
 
-			_Chat.Connection.OnIdentified += (_, __) => _StatusBar.InvalidateVisual();
+			_Chat.OnIdentified += (_, __) => _StatusBar.InvalidateVisual();
 
-			_Chat.OnErrorMessage += (_, e) =>
-			{
-				_ConsoleBuffer.PushMessage((e.Command as libflist.Connection.Commands.Server.ChatError).Error);
-			};
+			_Chat.OnErrorMessage += (_, e) => 
+				_ConsoleBuffer.PushMessage((e.Command as libflist.FChat.Commands.Server.ChatError).Error);
 
-			_Chat.OnJoinChannel += (_, e) =>
+			_Chat.OnChannelJoin += (_, e) =>
 			{
 				var chatBuf = new ChannelBuffer
 				{
@@ -494,16 +492,15 @@ namespace ConsoleMessenger
 					Foreground = ConsoleColor.Gray
 				};
 
-				e.Channel.OnChatMessage += (__, me) =>
-				{
-					WriteMessage(me.Message, me.Channel, me.Character);
-				};
-				e.Channel.OnRollMessage += (__, me) => chatBuf.PushMessage(me.Message);
-
 				_ChannelBuffers.Add(chatBuf);
 				CurrentBuffer = _ChannelBuffers.Count - 1;
 			};
-			_Chat.OnLeaveChannel += (_, e) =>
+			_Chat.OnChannelChatMessage += (_, e) => WriteMessage(e.Message, e.Channel, e.Character);
+			_Chat.OnChannelRollMessage += (_, e) => {
+				var roll = e.Command as libflist.FChat.Commands.Server.Channel.SendRollReply;
+				WriteMessage(roll.Message, e.Channel, e.Character);
+			};
+			_Chat.OnChannelLeave += (_, e) =>
 			{
 				int i = 0;
 				foreach (var c in _ChannelBuffers)

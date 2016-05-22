@@ -9,7 +9,7 @@ namespace ConsoleMessenger.Commands
 	{
 		public override bool TabComplete(string input, out string[] possibilities)
 		{
-			possibilities = Application.Connection.User.Characters
+			possibilities = Application.Connection.Ticket.Characters
 				.Where(p => p.StartsWith(input, StringComparison.OrdinalIgnoreCase))
 				.ToArray();
 			return possibilities.Any();

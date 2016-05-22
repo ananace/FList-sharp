@@ -99,7 +99,7 @@ namespace libflist.FChat
 
 		public void SendMessage(string message)
 		{
-			Connection.SendCommand(new libflist.Connection.Commands.Client.Character.SendMessageCommand {
+			Connection.SendCommand(new Commands.Client.Character.SendMessageCommand {
 				Character = Name,
 				Message = message
 			});

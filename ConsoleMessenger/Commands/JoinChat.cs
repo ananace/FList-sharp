@@ -17,7 +17,7 @@ namespace ConsoleMessenger.Commands
 
 		public void Call(string name)
 		{
-			Application.Connection.SendCommand(new libflist.Connection.Commands.Client.Channel.JoinCommand
+			Application.Connection.SendCommand(new libflist.FChat.Commands.Client.Channel.JoinCommand
 			{
 				Channel = name
 			});

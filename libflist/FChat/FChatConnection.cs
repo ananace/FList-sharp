@@ -58,66 +58,78 @@ namespace libflist.FChat
 		public TicketResponse Ticket { get; set; }
 		public DateTime TicketTimestamp { get; set; }
 
-		// TODO: Reload if data is stale.
-		public IEnumerable<KnownChannel> KnownChannels { get { return _OfficialChannels.Concat(_PrivateChannels); } }
-
+		public IEnumerable<KnownChannel> AllKnownChannels { get { return _OfficialChannels.Concat(_PrivateChannels); } }
 		public IReadOnlyCollection<KnownChannel> OfficialChannels { get { return _OfficialChannels; } }
 		public IReadOnlyCollection<KnownChannel> PrivateChannels { get { return _PrivateChannels; } }
 
 		public IEnumerable<Channel> ActiveChannels { get { return _Channels; } }
 
+		// Server events
 		public event EventHandler OnConnected;
 		public event EventHandler OnDisconnected;
 		public event EventHandler OnIdentified;
 
+		// Message events
 		public event EventHandler OnError;
 		public event EventHandler<CommandEventArgs> OnErrorMessage;
 		public event EventHandler<CommandEventArgs> OnRawMessage;
 		public event EventHandler<CommandEventArgs> OnSYSMessage;
 
+		// Channel list events
 		public event EventHandler OnOfficialListUpdate;
 		public event EventHandler OnPrivateListUpdate;
 
+		// OP events
 		public event EventHandler<CharacterEntryEventArgs> OnOPAdded;
 		public event EventHandler<CharacterEntryEventArgs> OnOPRemoved;
 
+		// Channel entry events
 		public event EventHandler<ChannelEntryEventArgs> OnChannelJoin;
 		public event EventHandler<ChannelEntryEventArgs> OnChannelLeave;
 		public event EventHandler<ChannelEntryEventArgs> OnChannelInfo;
 
+		// Channel user entry events
 		public event EventHandler<ChannelUserEntryEventArgs> OnChannelUserJoin;
 		public event EventHandler<ChannelUserEntryEventArgs> OnChannelUserLeave;
 
+		// Channel admin events
 		public event EventHandler<ChannelAdminActionEventArgs> OnChannelUserKicked;
 		public event EventHandler<ChannelAdminActionEventArgs> OnChannelUserBanned;
 		public event EventHandler<ChannelAdminActionEventArgs> OnChannelUserUnbanned;
 		public event EventHandler<ChannelAdminActionEventArgs> OnChannelUserTimedout;
 
+		// Channel status events
 		public event EventHandler<ChannelEntryEventArgs<string>> OnChannelDescriptionChange;
 		public event EventHandler<ChannelEntryEventArgs<ChannelMode>> OnChannelModeChange;
 		public event EventHandler<ChannelEntryEventArgs<Character>> OnChannelOwnerChange;
 		public event EventHandler<ChannelEntryEventArgs<ChannelStatus>> OnChannelStatusChange;
 		public event EventHandler<ChannelEntryEventArgs<string>> OnChannelTitleChange;
 
+		// Channel OP events
 		public event EventHandler<ChannelUserEntryEventArgs> OnChannelOPAdded;
 		public event EventHandler<ChannelUserEntryEventArgs> OnChannelOPRemoved;
 
+		// Channel message events
 		public event EventHandler<ChannelUserMessageEventArgs> OnChannelChatMessage;
 		public event EventHandler<ChannelUserMessageEventArgs> OnChannelLFRPMessage;
 		public event EventHandler<ChannelUserEntryEventArgs> OnChannelRollMessage;
 		public event EventHandler<ChannelEntryEventArgs<string>> OnChannelSYSMessage;
 
+		// Character entry events
 		public event EventHandler<CharacterEntryEventArgs> OnCharacterOnline;
 		public event EventHandler<CharacterEntryEventArgs> OnCharacterOffline;
 
+		// Character admin events
 		public event EventHandler<AdminActionEventArgs> OnCharacterKicked;
 		public event EventHandler<AdminActionEventArgs> OnCharacterBanned;
 		public event EventHandler<AdminActionEventArgs> OnCharacterUnbanned;
 		public event EventHandler<AdminActionEventArgs> OnCharacterTimedout;
 
+		// Character status events
 		public event EventHandler<CharacterEntryEventArgs<CharacterStatus>> OnCharacterStatusChange;
 		public event EventHandler<CharacterEntryEventArgs<TypingStatus>> OnCharacterTypingChange;
 
+		// Character message events
 		public event EventHandler<CharacterMessageEventArgs> OnCharacterChatMessage;
 
 
@@ -480,7 +492,14 @@ namespace libflist.FChat
 				return;
 
 			lock (_Connection)
-				_Connection.Close();
+			{
+				try
+				{
+					_Connection.Close();
+				}
+				catch (Exception)
+				{}
+			}
 
 			_Connection = null;
 			_Identified = false;
@@ -631,8 +650,6 @@ namespace libflist.FChat
 					{
 						channelObj = new Channel(this, channel, channel);
 						_Channels.Add(channelObj);
-
-						OnChannelJoin?.Invoke(this, new ChannelEntryEventArgs(channelObj, cmd));
 					}
 				}
 
@@ -642,9 +659,6 @@ namespace libflist.FChat
 				{
 					lock (_Channels)
 						_Channels.Remove(channelObj);
-
-					OnChannelLeave?.Invoke(this, new ChannelEntryEventArgs(channelObj, cmd));
-
 					return;
 				}
 			}
