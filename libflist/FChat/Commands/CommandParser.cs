@@ -4,7 +4,7 @@ using System.Linq;
 using System.Reflection;
 using Newtonsoft.Json;
 
-namespace libflist.Connection.Commands
+namespace libflist.FChat.Commands
 {
 	public static class CommandParser
 	{

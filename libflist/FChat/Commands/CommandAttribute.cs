@@ -1,7 +1,7 @@
 ﻿using System;
 using libflist.Connection.Types;
 
-namespace libflist.Connection.Commands
+namespace libflist.FChat.Commands
 {
 	[AttributeUsage(AttributeTargets.Class)]
 	public sealed class CommandAttribute : Attribute

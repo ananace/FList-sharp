@@ -1,7 +1,7 @@
 ﻿using System;
 using libflist.Connection.Types;
 
-namespace libflist.Connection.Commands.Client.Server
+namespace libflist.FChat.Commands.Client.Server
 {
 	[Command("PIN")]
 	public class PingCommand : Command

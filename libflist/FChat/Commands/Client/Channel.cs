@@ -2,7 +2,7 @@
 using libflist.Connection.Types;
 using libflist.Util.Converters;
 
-namespace libflist.Connection.Commands.Client.Channel
+namespace libflist.FChat.Commands.Client.Channel
 {
 	[Command("CBL", ResponseToken = "SYS")]
 	public class GetBanlistCommand : Command

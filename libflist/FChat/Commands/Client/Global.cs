@@ -2,7 +2,7 @@
 using libflist.Connection.Types;
 using libflist.Util.Converters;
 
-namespace libflist.Connection.Commands.Client.Global
+namespace libflist.FChat.Commands.Client.Global
 {
 	[Command("ACB", MinRight = UserRight.ChatOP)]
 	public class BanCharacterCommand : Command

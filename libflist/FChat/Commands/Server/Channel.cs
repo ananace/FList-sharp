@@ -3,7 +3,7 @@ using libflist.Connection.Types;
 using libflist.Util.Converters;
 using Newtonsoft.Json;
 
-namespace libflist.Connection.Commands.Server.Channel
+namespace libflist.FChat.Commands.Server.Channel
 {
 	[Reply("CDS")]
 	public class ChangeDescriptionReply : Command, Command.IChannelCommand

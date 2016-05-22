@@ -3,7 +3,7 @@ using System.Reflection;
 using Newtonsoft.Json;
 using libflist.Connection.Types;
 
-namespace libflist.Connection.Commands.Client.Connection
+namespace libflist.FChat.Commands.Client.Connection
 {
 	[Command("IDN", MinRight = UserRight.Disconnected)]
 	public class IdentifyCommand : Command

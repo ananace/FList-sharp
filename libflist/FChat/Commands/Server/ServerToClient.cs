@@ -4,7 +4,7 @@ using libflist.Util;
 using libflist.Util.Converters;
 using libflist.Connection.Types;
 
-namespace libflist.Connection.Commands.Server
+namespace libflist.FChat.Commands.Server
 {
 	public class User
 	{

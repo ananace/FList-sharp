@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace libflist.Connection.Commands.Meta
+namespace libflist.FChat.Commands.Meta
 {
 	[Command("???")]
 	public class UnknownCommand : Command

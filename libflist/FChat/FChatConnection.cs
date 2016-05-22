@@ -2,18 +2,16 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using libflist.Connection;
-using libflist.Connection.Commands;
 using libflist.Connection.Types;
 using libflist.Events;
+using libflist.FChat.Events;
+using libflist.FChat.Util;
 using libflist.JSON.Responses;
 using libflist.Util.Converters;
 using System.Diagnostics;
 using System.Reflection;
-using libflist.FChat.Events;
 using System.Threading;
 using WebSocketSharp;
-using libflist.FChat.Util;
 
 namespace libflist.FChat
 {
@@ -48,7 +46,7 @@ namespace libflist.FChat
 		List<Channel> _Channels;
 		List<Character> _Characters;
 
-		Dictionary<string, Action<Command>> _Handlers;
+		Dictionary<string, Action<Commands.Command>> _Handlers;
 
 		readonly ServerVariables _Variables;
 		WebSocket _Connection;
@@ -132,49 +130,49 @@ namespace libflist.FChat
 			_Characters = new List<Character>();
 			_Variables = new ServerVariables();
 
-			_Handlers = new Dictionary<string, Action<Command>>();
+			_Handlers = new Dictionary<string, Action<Commands.Command>>();
 
 			_Handlers["!!!"] = (c) => {
-				var err = c as Connection.Commands.Meta.FailedReply;
+				var err = c as Commands.Meta.FailedReply;
 				Debug.WriteLine("Invalid command recieved: {0} - {2}\n{1}", err.CMDToken, err.Data, err.Exception);
 			};
 			_Handlers["???"] = (c) => {
-				var err = c as Connection.Commands.Meta.UnknownReply;
+				var err = c as Commands.Meta.UnknownReply;
 				Debug.WriteLine("Unknown command recieved: {0}\n{1}", err.CMDToken, err.Data);
 			};
 
 
 			_Handlers["CON"] = (c) => {
-				var con = c as Connection.Commands.Server.ServerConnected;
+				var con = c as Commands.Server.ServerConnected;
 				_Variables.SetVariable("__connected", con.ConnectedUsers);
 			};
 			_Handlers["ERR"] = (c) => {
-				var err = c as Connection.Commands.Server.ChatError;
+				var err = c as Commands.Server.ChatError;
 				OnErrorMessage?.Invoke(this, new CommandEventArgs(err));
 			};
 			_Handlers["HLO"] = (c) =>
 			{
-				var hlo = c as Connection.Commands.Server.ServerHello;
-				/// TODO: Properly report server hello.
+				var hlo = c as Commands.Server.ServerHello;
+				// TODO: Properly report server hello.
 				Debug.WriteLine($"Hello: {hlo.Message}");
 			};
 			_Handlers["IDN"] = (c) => {
-				var idn = c as Connection.Commands.Server.ServerIdentify;
+				var idn = c as Commands.Server.ServerIdentify;
 
 				_Identified = true;
 				Debug.WriteLine($"Identified as {idn.Character}");
-				/// TODO: Handle identifying properly
+				// TODO: Handle identifying properly
 				OnIdentified?.Invoke(this, EventArgs.Empty);
 			};
 			_Handlers["PIN"] = (c) => {
-				SendCommand(new Connection.Commands.Client.Server.PingCommand());
+				SendCommand(new Commands.Client.Server.PingCommand());
 			};
 			_Handlers["SYS"] = (c) => {
-				var sys = c as Connection.Commands.Server.SysReply;
+				var sys = c as Commands.Server.SysReply;
 				OnSYSMessage?.Invoke(this, new CommandEventArgs(sys));
 			};
 			_Handlers["UPT"] = (c) => {
-				var upt = c as Connection.Commands.Server.ServerUptime;
+				var upt = c as Commands.Server.ServerUptime;
 
 				_Variables.SetVariable("__boot_time", upt.StartTime);
 				_Variables.SetVariable("__users", upt.CurrentUsers);
@@ -183,69 +181,69 @@ namespace libflist.FChat
 				_Variables.SetVariable("__peak", upt.PeakUsers);
 			};
 			_Handlers["VAR"] = (c) => {
-				var var = c as Connection.Commands.Server.ServerVariable;
+				var var = c as Commands.Server.ServerVariable;
 				_Variables.SetVariable(var.Name, var.Value);
 			};
 
 
 			_Handlers["ADL"] = (c) => {
-				var adl = c as Connection.Commands.Server.ChatOPList;
-				/// TODO: Implement OP list
+				var adl = c as Commands.Server.ChatOPList;
+				// TODO: Implement OP list
 				Debug.WriteLine($"Recieved OP list with {adl.OPs.Length} entries.");
 			};
 			_Handlers["AOP"] = (c) => {
-				var aop = c as Connection.Commands.Server.ChatMakeOP;
+				var aop = c as Commands.Server.ChatMakeOP;
 				var character = GetCharacter(aop.Character);
-				/// TODO: Implement OP list
+				// TODO: Implement OP list
 				OnOPAdded?.Invoke(this, EventArgs.Empty);
 			};
 			_Handlers["DOP"] = (c) => {
-				var dop = c as Connection.Commands.Server.ChatRemoveOP;
+				var dop = c as Commands.Server.ChatRemoveOP;
 				var character = GetCharacter(dop.Character);
-				/// TODO: Implement OP list
+				// TODO: Implement OP list
 				OnOPRemoved?.Invoke(this, EventArgs.Empty);
 			};
 
 
 			_Handlers["CHA"] = (c) => {
-				var cha = c as Connection.Commands.Server.ChatGetPublicChannels;
+				var cha = c as Commands.Server.ChatGetPublicChannels;
 				_OfficialChannels.AddRange(cha.Channels.Select(C => new KnownChannel { UserCount = C.Count, ID = C.Name, Title = C.Name, Mode = C.Mode }));
-				/// TODO
+				// TODO
 				OnOfficialListUpdate?.Invoke(this, EventArgs.Empty);
 			};
 			_Handlers["ORS"] = (c) => {
-				var ors = c as Connection.Commands.Server.PrivateChannelListReply;
+				var ors = c as Commands.Server.PrivateChannelListReply;
 				_OfficialChannels.AddRange(ors.Channels.Select(C => new KnownChannel { UserCount = C.Count, ID = C.ID, Title = C.Title }));
-				/// TODO
+				// TODO
 				OnOfficialListUpdate?.Invoke(this, EventArgs.Empty);
 			};
 
 
 			_Handlers["FRL"] = (c) => {
-				var frl = c as Connection.Commands.Server.FriendListReply;
-				/// TODO: Implement friends and bookmarks list
+				var frl = c as Commands.Server.FriendListReply;
+				// TODO: Implement friends and bookmarks list
 				Debug.WriteLine($"Recieved {frl.FriendsAndBookmarks.Length} friends and bookmarks");
 			};
 			_Handlers["IGN"] = (c) => {
-				var ign = c as Connection.Commands.Server.IgnoreListReply;
-				/// TODO: Handle ignores
+				var ign = c as Commands.Server.IgnoreListReply;
+				// TODO: Handle ignores
 				switch (ign.Action)
 				{
-					case Connection.Commands.Server.IgnoreListReply.IgnoreAction.Init:
+					case Commands.Server.IgnoreListReply.IgnoreAction.Init:
 						Debug.WriteLine($"Initial ignore list received. {ign.Characters.Length} entries.");
 						break;
 
-					case Connection.Commands.Server.IgnoreListReply.IgnoreAction.Add:
+					case Commands.Server.IgnoreListReply.IgnoreAction.Add:
 						Debug.WriteLine($"TODO: Add {ign.Character} to ignore list.");
 						break;
 
-					case Connection.Commands.Server.IgnoreListReply.IgnoreAction.Delete:
+					case Commands.Server.IgnoreListReply.IgnoreAction.Delete:
 						Debug.WriteLine($"TODO: Remove {ign.Character} from ignore list.");
 						break;
 				}
 			};
 			_Handlers["LIS"] = (c) => {
-				var lis = c as Connection.Commands.Server.UserListReply;
+				var lis = c as Commands.Server.UserListReply;
 
 				foreach (var character in lis.CharacterData)
 				{
@@ -259,61 +257,61 @@ namespace libflist.FChat
 
 
 			_Handlers["FLN"] = (c) => {
-				var fln = c as Connection.Commands.Server.Character.OfflineReply;
+				var fln = c as Commands.Server.Character.OfflineReply;
 				var character = GetCharacter(fln.Character);
 				if (character == null)
 				{
 					character = new Character(this, fln.Character);
 
-					/// TODO
+					// TODO
 					OnCharacterOffline?.Invoke(this, EventArgs.Empty);
 					return;
 				}
 
-				/// TODO
+				// TODO
 				OnCharacterOffline?.Invoke(this, EventArgs.Empty);
 
 				lock (_Characters)
 					_Characters.Remove(character);
 
 				foreach (var chan in _Channels.Where(C => C.Characters.Contains(character)))
-					chan.PushCommand(new Connection.Commands.Server.Channel.LeaveReply
+					chan.PushCommand(new Commands.Server.Channel.LeaveReply
 					{
 						Channel = chan.ID,
 						Character = character.Name
 					});
 			};
 			_Handlers["NLN"] = (c) => {
-				var nln = c as Connection.Commands.Server.Character.OnlineReply;
+				var nln = c as Commands.Server.Character.OnlineReply;
 
 				var character = GetOrCreateCharacter(nln.CharacterName);
 				character.Gender = nln.Gender;
 				character.Status = nln.Status;
 
-				/// TODO
+				// TODO
 				OnCharacterOnline?.Invoke(this, EventArgs.Empty);
 			};
 			_Handlers["PRI"] = (c) => {
-				var pri = c as Connection.Commands.Server.Character.SendMessageReply;
+				var pri = c as Commands.Server.Character.SendMessageReply;
 				var character = GetCharacter(pri.Character);
 
 				character.IsTyping = false;
 
-				/// TODO
+				// TODO
 				OnCharacterChatMessage?.Invoke(this, EventArgs.Empty);
 			};
 			_Handlers["STA"] = (c) => {
-				var sta = c as Connection.Commands.Server.Character.StatusReply;
+				var sta = c as Commands.Server.Character.StatusReply;
 				var character = GetCharacter(sta.Character);
 
 				character.Status = sta.Status;
 				character.StatusMessage = sta.Message;
 
-				/// TODO
+				// TODO
 				OnCharacterStatusChange?.Invoke(this, EventArgs.Empty);
 			};
 			_Handlers["TPN"] = (c) => {
-				var tpn = c as Connection.Commands.Server.Character.TypingReply;
+				var tpn = c as Commands.Server.Character.TypingReply;
 				var character = GetCharacter(tpn.Character);
 
 				character.IsTyping = tpn.Status == TypingStatus.Typing;
@@ -349,7 +347,7 @@ namespace libflist.FChat
 				if (chan != null)
 					return chan;
 
-				var reply = RequestCommand<Connection.Commands.Server.Channel.JoinReply>(new Connection.Commands.Client.Channel.JoinCommand { Channel = ID });
+				var reply = RequestCommand<Commands.Server.Channel.JoinReply>(new Commands.Client.Channel.JoinCommand { Channel = ID });
 
 				chan = new Channel(this, ID, reply.Title);
 				_Channels.Add(chan);
@@ -357,17 +355,17 @@ namespace libflist.FChat
 			}
 		}
 
-		public void SendCommand(Command command)
+		public void SendCommand(Commands.Command command)
 		{
-			if (command.Source != CommandSource.Client)
+			if (command.Source != Commands.CommandSource.Client)
 				throw new ArgumentException("Command source is invalid.", nameof(command));
 
 			lock (_Connection)
 				_Connection.Send(command.Serialize());
 		}
-		public async Task<bool> SendCommandAsync(Command command)
+		public async Task<bool> SendCommandAsync(Commands.Command command)
 		{
-			if (command.Source != CommandSource.Client)
+			if (command.Source != Commands.CommandSource.Client)
 				throw new ArgumentException("Command source is invalid.", nameof(command));
 
 			bool result = false;
@@ -382,15 +380,15 @@ namespace libflist.FChat
 
 			return result;
 		}
-		public T RequestCommand<T>(Command query) where T : Command
+		public T RequestCommand<T>(Commands.Command query) where T : Command
 		{
-			var att = query.GetType().GetCustomAttribute<CommandAttribute>();
+			var att = query.GetType().GetCustomAttribute<Commands.CommandAttribute>();
 			if (att.Response != ResponseType.Default || att.ResponseToken == "SYS")
 				throw new ArgumentException("Can only use queries with proper response information", nameof(query));
 
 			var ev = new AutoResetEvent(false);
 
-			Command reply = null;
+			Commands.Command reply = null;
 			OnRawMessage += (s, e) =>
 			{
 				if (e.Command.Token == att.ResponseToken)
@@ -405,15 +403,15 @@ namespace libflist.FChat
 				return (T)reply;
 			return null;
 		}
-		public async Task<T> RequestCommandAsync<T>(Command query) where T : Command
+		public async Task<T> RequestCommandAsync<T>(Commands.Command query) where T : Command
 		{
-			var att = query.GetType().GetCustomAttribute<CommandAttribute>();
+			var att = query.GetType().GetCustomAttribute<Commands.CommandAttribute>();
 			if (att.Response != ResponseType.Default || att.ResponseToken == "SYS")
 				throw new ArgumentException("Can only use queries with proper response information", nameof(query));
 
 			var ev = new AsyncAutoResetEvent();
 
-			Command reply = null;
+			Commands.Command reply = null;
 			OnRawMessage += (s, e) =>
 			{
 				if (e.Command.Token == att.ResponseToken)
@@ -506,7 +504,7 @@ namespace libflist.FChat
 				_Connection.Connect();
 
 				if (AutoLogin)
-					SendCommand(new Connection.Commands.Client.Connection.IdentifyCommand {
+					SendCommand(new Commands.Client.Connection.IdentifyCommand {
 						Account = _User,
 						Ticket = Ticket.Ticket,
 						Character = _Character
@@ -530,7 +528,7 @@ namespace libflist.FChat
 					return;
 
 				_Character = Character;
-				SendCommand(new Connection.Commands.Client.Connection.IdentifyCommand
+				SendCommand(new Commands.Client.Connection.IdentifyCommand
 				{
 					Account = _User,
 					Ticket = Ticket.Ticket,
@@ -553,7 +551,7 @@ namespace libflist.FChat
 					return chan;
 
 				chan = new Channel(this, ID, ID);
-				SendCommand(new Connection.Commands.Client.Channel.JoinCommand
+				SendCommand(new Commands.Client.Channel.JoinCommand
 				{
 					Channel = ID
 				});
@@ -595,14 +593,14 @@ namespace libflist.FChat
 			var token = e.Data.Substring(0, 3);
 			var data = e.Data.Substring(4);
 
-			var reply = CommandParser.ParseReply(token, data, true);
+			var reply = Commands.CommandParser.ParseReply(token, data, true);
 
 			_HandleMessage(reply);
 		}
 
 		private void _Connection_OnError(object sender, ErrorEventArgs e)
 		{
-			_HandleMessage(new Connection.Commands.Meta.FailedReply
+			_HandleMessage(new Commands.Meta.FailedReply
 			{
 				Data = e.Message,
 				Exception = e.Exception
@@ -620,14 +618,14 @@ namespace libflist.FChat
 				Task.Delay(15000).ContinueWith(_ => Reconnect());
 		}
 
-		void _HandleMessage(Command cmd)
+		void _HandleMessage(Commands.Command cmd)
 		{
 			OnRawMessage?.Invoke(this, new CommandEventArgs(cmd));
 
-			if (cmd is Command.IChannelCommand &&
-				!string.IsNullOrEmpty((cmd as Command.IChannelCommand).Channel))
+			if (cmd is Commands.Command.IChannelCommand &&
+				!string.IsNullOrEmpty((cmd as Commands.Command.IChannelCommand).Channel))
 			{
-				var channel = (cmd as Command.IChannelCommand).Channel;
+				var channel = (cmd as Commands.Command.IChannelCommand).Channel;
 
 				Channel channelObj;
 				lock (_Channels)

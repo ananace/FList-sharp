@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace libflist.Connection.Commands
+namespace libflist.FChat.Commands
 {
 	[AttributeUsage(AttributeTargets.Class)]
 	public sealed class ReplyAttribute : Attribute

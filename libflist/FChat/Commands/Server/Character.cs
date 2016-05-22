@@ -3,7 +3,7 @@ using libflist.Connection.Types;
 using libflist.Util.Converters;
 using Newtonsoft.Json;
 
-namespace libflist.Connection.Commands.Server.Character
+namespace libflist.FChat.Commands.Server.Character
 {
 	[Reply("FLN")]
 	public class OfflineReply : Command, Command.ICharacterCommand

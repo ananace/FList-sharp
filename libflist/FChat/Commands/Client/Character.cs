@@ -2,7 +2,7 @@
 using libflist.Connection.Types;
 using libflist.Util.Converters;
 
-namespace libflist.Connection.Commands.Client.Character
+namespace libflist.FChat.Commands.Client.Character
 {
 	[Command("KIN", Response = ResponseType.Multiple, ResponseToken = "KID")]
 	public class GetKinksCommand : Command

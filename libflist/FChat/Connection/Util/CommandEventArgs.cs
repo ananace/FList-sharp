@@ -1,5 +1,5 @@
 ﻿using System;
-using libflist.Connection.Commands;
+using libflist.FChat.Commands;
 
 namespace libflist.Connection.Util
 {

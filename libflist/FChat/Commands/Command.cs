@@ -4,7 +4,7 @@ using System.Reflection;
 using Newtonsoft.Json;
 using libflist.FChat;
 
-namespace libflist.Connection.Commands
+namespace libflist.FChat.Commands
 {
 	public enum CommandSource
 	{
