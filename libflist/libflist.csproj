@@ -52,8 +52,6 @@
     <Compile Include="FChat\ServerVariables.cs" />
     <Compile Include="Util\Converters\JsonEnumConverter.cs" />
     <Compile Include="Util\EnumValueAttribute.cs" />
-    <Compile Include="FChat\Connection\Util\CommandEventArgs.cs" />
-    <Compile Include="FChat\Connection\Util\CommandHandler.cs" />
     <Compile Include="FChat\Connection\Types\Channel.cs" />
     <Compile Include="FChat\Connection\Types\Character.cs" />
     <Compile Include="FChat\Connection\Types\ResponseType.cs" />
@@ -79,6 +77,9 @@
     <Compile Include="FChat\Commands\Server\Channel.cs" />
     <Compile Include="FChat\Commands\Server\Character.cs" />
     <Compile Include="FChat\Commands\Server\ServerToClient.cs" />
+    <Compile Include="FChat\Events\ChannelUserEntryEventArgs.cs" />
+    <Compile Include="FChat\Events\ChannelUserMessageEventArgs.cs" />
+    <Compile Include="FChat\Events\ChannelAdminActionEventArgs.cs" />
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>

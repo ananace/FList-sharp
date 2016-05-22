@@ -46,7 +46,7 @@ namespace libflist.FChat
 		List<Channel> _Channels;
 		List<Character> _Characters;
 
-		Dictionary<string, Action<Commands.Command>> _Handlers;
+		readonly Dictionary<string, Action<Commands.Command>> _Handlers;
 
 		readonly ServerVariables _Variables;
 		WebSocket _Connection;
@@ -78,47 +78,47 @@ namespace libflist.FChat
 		public event EventHandler OnOfficialListUpdate;
 		public event EventHandler OnPrivateListUpdate;
 
-		public event EventHandler OnOPAdded;
-		public event EventHandler OnOPRemoved;
+		public event EventHandler<CharacterEntryEventArgs> OnOPAdded;
+		public event EventHandler<CharacterEntryEventArgs> OnOPRemoved;
 
 		public event EventHandler<ChannelEntryEventArgs> OnChannelJoin;
 		public event EventHandler<ChannelEntryEventArgs> OnChannelLeave;
 		public event EventHandler<ChannelEntryEventArgs> OnChannelInfo;
 
-		public event EventHandler OnChannelUserJoin;
-		public event EventHandler OnChannelUserLeave;
+		public event EventHandler<ChannelUserEntryEventArgs> OnChannelUserJoin;
+		public event EventHandler<ChannelUserEntryEventArgs> OnChannelUserLeave;
 
-		public event EventHandler OnChannelUserKicked;
-		public event EventHandler OnChannelUserBanned;
-		public event EventHandler OnChannelUserUnbanned;
-		public event EventHandler OnChannelUserTimedout;
+		public event EventHandler<ChannelAdminActionEventArgs> OnChannelUserKicked;
+		public event EventHandler<ChannelAdminActionEventArgs> OnChannelUserBanned;
+		public event EventHandler<ChannelAdminActionEventArgs> OnChannelUserUnbanned;
+		public event EventHandler<ChannelAdminActionEventArgs> OnChannelUserTimedout;
 
-		public event EventHandler OnChannelDescriptionChange;
-		public event EventHandler OnChannelModeChange;
-		public event EventHandler OnChannelOwnerChange;
-		public event EventHandler OnChannelStatusChange;
-		public event EventHandler OnChannelTitleChange;
+		public event EventHandler<ChannelEntryEventArgs<string>> OnChannelDescriptionChange;
+		public event EventHandler<ChannelEntryEventArgs<ChannelMode>> OnChannelModeChange;
+		public event EventHandler<ChannelEntryEventArgs<Character>> OnChannelOwnerChange;
+		public event EventHandler<ChannelEntryEventArgs<ChannelStatus>> OnChannelStatusChange;
+		public event EventHandler<ChannelEntryEventArgs<string>> OnChannelTitleChange;
 
-		public event EventHandler OnChannelOPAdded;
-		public event EventHandler OnChannelOPRemoved;
+		public event EventHandler<ChannelUserEntryEventArgs> OnChannelOPAdded;
+		public event EventHandler<ChannelUserEntryEventArgs> OnChannelOPRemoved;
 
-		public event EventHandler OnChannelChatMessage;
-		public event EventHandler OnChannelLFRPMessage;
-		public event EventHandler OnChannelRollMessage;
-		public event EventHandler OnChannelSYSMessage;
+		public event EventHandler<ChannelUserMessageEventArgs> OnChannelChatMessage;
+		public event EventHandler<ChannelUserMessageEventArgs> OnChannelLFRPMessage;
+		public event EventHandler<ChannelUserEntryEventArgs> OnChannelRollMessage;
+		public event EventHandler<ChannelEntryEventArgs<string>> OnChannelSYSMessage;
 
-		public event EventHandler OnCharacterOnline;
-		public event EventHandler OnCharacterOffline;
+		public event EventHandler<CharacterEntryEventArgs> OnCharacterOnline;
+		public event EventHandler<CharacterEntryEventArgs> OnCharacterOffline;
 
-		public event EventHandler OnCharacterKicked;
-		public event EventHandler OnCharacterBanned;
-		public event EventHandler OnCharacterUnbanned;
-		public event EventHandler OnCharacterTimedout;
+		public event EventHandler<AdminActionEventArgs> OnCharacterKicked;
+		public event EventHandler<AdminActionEventArgs> OnCharacterBanned;
+		public event EventHandler<AdminActionEventArgs> OnCharacterUnbanned;
+		public event EventHandler<AdminActionEventArgs> OnCharacterTimedout;
 
-		public event EventHandler OnCharacterStatusChange;
-		public event EventHandler OnCharacterTypingChange;
+		public event EventHandler<CharacterEntryEventArgs<CharacterStatus>> OnCharacterStatusChange;
+		public event EventHandler<CharacterEntryEventArgs<TypingStatus>> OnCharacterTypingChange;
 
-		public event EventHandler OnCharacterChatMessage;
+		public event EventHandler<CharacterMessageEventArgs> OnCharacterChatMessage;
 
 
 		public FChatConnection()
@@ -158,15 +158,12 @@ namespace libflist.FChat
 			};
 			_Handlers["IDN"] = (c) => {
 				var idn = c as Commands.Server.ServerIdentify;
-
 				_Identified = true;
 				Debug.WriteLine($"Identified as {idn.Character}");
 				// TODO: Handle identifying properly
 				OnIdentified?.Invoke(this, EventArgs.Empty);
 			};
-			_Handlers["PIN"] = (c) => {
-				SendCommand(new Commands.Client.Server.PingCommand());
-			};
+			_Handlers["PIN"] = (c) => SendCommand(new Commands.Client.Server.PingCommand());
 			_Handlers["SYS"] = (c) => {
 				var sys = c as Commands.Server.SysReply;
 				OnSYSMessage?.Invoke(this, new CommandEventArgs(sys));
@@ -195,27 +192,29 @@ namespace libflist.FChat
 				var aop = c as Commands.Server.ChatMakeOP;
 				var character = GetCharacter(aop.Character);
 				// TODO: Implement OP list
-				OnOPAdded?.Invoke(this, EventArgs.Empty);
+				OnOPAdded?.Invoke(this, new CharacterEntryEventArgs(character, aop));
 			};
 			_Handlers["DOP"] = (c) => {
 				var dop = c as Commands.Server.ChatRemoveOP;
 				var character = GetCharacter(dop.Character);
 				// TODO: Implement OP list
-				OnOPRemoved?.Invoke(this, EventArgs.Empty);
+				OnOPRemoved?.Invoke(this, new CharacterEntryEventArgs(character, dop));
 			};
 
 
 			_Handlers["CHA"] = (c) => {
 				var cha = c as Commands.Server.ChatGetPublicChannels;
+				// TODO: Do this properly, sync only changes
+				_OfficialChannels.Clear();
 				_OfficialChannels.AddRange(cha.Channels.Select(C => new KnownChannel { UserCount = C.Count, ID = C.Name, Title = C.Name, Mode = C.Mode }));
-				// TODO
 				OnOfficialListUpdate?.Invoke(this, EventArgs.Empty);
 			};
 			_Handlers["ORS"] = (c) => {
 				var ors = c as Commands.Server.PrivateChannelListReply;
-				_OfficialChannels.AddRange(ors.Channels.Select(C => new KnownChannel { UserCount = C.Count, ID = C.ID, Title = C.Title }));
-				// TODO
-				OnOfficialListUpdate?.Invoke(this, EventArgs.Empty);
+				// TODO: Do this properly, sync only changes
+				_PrivateChannels.Clear();
+				_PrivateChannels.AddRange(ors.Channels.Select(C => new KnownChannel { UserCount = C.Count, ID = C.ID, Title = C.Title }));
+				OnPrivateListUpdate?.Invoke(this, EventArgs.Empty);
 			};
 
 
@@ -264,12 +263,12 @@ namespace libflist.FChat
 					character = new Character(this, fln.Character);
 
 					// TODO
-					OnCharacterOffline?.Invoke(this, EventArgs.Empty);
+					OnCharacterOffline?.Invoke(this, new CharacterEntryEventArgs(character, fln));
 					return;
 				}
 
 				// TODO
-				OnCharacterOffline?.Invoke(this, EventArgs.Empty);
+				OnCharacterOffline?.Invoke(this, new CharacterEntryEventArgs(character, fln));
 
 				lock (_Characters)
 					_Characters.Remove(character);
@@ -288,8 +287,7 @@ namespace libflist.FChat
 				character.Gender = nln.Gender;
 				character.Status = nln.Status;
 
-				// TODO
-				OnCharacterOnline?.Invoke(this, EventArgs.Empty);
+				OnCharacterOnline?.Invoke(this, new CharacterEntryEventArgs(character, nln));
 			};
 			_Handlers["PRI"] = (c) => {
 				var pri = c as Commands.Server.Character.SendMessageReply;
@@ -297,8 +295,7 @@ namespace libflist.FChat
 
 				character.IsTyping = false;
 
-				// TODO
-				OnCharacterChatMessage?.Invoke(this, EventArgs.Empty);
+				OnCharacterChatMessage?.Invoke(this, new CharacterMessageEventArgs(character, pri.Message, pri));
 			};
 			_Handlers["STA"] = (c) => {
 				var sta = c as Commands.Server.Character.StatusReply;
@@ -307,8 +304,7 @@ namespace libflist.FChat
 				character.Status = sta.Status;
 				character.StatusMessage = sta.Message;
 
-				// TODO
-				OnCharacterStatusChange?.Invoke(this, EventArgs.Empty);
+				OnCharacterStatusChange?.Invoke(this, new CharacterEntryEventArgs<CharacterStatus>(character, sta.Status, sta));
 			};
 			_Handlers["TPN"] = (c) => {
 				var tpn = c as Commands.Server.Character.TypingReply;
@@ -316,7 +312,7 @@ namespace libflist.FChat
 
 				character.IsTyping = tpn.Status == TypingStatus.Typing;
 
-				OnCharacterTypingChange?.Invoke(this, EventArgs.Empty);
+				OnCharacterTypingChange?.Invoke(this, new CharacterEntryEventArgs<TypingStatus>(character, tpn.Status, tpn));
 			};
 		}
 
@@ -380,7 +376,7 @@ namespace libflist.FChat
 
 			return result;
 		}
-		public T RequestCommand<T>(Commands.Command query) where T : Command
+		public T RequestCommand<T>(Commands.Command query) where T : Commands.Command
 		{
 			var att = query.GetType().GetCustomAttribute<Commands.CommandAttribute>();
 			if (att.Response != ResponseType.Default || att.ResponseToken == "SYS")
@@ -403,7 +399,7 @@ namespace libflist.FChat
 				return (T)reply;
 			return null;
 		}
-		public async Task<T> RequestCommandAsync<T>(Commands.Command query) where T : Command
+		public async Task<T> RequestCommandAsync<T>(Commands.Command query) where T : Commands.Command
 		{
 			var att = query.GetType().GetCustomAttribute<Commands.CommandAttribute>();
 			if (att.Response != ResponseType.Default || att.ResponseToken == "SYS")

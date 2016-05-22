@@ -1,10 +1,11 @@
 ﻿using System;
+using libflist.FChat.Commands;
 
 namespace libflist.FChat.Events
 {
 	public sealed class CommandEventArgs : EventArgs
 	{
-		public Commands.Command Command { get; private set; }
+		public Command Command { get; private set; }
 
 		public CommandEventArgs(Command cmd)
 		{

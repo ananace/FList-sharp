@@ -4,38 +4,31 @@ using libflist.FChat.Commands;
 
 namespace libflist.Events
 {
-	public class ChannelEntryEventArgs : EventArgs
+	public class ChannelUserEntryEventArgs : EventArgs
 	{
 		public Channel Channel { get; private set; }
+		public Character Character { get; private set; }
 		public Command Command { get; private set; }
 
-		public ChannelEntryEventArgs(Channel channel, Command command)
+		public ChannelUserEntryEventArgs(Channel channel, Character character, Command command)
 		{
 			Channel = channel;
-			Command = command;
-		}
-
-		public ChannelEntryEventArgs(Command command)
-		{
+			Character = character;
 			Command = command;
 		}
 	}
 
-	public class ChannelEntryEventArgs<T> : EventArgs
+	public class ChannelUserEntryEventArgs<T> : EventArgs
 	{
 		public Channel Channel { get; private set; }
+		public Character Character { get; private set; }
 		public T Data { get; private set; }
 		public Command Command { get; private set; }
 
-		public ChannelEntryEventArgs(Channel channel, T data, Command command)
+		public ChannelUserEntryEventArgs(Channel channel, Character character, T data, Command command)
 		{
 			Channel = channel;
-			Data = data;
-			Command = command;
-		}
-
-		public ChannelEntryEventArgs(T data, Command command)
-		{
+			Character = character;
 			Data = data;
 			Command = command;
 		}

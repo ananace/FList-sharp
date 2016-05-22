@@ -4,18 +4,18 @@ using libflist.FChat.Commands;
 
 namespace libflist.Events
 {
-	public class ChannelUserMessageEventArgs : EventArgs
+	public class ChannelAdminActionEventArgs : EventArgs
 	{
 		public Channel Channel { get; private set; }
 		public Character Character { get; private set; }
-		public string Message { get; private set; }
+		public Character Admin { get; private set; }
 		public Command Command { get; private set; }
 
-		public ChannelUserMessageEventArgs(Channel channel, Character character, string message, Command command)
+		public ChannelAdminActionEventArgs(Channel channel, Character character, Character admin, Command command)
 		{
 			Channel = channel;
 			Character = character;
-			Message = message;
+			Admin = admin;
 			Command = command;
 		}
 	}
