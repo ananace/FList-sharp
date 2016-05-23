@@ -46,7 +46,7 @@ namespace libflist.FChat
 		List<Channel> _Channels;
 		List<Character> _Characters;
 
-		readonly Dictionary<string, Action<Commands.Command>> _Handlers;
+		readonly Dictionary<string, EventHandler<Commands.Command>> _Handlers;
 
 		readonly ServerVariables _Variables;
 		WebSocket _Connection;
@@ -67,7 +67,7 @@ namespace libflist.FChat
 		{
 			get
 			{
-				if (AutoUpdate && DateTime.Now > _LastPrivateUpdate + OFFICIAL_TIMEOUT)
+				if (AutoUpdate && DateTime.Now > _LastPublicUpdate + OFFICIAL_TIMEOUT)
 				{
 					_LastPublicUpdate = DateTime.Now;
 					RequestCommand<Commands.Server.ChatGetPublicChannels>(new Commands.Client.Global.GetPublicChannelsCommand());
@@ -147,6 +147,10 @@ namespace libflist.FChat
 		public event EventHandler<CharacterEntryEventArgs> OnCharacterOnline;
 		public event EventHandler<CharacterEntryEventArgs> OnCharacterOffline;
 
+		// Character list events
+		public event EventHandler OnFriendsListUpdate;
+		public event EventHandler OnIgnoreListUpdate;
+
 		// Character admin events
 		public event EventHandler<AdminActionEventArgs> OnCharacterKicked;
 		public event EventHandler<AdminActionEventArgs> OnCharacterBanned;
@@ -170,48 +174,48 @@ namespace libflist.FChat
 			_Characters = new List<Character>();
 			_Variables = new ServerVariables();
 
-			_Handlers = new Dictionary<string, Action<Commands.Command>>();
+			_Handlers = new Dictionary<string, EventHandler<Commands.Command>>();
 
-			_Handlers["!!!"] = (c) => {
+			_Handlers["!!!"] += (_, c) => {
 				var err = c as Commands.Meta.FailedReply;
 				Debug.WriteLine("Invalid command recieved: {0} - {2}\n{1}", err.CMDToken, err.Data, err.Exception);
 			};
-			_Handlers["???"] = (c) => {
+			_Handlers["???"] += (_, c) => {
 				var err = c as Commands.Meta.UnknownReply;
 				Debug.WriteLine("Unknown command recieved: {0}\n{1}", err.CMDToken, err.Data);
 			};
 
 
-			_Handlers["CON"] = (c) => {
+			_Handlers["CON"] += (_, c) => {
 				var con = c as Commands.Server.ServerConnected;
 				_Variables.SetVariable("__connected", con.ConnectedUsers);
 			};
-			_Handlers["ERR"] = (c) => {
+			_Handlers["ERR"] += (_, c) => {
 				var err = c as Commands.Server.ChatError;
 				OnErrorMessage?.Invoke(this, new CommandEventArgs(err));
 			};
-			_Handlers["HLO"] = (c) =>
+			_Handlers["HLO"] += (_, c) =>
 			{
 				var hlo = c as Commands.Server.ServerHello;
 				// TODO: Properly report server hello.
 				Debug.WriteLine($"Hello: {hlo.Message}");
 			};
-			_Handlers["IDN"] = (c) => {
+			_Handlers["IDN"] += (_, c) => {
 				var idn = c as Commands.Server.ServerIdentify;
 				_Identified = true;
 				Debug.WriteLine($"Identified as {idn.Character}");
 				// TODO: Handle identifying properly
 				OnIdentified?.Invoke(this, EventArgs.Empty);
 			};
-			_Handlers["PIN"] = (c) => {
+			_Handlers["PIN"] += (_, c) => {
 				if (AutoPing)	
 					SendCommand(new Commands.Client.Server.PingCommand());
 			};
-			_Handlers["SYS"] = (c) => {
+			_Handlers["SYS"] += (_, c) => {
 				var sys = c as Commands.Server.SysReply;
 				OnSYSMessage?.Invoke(this, new CommandEventArgs(sys));
 			};
-			_Handlers["UPT"] = (c) => {
+			_Handlers["UPT"] += (_, c) => {
 				var upt = c as Commands.Server.ServerUptime;
 
 				_Variables.SetVariable("__boot_time", upt.StartTime);
@@ -220,24 +224,24 @@ namespace libflist.FChat
 				_Variables.SetVariable("__connections", upt.AcceptedConnections);
 				_Variables.SetVariable("__peak", upt.PeakUsers);
 			};
-			_Handlers["VAR"] = (c) => {
+			_Handlers["VAR"] += (_, c) => {
 				var var = c as Commands.Server.ServerVariable;
 				_Variables.SetVariable(var.Name, var.Value);
 			};
 
 
-			_Handlers["ADL"] = (c) => {
+			_Handlers["ADL"] += (_, c) => {
 				var adl = c as Commands.Server.ChatOPList;
 				// TODO: Implement OP list
 				Debug.WriteLine($"Recieved OP list with {adl.OPs.Length} entries.");
 			};
-			_Handlers["AOP"] = (c) => {
+			_Handlers["AOP"] += (_, c) => {
 				var aop = c as Commands.Server.ChatMakeOP;
 				var character = GetCharacter(aop.Character);
 				// TODO: Implement OP list
 				OnOPAdded?.Invoke(this, new CharacterEntryEventArgs(character, aop));
 			};
-			_Handlers["DOP"] = (c) => {
+			_Handlers["DOP"] += (_, c) => {
 				var dop = c as Commands.Server.ChatRemoveOP;
 				var character = GetCharacter(dop.Character);
 				// TODO: Implement OP list
@@ -245,14 +249,14 @@ namespace libflist.FChat
 			};
 
 
-			_Handlers["CHA"] = (c) => {
+			_Handlers["CHA"] += (_, c) => {
 				var cha = c as Commands.Server.ChatGetPublicChannels;
 				// TODO: Do this properly, sync only changes
 				_OfficialChannels.Clear();
 				_OfficialChannels.AddRange(cha.Channels.Select(C => new KnownChannel { UserCount = C.Count, ID = C.Name, Title = C.Name, Mode = C.Mode }));
 				OnOfficialListUpdate?.Invoke(this, EventArgs.Empty);
 			};
-			_Handlers["ORS"] = (c) => {
+			_Handlers["ORS"] += (_, c) => {
 				var ors = c as Commands.Server.PrivateChannelListReply;
 				// TODO: Do this properly, sync only changes
 				_PrivateChannels.Clear();
@@ -261,12 +265,14 @@ namespace libflist.FChat
 			};
 
 
-			_Handlers["FRL"] = (c) => {
+			_Handlers["FRL"] += (_, c) => {
 				var frl = c as Commands.Server.FriendListReply;
 				// TODO: Implement friends and bookmarks list
 				Debug.WriteLine($"Recieved {frl.FriendsAndBookmarks.Length} friends and bookmarks");
+
+				OnFriendsListUpdate?.Invoke(this, EventArgs.Empty);
 			};
-			_Handlers["IGN"] = (c) => {
+			_Handlers["IGN"] += (_, c) => {
 				var ign = c as Commands.Server.IgnoreListReply;
 				// TODO: Handle ignores
 				switch (ign.Action)
@@ -283,8 +289,11 @@ namespace libflist.FChat
 						Debug.WriteLine($"TODO: Remove {ign.Character} from ignore list.");
 						break;
 				}
+
+				// TODO
+				OnIgnoreListUpdate?.Invoke(this, EventArgs.Empty);
 			};
-			_Handlers["LIS"] = (c) => {
+			_Handlers["LIS"] += (_, c) => {
 				var lis = c as Commands.Server.UserListReply;
 
 				foreach (var character in lis.CharacterData)
@@ -298,19 +307,17 @@ namespace libflist.FChat
 			};
 
 
-			_Handlers["FLN"] = (c) => {
+			_Handlers["FLN"] += (_, c) => {
 				var fln = c as Commands.Server.Character.OfflineReply;
 				var character = GetCharacter(fln.Character);
 				if (character == null)
 				{
 					character = new Character(this, fln.Character);
 
-					// TODO
 					OnCharacterOffline?.Invoke(this, new CharacterEntryEventArgs(character, fln));
 					return;
 				}
 
-				// TODO
 				OnCharacterOffline?.Invoke(this, new CharacterEntryEventArgs(character, fln));
 
 				lock (_Characters)
@@ -323,7 +330,7 @@ namespace libflist.FChat
 						Character = character.Name
 					});
 			};
-			_Handlers["NLN"] = (c) => {
+			_Handlers["NLN"] += (_, c) => {
 				var nln = c as Commands.Server.Character.OnlineReply;
 
 				var character = GetOrCreateCharacter(nln.CharacterName);
@@ -332,7 +339,7 @@ namespace libflist.FChat
 
 				OnCharacterOnline?.Invoke(this, new CharacterEntryEventArgs(character, nln));
 			};
-			_Handlers["PRI"] = (c) => {
+			_Handlers["PRI"] += (_, c) => {
 				var pri = c as Commands.Server.Character.SendMessageReply;
 				var character = GetCharacter(pri.Character);
 
@@ -340,7 +347,7 @@ namespace libflist.FChat
 
 				OnCharacterChatMessage?.Invoke(this, new CharacterMessageEventArgs(character, pri.Message, pri));
 			};
-			_Handlers["STA"] = (c) => {
+			_Handlers["STA"] += (_, c) => {
 				var sta = c as Commands.Server.Character.StatusReply;
 				var character = GetCharacter(sta.Character);
 
@@ -349,7 +356,7 @@ namespace libflist.FChat
 
 				OnCharacterStatusChange?.Invoke(this, new CharacterEntryEventArgs<CharacterStatus>(character, sta.Status, sta));
 			};
-			_Handlers["TPN"] = (c) => {
+			_Handlers["TPN"] += (_, c) => {
 				var tpn = c as Commands.Server.Character.TypingReply;
 				var character = GetCharacter(tpn.Character);
 
@@ -431,13 +438,10 @@ namespace libflist.FChat
 			var ev = new AutoResetEvent(false);
 
 			Commands.Command reply = null;
-			OnRawMessage += (s, e) =>
+			_Handlers[ratt.Token] += (_, e) =>
 			{
-				if (e.Command.Token == att.ResponseToken)
-				{
-					reply = e.Command;
-					ev.Set();
-				}
+				reply = e;
+				ev.Set();
 			};
 
 			SendCommand(query);
@@ -457,13 +461,10 @@ namespace libflist.FChat
 			var ev = new AsyncAutoResetEvent();
 
 			Commands.Command reply = null;
-			OnRawMessage += (s, e) =>
+			_Handlers[ratt.Token] += (_, e) =>
 			{
-				if (e.Command.Token == att.ResponseToken)
-				{
-					reply = e.Command;
-					ev.Set();
-				}
+				reply = e;
+				ev.Set();
 			};
 
 			await SendCommandAsync(query);
@@ -635,12 +636,12 @@ namespace libflist.FChat
 		}
 
 
-		private void _Connection_OnOpen(object sender, EventArgs e)
+		void _Connection_OnOpen(object sender, EventArgs e)
 		{
-
+			OnConnected?.Invoke(this, e);
 		}
 
-		private void _Connection_OnMessage(object sender, MessageEventArgs e)
+		void _Connection_OnMessage(object sender, MessageEventArgs e)
 		{
 			var token = e.Data.Substring(0, 3);
 			var data = e.Data.Substring(4);
@@ -650,8 +651,10 @@ namespace libflist.FChat
 			_HandleMessage(reply);
 		}
 
-		private void _Connection_OnError(object sender, ErrorEventArgs e)
+		void _Connection_OnError(object sender, ErrorEventArgs e)
 		{
+			OnError?.Invoke(this, e);
+
 			_HandleMessage(new Commands.Meta.FailedReply
 			{
 				Data = e.Message,
@@ -661,8 +664,10 @@ namespace libflist.FChat
 			Disconnect();
 		}
 
-		private void _Connection_OnClose(object sender, CloseEventArgs e)
+		void _Connection_OnClose(object sender, CloseEventArgs e)
 		{
+			OnDisconnected?.Invoke(this, e);
+
 			Disconnect();
 
 			// TODO: Count reconnect attempts.
@@ -701,7 +706,7 @@ namespace libflist.FChat
 			}
 
 			if (_Handlers.ContainsKey(cmd.Token))
-				_Handlers[cmd.Token](cmd);
+				_Handlers[cmd.Token]?.Invoke(this, cmd);
 			else
 				Debug.WriteLine(string.Format("Unhandled command; {0}", cmd.Token));
 		}

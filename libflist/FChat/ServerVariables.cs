@@ -30,21 +30,21 @@ namespace libflist.FChat
 
 		readonly Dictionary<string, object> _OtherVars = new Dictionary<string, object>();
 
-		public void Clear()
+		internal void Clear()
 		{
 			_OtherVars.Clear();
 		}
 
-		public void SetVariable(string name, object value)
+		internal void SetVariable(string name, object value)
 		{
 			_OtherVars[name] = value;
 		}
 
-		public int Connected { get { return (int)(_OtherVars["__connected"] ?? 0); } }
+		public int ConnectedUsers { get { return (int)(_OtherVars["__connected"] ?? 0); } }
 
-		public int ChatMax { get { return (int)(_OtherVars["chat_max"] ?? 0); } }
+		public int ChatMaxBytes { get { return (int)(_OtherVars["chat_max"] ?? 0); } }
 		public float ChatTimeout { get { return (int)(_OtherVars["msg_flood"] ?? 0); } }
-		public int PrivateMax { get { return (int)(_OtherVars["priv_max"] ?? 0); } }
+		public int PrivateMaxBytes { get { return (int)(_OtherVars["priv_max"] ?? 0); } }
 		public int LFRPMax { get { return (int)(_OtherVars["lfrp_max"] ?? 0); } }
 		public int LFRPTimeout { get { return (int)(_OtherVars["lfrp_flood"] ?? 0); } }
 		public IEnumerable<string> IconBlacklist { get { return _OtherVars["permissions"] as IEnumerable<string>; } }
