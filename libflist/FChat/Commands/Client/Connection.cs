@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Reflection;
 using Newtonsoft.Json;
-using libflist.Connection.Types;
 
 namespace libflist.FChat.Commands.Client.Connection
 {

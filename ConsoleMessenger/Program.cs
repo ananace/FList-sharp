@@ -365,7 +365,7 @@ namespace ConsoleMessenger
 			var prefix = trueprefix;
 			if (prefix.Length > used.Length)
 				prefix = prefix.Substring(0, used.Length);
-			return new Command.CompleteResult { Prefix = prefix, TruePrefix = trueprefix, Found = avail };
+			return new Command.CompleteResult { Prefix = prefix, TruePrefix = trueprefix, Found = (string[])avail };
 		}
 
 		public static void RunCommand(string command, IEnumerable<string> Args, object source = null)

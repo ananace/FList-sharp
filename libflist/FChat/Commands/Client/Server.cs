@@ -1,5 +1,4 @@
 ﻿using System;
-using libflist.Connection.Types;
 
 namespace libflist.FChat.Commands.Client.Server
 {

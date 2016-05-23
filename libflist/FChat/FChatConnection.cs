@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using libflist.Connection.Types;
 using libflist.Events;
 using libflist.FChat.Events;
 using libflist.FChat.Util;
@@ -12,6 +11,7 @@ using System.Diagnostics;
 using System.Reflection;
 using System.Threading;
 using WebSocketSharp;
+using libflist.FChat.Commands;
 
 namespace libflist.FChat
 {
@@ -346,7 +346,7 @@ namespace libflist.FChat
 				var pri = c as Commands.Server.Character.SendMessageReply;
 				var character = GetCharacter(pri.Character);
 
-				character.IsTyping = false;
+				character.IsTyping = TypingStatus.Clear;
 
 				OnCharacterChatMessage?.Invoke(this, new CharacterMessageEventArgs(character, pri.Message, pri));
 			};
@@ -363,7 +363,7 @@ namespace libflist.FChat
 				var tpn = c as Commands.Server.Character.TypingReply;
 				var character = GetCharacter(tpn.Character);
 
-				character.IsTyping = tpn.Status == TypingStatus.Typing;
+				character.IsTyping = tpn.Status;
 
 				OnCharacterTypingChange?.Invoke(this, new CharacterEntryEventArgs<TypingStatus>(character, tpn.Status, tpn));
 			};
@@ -452,18 +452,18 @@ namespace libflist.FChat
 				return reply as T;
 			return null;
 		}
-		public async Task<T> RequestCommandAsync<T>(Commands.Command query) where T : Commands.Command
+		public async Task<T> RequestCommandAsync<T>(Command query) where T : Command
 		{
-			var att = query.GetType().GetCustomAttribute<Commands.CommandAttribute>();
+			var att = query.GetType().GetCustomAttribute<CommandAttribute>();
 			if (att.Response != ResponseType.Default || att.ResponseToken == "SYS")
 				throw new ArgumentException("Can only use queries with proper response information", nameof(query));
-			var ratt = typeof(T).GetCustomAttribute<Commands.ReplyAttribute>();
+			var ratt = typeof(T).GetCustomAttribute<ReplyAttribute>();
 			if (ratt == null || att.ResponseToken != ratt.Token)
 				throw new ArgumentException("Provided respose type is not a valid response to the query");
 			
 			var ev = new AsyncAutoResetEvent();
 
-			Commands.Command reply = null;
+			Command reply = null;
 			_Handlers[ratt.Token] += (_, e) =>
 			{
 				reply = e;

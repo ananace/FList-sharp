@@ -1,10 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
 using libflist.FChat.Commands;
-using libflist.Connection.Types;
 
 namespace libflist.FChat
 {
+	public enum ChannelMode
+	{
+		Chat,
+		Ads,
+		Both
+	}
+
+	public enum ChannelStatus
+	{
+		Public,
+		Private
+	}
+
 	public sealed class Channel : IDisposable
 	{
 		List<Character> _Banlist;

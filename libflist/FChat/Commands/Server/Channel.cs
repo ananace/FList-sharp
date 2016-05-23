@@ -1,5 +1,4 @@
-﻿using libflist.Connection.Types;
-using libflist.Util.Converters;
+﻿using libflist.Util.Converters;
 using Newtonsoft.Json;
 
 namespace libflist.FChat.Commands.Server.Channel

@@ -1,8 +1,6 @@
 ﻿using System;
 using Newtonsoft.Json;
-using libflist.Util;
 using libflist.Util.Converters;
-using libflist.Connection.Types;
 
 namespace libflist.FChat.Commands.Server
 {

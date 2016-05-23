@@ -52,10 +52,6 @@
     <Compile Include="FChat\ServerVariables.cs" />
     <Compile Include="Util\Converters\JsonEnumConverter.cs" />
     <Compile Include="Util\EnumValueAttribute.cs" />
-    <Compile Include="FChat\Connection\Types\Channel.cs" />
-    <Compile Include="FChat\Connection\Types\Character.cs" />
-    <Compile Include="FChat\Connection\Types\ResponseType.cs" />
-    <Compile Include="FChat\Connection\Types\UserRight.cs" />
     <Compile Include="FChat\FChatConnection.cs" />
     <Compile Include="FChat\Channel.cs" />
     <Compile Include="FChat\Character.cs" />

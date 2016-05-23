@@ -1,5 +1,4 @@
 ﻿using Newtonsoft.Json;
-using libflist.Connection.Types;
 using libflist.Util.Converters;
 
 namespace libflist.FChat.Commands.Client.Channel

@@ -1,8 +1,23 @@
 ﻿using System;
-using libflist.Connection.Types;
 
 namespace libflist.FChat.Commands
 {
+	public enum ResponseType
+	{
+		Default,
+		None,
+		Multiple
+	}
+
+	public enum UserRight
+	{
+		Disconnected = -1,
+
+		User = 0,
+		ChatOP,
+		Admin
+	}
+
 	[AttributeUsage(AttributeTargets.Class)]
 	public sealed class CommandAttribute : Attribute
 	{
