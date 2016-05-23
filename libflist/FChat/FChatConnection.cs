@@ -54,13 +54,41 @@ namespace libflist.FChat
 		string _User;
 		string _Character;
 
+		public bool AutoPing { get; set; }
+		public bool AutoReconnect { get; set; }
+		public bool AutoUpdate { get; set; }
+
 		public ServerVariables Variables { get { return _Variables; } }
 		public TicketResponse Ticket { get; set; }
 		public DateTime TicketTimestamp { get; set; }
 
 		public IEnumerable<KnownChannel> AllKnownChannels { get { return _OfficialChannels.Concat(_PrivateChannels); } }
-		public IReadOnlyCollection<KnownChannel> OfficialChannels { get { return _OfficialChannels; } }
-		public IReadOnlyCollection<KnownChannel> PrivateChannels { get { return _PrivateChannels; } }
+		public IReadOnlyCollection<KnownChannel> OfficialChannels
+		{
+			get
+			{
+				if (AutoUpdate && DateTime.Now > _LastPrivateUpdate + OFFICIAL_TIMEOUT)
+				{
+					_LastPublicUpdate = DateTime.Now;
+					RequestCommand<Commands.Server.ChatGetPublicChannels>(new Commands.Client.Global.GetPublicChannelsCommand());
+					return _OfficialChannels;
+				}
+				return _OfficialChannels;
+			}
+		}
+		public IReadOnlyCollection<KnownChannel> PrivateChannels
+		{
+			get
+			{
+				if (AutoUpdate && DateTime.Now > _LastPrivateUpdate + PRIVATE_TIMEOUT)
+				{
+					_LastPrivateUpdate = DateTime.Now;
+					RequestCommand<Commands.Server.PrivateChannelListReply>(new Commands.Client.Global.GetPrivateChannelsCommand());
+					return _PrivateChannels;
+				}
+				return _PrivateChannels;
+			}
+		}
 
 		public IEnumerable<Channel> ActiveChannels { get { return _Channels; } }
 
@@ -175,7 +203,10 @@ namespace libflist.FChat
 				// TODO: Handle identifying properly
 				OnIdentified?.Invoke(this, EventArgs.Empty);
 			};
-			_Handlers["PIN"] = (c) => SendCommand(new Commands.Client.Server.PingCommand());
+			_Handlers["PIN"] = (c) => {
+				if (AutoPing)	
+					SendCommand(new Commands.Client.Server.PingCommand());
+			};
 			_Handlers["SYS"] = (c) => {
 				var sys = c as Commands.Server.SysReply;
 				OnSYSMessage?.Invoke(this, new CommandEventArgs(sys));
@@ -393,6 +424,9 @@ namespace libflist.FChat
 			var att = query.GetType().GetCustomAttribute<Commands.CommandAttribute>();
 			if (att.Response != ResponseType.Default || att.ResponseToken == "SYS")
 				throw new ArgumentException("Can only use queries with proper response information", nameof(query));
+			var ratt = typeof(T).GetCustomAttribute<Commands.ReplyAttribute>();
+			if (ratt == null || att.ResponseToken != ratt.Token)
+				throw new ArgumentException("Provided respose type is not a valid response to the query");
 
 			var ev = new AutoResetEvent(false);
 
@@ -416,7 +450,10 @@ namespace libflist.FChat
 			var att = query.GetType().GetCustomAttribute<Commands.CommandAttribute>();
 			if (att.Response != ResponseType.Default || att.ResponseToken == "SYS")
 				throw new ArgumentException("Can only use queries with proper response information", nameof(query));
-
+			var ratt = typeof(T).GetCustomAttribute<Commands.ReplyAttribute>();
+			if (ratt == null || att.ResponseToken != ratt.Token)
+				throw new ArgumentException("Provided respose type is not a valid response to the query");
+			
 			var ev = new AsyncAutoResetEvent();
 
 			Commands.Command reply = null;
@@ -629,7 +666,7 @@ namespace libflist.FChat
 			Disconnect();
 
 			// TODO: Count reconnect attempts.
-			if (!e.WasClean && !string.IsNullOrEmpty(_Character))
+			if (AutoReconnect && !e.WasClean && !string.IsNullOrEmpty(_Character))
 				Task.Delay(15000).ContinueWith(_ => Reconnect());
 		}
 

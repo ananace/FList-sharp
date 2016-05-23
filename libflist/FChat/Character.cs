@@ -4,7 +4,7 @@ using libflist.Connection.Types;
 
 namespace libflist.FChat
 {
-	public class Character : IDisposable
+	public sealed class Character : IDisposable
 	{
 		public FChatConnection Connection { get; private set; }
 
@@ -94,6 +94,8 @@ namespace libflist.FChat
 
 		public bool IsOPInChannel(Channel c)
 		{
+			if (c == null)
+				return false;
 			return c.OPs.Contains(this);
 		}
 

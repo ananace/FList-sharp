@@ -21,7 +21,7 @@ namespace libflist.FChat.Commands.Client.Channel
 		public string Character { get; set; }
 	}
 
-	[Command("CCR")]
+	[Command("CCR", Response = ResponseType.None)]
 	public class CreatePrivateChannelCommand : Command
 	{
 		[JsonProperty(PropertyName = "channel", Required = Required.DisallowNull)]

@@ -1,5 +1,4 @@
-﻿using System;
-using libflist.Connection.Types;
+﻿using libflist.Connection.Types;
 using libflist.Util.Converters;
 using Newtonsoft.Json;
 

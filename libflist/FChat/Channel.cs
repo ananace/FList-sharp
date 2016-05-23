@@ -2,11 +2,10 @@
 using System.Collections.Generic;
 using libflist.FChat.Commands;
 using libflist.Connection.Types;
-using libflist.Events;
 
 namespace libflist.FChat
 {
-	public class Channel : IDisposable
+	public sealed class Channel : IDisposable
 	{
 		List<Character> _Banlist;
 		List<Character> _Characters;
@@ -38,6 +37,7 @@ namespace libflist.FChat
 			this.ID = ID;
 			this.Title = Title;
 
+			_Banlist = new List<Character>();
 			_Characters = new List<Character>();
 			_OPs = new List<Character>();
 			_Status = ChannelStatus.Private;
@@ -48,7 +48,11 @@ namespace libflist.FChat
 			ID = null;
 			Title = null;
 			_OwnerName = null;
+			_Banlist.Clear();
+			_Banlist = null;
+			_OPs.Clear();
 			_OPs = null;
+			_Characters.Clear();
 			_Characters = null;
 			Connection = null;
 
@@ -57,6 +61,9 @@ namespace libflist.FChat
 
 		public Character GetCharacter(string Name)
 		{
+			if (string.IsNullOrEmpty(Name))
+				return null;
+
 			return Connection.GetOrCreateCharacter(Name);
 		}
 
@@ -98,7 +105,7 @@ namespace libflist.FChat
 			Connection.SendCommand(cmd);
 		}
 
-		public void PushCommand(Command cmd)
+		internal void PushCommand(Command cmd)
 		{
 			if (cmd.Source == CommandSource.Client)
 				return;
@@ -205,7 +212,6 @@ namespace libflist.FChat
 					var cku = cmd as Commands.Server.Channel.KickCharacterReply;
 
 					var character = GetCharacter(cku.Character);
-					var admin = GetCharacter(cku.OP);
 					_Characters.Remove(character);
 
 					if (_OPs.Contains(character))
@@ -218,7 +224,6 @@ namespace libflist.FChat
 					var cbu = cmd as Commands.Server.Channel.BanCharacterReply;
 
 					var character = GetCharacter(cbu.Character);
-					var admin = GetCharacter(cbu.OP);
 					_Characters.Remove(character);
 
 					if (_OPs.Contains(character))

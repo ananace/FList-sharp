@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace libflist.FChat.Util
 {
-	public sealed class AsyncAutoResetEvent
+	sealed class AsyncAutoResetEvent
 	{
 		readonly static Task _completedTask = Task.FromResult(true);
 		readonly Queue<TaskCompletionSource<bool>> _waiting = new Queue<TaskCompletionSource<bool>>();
