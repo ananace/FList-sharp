@@ -14,11 +14,6 @@ namespace libflist.Events
 			Channel = channel;
 			Command = command;
 		}
-
-		public ChannelEntryEventArgs(Command command)
-		{
-			Command = command;
-		}
 	}
 
 	public class ChannelEntryEventArgs<T> : EventArgs
@@ -30,12 +25,6 @@ namespace libflist.Events
 		public ChannelEntryEventArgs(Channel channel, T data, Command command)
 		{
 			Channel = channel;
-			Data = data;
-			Command = command;
-		}
-
-		public ChannelEntryEventArgs(T data, Command command)
-		{
 			Data = data;
 			Command = command;
 		}

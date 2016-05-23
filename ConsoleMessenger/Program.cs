@@ -477,8 +477,8 @@ namespace ConsoleMessenger
 
 			Console.Title = string.Format("FChat Messenger v{0}", Assembly.GetExecutingAssembly().GetName().Version);
 
-			//_Chat.Endpoint = FChatConnection.TestingServerEndpoint;
-			_Chat.Endpoint = FChatConnection.LiveServerEndpoint;
+			_Chat.Endpoint = FChatConnection.TestingServerEndpoint;
+			//_Chat.Endpoint = FChatConnection.LiveServerEndpoint;
 
 			_Chat.OnIdentified += (_, __) => _StatusBar.InvalidateVisual();
 

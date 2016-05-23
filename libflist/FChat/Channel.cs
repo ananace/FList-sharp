@@ -33,7 +33,7 @@ namespace libflist.FChat
 		public string ID { get; private set; }
 		public string Description { get; private set; }
 
-		public bool Joined { get { return true; } }
+		public bool Joined { get; private set; }
 		public bool Official { get { return Title == ID; } }
 		public ChannelMode ChatMode { get; private set; }
 		public ChannelStatus PrivacyStatus { get { return Title == ID ? ChannelStatus.Public : _Status; } }
@@ -42,7 +42,7 @@ namespace libflist.FChat
 		public IReadOnlyCollection<Character> OPs { get { return _OPs; } }
 		public IReadOnlyCollection<Character> Characters { get { return _Characters; } }
 		public IReadOnlyCollection<Character> Banlist { get { return _Banlist; } }
-		
+
 		internal Channel(FChatConnection Connection, string ID, string Title)
 		{
 			this.Connection = Connection;
@@ -68,6 +68,7 @@ namespace libflist.FChat
 			_Characters = null;
 			Connection = null;
 
+			Joined = false;
 			IsDisposed = true;
 		}
 
@@ -124,148 +125,152 @@ namespace libflist.FChat
 
 			switch (cmd.Token)
 			{
-			case "JCH":
-				{
-					var jch = cmd as Commands.Server.Channel.JoinReply;
+				case "JCH":
+					{
+						var jch = cmd as Commands.Server.Channel.JoinReply;
 
-					var character = new Character(Connection, jch.Character.Identity);
-					_Characters.Add(character);
+						var character = new Character(Connection, jch.Character.Identity);
+						_Characters.Add(character);
 
-					if (!string.IsNullOrEmpty(jch.Title))
-						Title = jch.Title;
-				}
-				return;
+						if (!string.IsNullOrEmpty(jch.Title))
+						{
+							Title = jch.Title;
+							Joined = true;
+						}
+					}
+					return;
 
-			case "LCH":
-				{
-					var lch = cmd as Commands.Server.Channel.LeaveReply;
+				case "LCH":
+					{
+						var lch = cmd as Commands.Server.Channel.LeaveReply;
 
-					var character = GetCharacter(lch.Character);
-					_Characters.Remove(character);
+						var character = GetCharacter(lch.Character);
+						_Characters.Remove(character);
 
-					if (character.Name == Connection.LocalCharacter.Name)
-						Dispose();
-				}
-				return;
+						if (character.Name == Connection.LocalCharacter.Name)
+							Dispose();
+					}
+					return;
 
-			case "ICH":
-				{
-					var ich = cmd as Commands.Server.Channel.InitialDataReply;
+				case "ICH":
+					{
+						var ich = cmd as Commands.Server.Channel.InitialDataReply;
 
-					ChatMode = ich.Mode;
+						ChatMode = ich.Mode;
+						Joined = true;
 
-					foreach (var user in ich.Users)
-						_Characters.Add(new Character(Connection, user.Identity));
-				}
-				return;
+						foreach (var user in ich.Users)
+							_Characters.Add(new Character(Connection, user.Identity));
+					}
+					return;
 
-			case "COL":
-				{
-					var col = cmd as Commands.Server.Channel.OPListReply;
+				case "COL":
+					{
+						var col = cmd as Commands.Server.Channel.OPListReply;
 
-					foreach (var op in col.OPs)
-						if (!string.IsNullOrWhiteSpace(op))
-							_OPs.Add(GetCharacter(op));
-				}
-				return;
+						foreach (var op in col.OPs)
+							if (!string.IsNullOrWhiteSpace(op))
+								_OPs.Add(GetCharacter(op));
+					}
+					return;
 
-			case "CDS":
-				{
-					var cds = cmd as Commands.Server.Channel.ChangeDescriptionReply;
+				case "CDS":
+					{
+						var cds = cmd as Commands.Server.Channel.ChangeDescriptionReply;
 
-					Description = cds.Description;
-				}
-				return;
+						Description = cds.Description;
+					}
+					return;
 
-			case "RMO":
-				{
-					var rmo = cmd as Commands.Server.Channel.SetModeReply;
+				case "RMO":
+					{
+						var rmo = cmd as Commands.Server.Channel.SetModeReply;
 
-					ChatMode = rmo.Mode;
-				}
-				return;
+						ChatMode = rmo.Mode;
+					}
+					return;
 
-			case "CSO":
-				{
-					var cso = cmd as Commands.Server.Channel.SetOwnerReply;
+				case "CSO":
+					{
+						var cso = cmd as Commands.Server.Channel.SetOwnerReply;
 
-					_OwnerName = cso.Character;
-				}
-				return;
+						_OwnerName = cso.Character;
+					}
+					return;
 
-			case "RST":
-				{
-					var rst = cmd as Commands.Server.Channel.SetStatusReply;
+				case "RST":
+					{
+						var rst = cmd as Commands.Server.Channel.SetStatusReply;
 
-					_Status = rst.Status;
-				}
-				return;
+						_Status = rst.Status;
+					}
+					return;
 
-			case "COA":
-				{
-					var coa = cmd as Commands.Server.Channel.MakeOPReply;
+				case "COA":
+					{
+						var coa = cmd as Commands.Server.Channel.MakeOPReply;
 
-					var character = GetCharacter(coa.Character);
-					_OPs.Add(character);
-				}
-				return;
+						var character = GetCharacter(coa.Character);
+						_OPs.Add(character);
+					}
+					return;
 
-			case "COR":
-				{
-					var cor = cmd as Commands.Server.Channel.RemoveOPReply;
+				case "COR":
+					{
+						var cor = cmd as Commands.Server.Channel.RemoveOPReply;
 
-					var character = GetCharacter(cor.Character);
-					_OPs.Remove(character);
-				}
-				return;
-
-			case "CKU":
-				{
-					var cku = cmd as Commands.Server.Channel.KickCharacterReply;
-
-					var character = GetCharacter(cku.Character);
-					_Characters.Remove(character);
-
-					if (_OPs.Contains(character))
+						var character = GetCharacter(cor.Character);
 						_OPs.Remove(character);
-				}
-				return;
+					}
+					return;
 
-			case "CBU":
-				{
-					var cbu = cmd as Commands.Server.Channel.BanCharacterReply;
+				case "CKU":
+					{
+						var cku = cmd as Commands.Server.Channel.KickCharacterReply;
 
-					var character = GetCharacter(cbu.Character);
-					_Characters.Remove(character);
+						var character = GetCharacter(cku.Character);
+						_Characters.Remove(character);
 
-					if (_OPs.Contains(character))
-						_OPs.Remove(character);
+						if (_OPs.Contains(character))
+							_OPs.Remove(character);
+					}
+					return;
 
-					_Banlist.Add(character);
-				}
-				return;
+				case "CBU":
+					{
+						var cbu = cmd as Commands.Server.Channel.BanCharacterReply;
 
-			case "CUB":
-				{
-					var cub = cmd as Commands.Server.Channel.UnbanCharacterReply;
+						var character = GetCharacter(cbu.Character);
+						_Characters.Remove(character);
 
-					var character = GetCharacter(cub.Character);
+						if (_OPs.Contains(character))
+							_OPs.Remove(character);
 
-					_Banlist.Remove(character);
-				}
-				return;
+						_Banlist.Add(character);
+					}
+					return;
 
-			case "CTU":
-				{
-					var ctu = cmd as Commands.Server.Channel.TimeoutCharacterReply;
+				case "CUB":
+					{
+						var cub = cmd as Commands.Server.Channel.UnbanCharacterReply;
 
-					var character = GetCharacter(ctu.Character);
-					_Characters.Remove(character);
+						var character = GetCharacter(cub.Character);
 
-					if (_OPs.Contains(character))
-						_OPs.Remove(character);
-				}
-				return;
+						_Banlist.Remove(character);
+					}
+					return;
+
+				case "CTU":
+					{
+						var ctu = cmd as Commands.Server.Channel.TimeoutCharacterReply;
+
+						var character = GetCharacter(ctu.Character);
+						_Characters.Remove(character);
+
+						if (_OPs.Contains(character))
+							_OPs.Remove(character);
+					}
+					return;
 			}
 		}
 	}

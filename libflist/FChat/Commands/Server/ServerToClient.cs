@@ -58,7 +58,7 @@ namespace libflist.FChat.Commands.Server
 		[JsonProperty(PropertyName = "title")]
 		public string Title { get; set; }
 		[JsonProperty(PropertyName = "name")]
-		public string Name { get; set; }
+		public string Channel { get; set; }
 	}
 
 	[Reply("CON")]

@@ -41,6 +41,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="FChat\Events\CommandEventArgs.cs" />
+    <Compile Include="FChat\FChatConnectionHandlers.cs" />
     <Compile Include="FChat\Util\AsyncAutoResetEvent.cs" />
     <Compile Include="JSON\Responses\TicketResponse.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
