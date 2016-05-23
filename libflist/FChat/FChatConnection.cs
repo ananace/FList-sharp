@@ -58,6 +58,7 @@ namespace libflist.FChat
 		public bool AutoReconnect { get; set; }
 		public bool AutoUpdate { get; set; }
 
+		public IReadOnlyDictionary<string, EventHandler<Commands.Command>> MessageHandlers { get { return _Handlers; } }
 		public ServerVariables Variables { get { return _Variables; } }
 		public TicketResponse Ticket { get; set; }
 		public DateTime TicketTimestamp { get; set; }
@@ -175,6 +176,8 @@ namespace libflist.FChat
 			_Variables = new ServerVariables();
 
 			_Handlers = new Dictionary<string, EventHandler<Commands.Command>>();
+			foreach (var token in Commands.CommandParser.ImplementedReplies)
+				_Handlers.Add(token, null);
 
 			_Handlers["!!!"] += (_, c) => {
 				var err = c as Commands.Meta.FailedReply;
@@ -426,7 +429,7 @@ namespace libflist.FChat
 
 			return result;
 		}
-		public T RequestCommand<T>(Commands.Command query) where T : Commands.Command
+		public T RequestCommand<T>(Commands.Command query, int msTimeout = 250) where T : Commands.Command
 		{
 			var att = query.GetType().GetCustomAttribute<Commands.CommandAttribute>();
 			if (att.Response != ResponseType.Default || att.ResponseToken == "SYS")
@@ -445,8 +448,8 @@ namespace libflist.FChat
 			};
 
 			SendCommand(query);
-			if (ev.WaitOne(250))
-				return (T)reply;
+			if (ev.WaitOne(msTimeout))
+				return reply as T;
 			return null;
 		}
 		public async Task<T> RequestCommandAsync<T>(Commands.Command query) where T : Commands.Command
@@ -470,7 +473,7 @@ namespace libflist.FChat
 			await SendCommandAsync(query);
 			await ev.WaitAsync();
 
-			return (T)reply;
+			return reply as T;
 		}
 
 

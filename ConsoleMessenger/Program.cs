@@ -326,11 +326,11 @@ namespace ConsoleMessenger
 				return null;
 
 			var data = input
-					.Substring(1).Split('"')
-					.Select((element, index) => index % 2 == 0  // If even index
-						? element.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)  // Split the item
-						: new string[] { element })  // Keep the entire item
-					.SelectMany(element => element);
+				.Substring(1).Split('"')
+				.Select((element, index) => index % 2 == 0  // If even index
+					? element.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)  // Split the item
+					: new string[] { element })  // Keep the entire item
+				.SelectMany(element => element).ToArray();
 
 			IEnumerable<string> avail = null;
 			var cmd = data.Any() ? Command.Create(data.First()) : null;
@@ -360,11 +360,12 @@ namespace ConsoleMessenger
 					return null;
 			}
 
+			avail = avail.ToArray();
 			var trueprefix = avail.LongestCommonPrefix(StringComparison.CurrentCultureIgnoreCase);
 			var prefix = trueprefix;
 			if (prefix.Length > used.Length)
 				prefix = prefix.Substring(0, used.Length);
-			return new Command.CompleteResult { Prefix = prefix, TruePrefix = trueprefix, Found = avail.ToArray() };
+			return new Command.CompleteResult { Prefix = prefix, TruePrefix = trueprefix, Found = avail };
 		}
 
 		public static void RunCommand(string command, IEnumerable<string> Args, object source = null)
@@ -387,7 +388,8 @@ namespace ConsoleMessenger
 					.Select((element, index) => index % 2 == 0  // If even index
 						? element.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)  // Split the item
 						: new string[] { element })  // Keep the entire item
-					.SelectMany(element => element);
+					.SelectMany(element => element)
+					.ToArray();
 
 				RunCommand(data.First().ToLower(), data.Skip(1), source);
 				return;
