@@ -64,10 +64,14 @@ namespace libflist.FChat
 				_Variables.SetVariable("__channels", upt.Channels);
 				_Variables.SetVariable("__connections", upt.AcceptedConnections);
 				_Variables.SetVariable("__peak", upt.PeakUsers);
+				
+				_VariableTimer.Change(500, System.Threading.Timeout.Infinite);
 			};
 			_Handlers["VAR"] += (_, c) => {
 				var var = c as Commands.Server.ServerVariable;
 				_Variables.SetVariable(var.Name, var.Value);
+
+				_VariableTimer.Change(500, System.Threading.Timeout.Infinite);
 			};
 
 

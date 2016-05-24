@@ -502,6 +502,9 @@ namespace ConsoleMessenger
 				var roll = e.Command as libflist.FChat.Commands.Server.Channel.SendRollReply;
 				WriteMessage(roll.Message, e.Channel, e.Character);
 			};
+			_Chat.OnCharacterChatMessage += (_, e) => {
+				WriteMessage(e.Message, null, e.Character);
+			}; 
 			_Chat.OnChannelLeave += (_, e) =>
 			{
 				int i = 0;
@@ -533,13 +536,13 @@ namespace ConsoleMessenger
 
 		public static void Main(string[] args)
 		{
-			Application.Ticket = LoadTicket();
+			Ticket = LoadTicket();
 
 			ConsoleHelper.Start();
-			Application.Run();
+			Run();
 			ConsoleHelper.Stop();
 
-			SaveTicket(Application.Ticket);
+			SaveTicket(Ticket);
 		}
 
 		public static StoredTicket LoadTicket()
