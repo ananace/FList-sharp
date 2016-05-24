@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using libflist.FChat.Commands;
 using libflist.Util;
 
 namespace libflist.FChat
@@ -200,7 +201,7 @@ namespace libflist.FChat
 
 		public void SendMessage(string message)
 		{
-			Connection.SendCommand(new Commands.Client.Character.SendMessageCommand {
+			Connection.SendCommand(new Client_PRI_CharacterSendMessage {
 				Character = Name,
 				Message = message
 			});

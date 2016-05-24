@@ -1,17 +1,17 @@
 ﻿using Newtonsoft.Json;
 using libflist.Util.Converters;
 
-namespace libflist.FChat.Commands.Client.Character
+namespace libflist.FChat.Commands
 {
 	[Command("KIN", Response = ResponseType.Multiple, ResponseToken = "KID")]
-	public class GetKinksCommand : Command
+	public sealed class Client_KIN_CharacterGetKinks : Command
 	{
 		[JsonProperty(PropertyName = "character", Required = Required.DisallowNull)]
 		public string Character { get; set; }
 	}
 
 	[Command("PRI")]
-	public class SendMessageCommand : Command
+	public sealed class Client_PRI_CharacterSendMessage : Command
 	{
 		[JsonProperty(PropertyName = "recipient", Required = Required.DisallowNull)]
 		public string Character { get; set; }
@@ -20,14 +20,14 @@ namespace libflist.FChat.Commands.Client.Character
 	}
 
 	[Command("PRO")]
-	public class GetTagsCommand : Command
+	public sealed class Client_PRO_CharacterGetTags : Command
 	{
 		[JsonProperty(PropertyName = "character", Required = Required.DisallowNull)]
 		public string Character { get; set; }
 	}
 
 	[Command("STA")]
-	public class SetStatusCommand : Command
+	public sealed class Client_STA_ChatSetStatus : Command
 	{
 		[JsonProperty(PropertyName = "status",
 			ItemConverterType = typeof(JsonEnumConverter),
@@ -39,7 +39,7 @@ namespace libflist.FChat.Commands.Client.Character
 	}
 
 	[Command("TPN")]
-	public class SetTypingCommand : Command
+	public sealed class Client_TPN_ChatSetTyping : Command
 	{
 		public enum TypingStatus
 		{

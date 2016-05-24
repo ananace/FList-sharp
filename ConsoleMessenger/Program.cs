@@ -8,6 +8,7 @@ using System.Text;
 using ConsoleMessenger.Types;
 using ConsoleMessenger.UI.Panels;
 using libflist.FChat;
+using libflist.FChat.Commands;
 using libflist.JSON.Responses;
 using Newtonsoft.Json;
 using ConsoleMessenger.UI;
@@ -483,7 +484,7 @@ namespace ConsoleMessenger
 			_Chat.OnIdentified += (_, __) => _StatusBar.InvalidateVisual();
 
 			_Chat.OnErrorMessage += (_, e) => 
-				_ConsoleBuffer.PushMessage((e.Command as libflist.FChat.Commands.Server.ChatError).Error);
+				_ConsoleBuffer.PushMessage((e.Command as Server_ERR_ChatError).Error);
 
 			_Chat.OnChannelJoin += (_, e) =>
 			{
@@ -499,7 +500,7 @@ namespace ConsoleMessenger
 			};
 			_Chat.OnChannelChatMessage += (_, e) => WriteMessage(e.Message, e.Channel, e.Character);
 			_Chat.OnChannelRollMessage += (_, e) => {
-				var roll = e.Command as libflist.FChat.Commands.Server.Channel.SendRollReply;
+				var roll = e.Command as Server_RLL_ChannelRollMessage;
 				WriteMessage(roll.Message, e.Channel, e.Character);
 			};
 			_Chat.OnChannelLeave += (_, e) =>

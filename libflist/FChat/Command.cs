@@ -2,9 +2,9 @@
 using System.Linq;
 using System.Reflection;
 using Newtonsoft.Json;
-using libflist.FChat;
+using libflist.FChat.Commands;
 
-namespace libflist.FChat.Commands
+namespace libflist.FChat
 {
 	public enum CommandSource
 	{

@@ -1,51 +1,51 @@
 ﻿using Newtonsoft.Json;
 using libflist.Util.Converters;
 
-namespace libflist.FChat.Commands.Client.Global
+namespace libflist.FChat.Commands
 {
 	[Command("ACB", MinRight = UserRight.ChatOP)]
-	public class BanCharacterCommand : Command
+	public sealed class Client_ACB_ChatBanCharacter : Command
 	{
 		[JsonProperty(PropertyName = "character", Required = Required.DisallowNull)]
 		public string Character { get; set; }
 	}
 
 	[Command("AOP", MinRight = UserRight.Admin)]
-	public class GiveOPCommand : Command
+	public sealed class Client_AOP_ChatAddOP : Command
 	{
 		[JsonProperty(PropertyName = "character", Required = Required.DisallowNull)]
 		public string Character { get; set; }
 	}
 
 	[Command("AWC", MinRight = UserRight.ChatOP)]
-	public class GetAltsCommand : Command
+	public sealed class Client_AWC_ChatListAlts : Command
 	{
 		[JsonProperty(PropertyName = "character", Required = Required.DisallowNull)]
 		public string Character { get; set; }
 	}
 
 	[Command("BRO", MinRight = UserRight.Admin)]
-	public class BroadcastMessageCommand : Command
+	public sealed class Client_BRO_ChatBroadcastMessage : Command
 	{
 		[JsonProperty(PropertyName = "message", Required = Required.DisallowNull)]
 		public string Message { get; set; }
 	}
 
 	[Command("CHA")]
-	public class GetPublicChannelsCommand : Command
+	public sealed class Client_CHA_ChatListOfficialChannels : Command
 	{
 
 	}
 
 	[Command("DOP", MinRight = UserRight.Admin)]
-	public class TakeOPCommand : Command
+	public sealed class Client_DOP_ChatRemoveOP : Command
 	{
 		[JsonProperty(PropertyName = "character", Required = Required.DisallowNull)]
 		public string Character { get; set; }
 	}
 
 	[Command("FKS")]
-	public class FindCharactersCommand : Command
+	public sealed class Client_FKS_ChatFindCharacters : Command
 	{
 		[JsonProperty(PropertyName = "kinks", Required = Required.DisallowNull)]
 		public int[] Kinks { get; set; }
@@ -67,7 +67,7 @@ namespace libflist.FChat.Commands.Client.Global
 	}
 
 	[Command("IGN")]
-	public class IgnoreCommand : Command
+	public sealed class Client_IGN_ChatIgnoreList : Command
 	{
 		public enum IgnoreAction
 		{
@@ -90,27 +90,27 @@ namespace libflist.FChat.Commands.Client.Global
 	}
 
 	[Command("KIK", MinRight = UserRight.Admin)]
-	public class KickCharacterCommand : Command
+	public sealed class Client_KIK_ChatKickCharacter : Command
 	{
 		[JsonProperty(PropertyName = "character", Required = Required.DisallowNull)]
 		public string Character { get; set; }
 	}
 
 	[Command("ORS")]
-	public class GetPrivateChannelsCommand : Command
+	public sealed class Client_ORS_ChatListPrivateChannels : Command
 	{
 
 	}
 
 	[Command("RWD", MinRight = UserRight.Admin)]
-	public class RewardCommand : Command
+	public sealed class Client_RWD_ChatRewardCharacter : Command
 	{
 		[JsonProperty(PropertyName = "character", Required = Required.DisallowNull)]
 		public string Character { get; set; }
 	}
 
 	[Command("SFC", MinRight = UserRight.Admin)]
-	public class ReportCharacterCommand : Command
+	public sealed class Client_SFC_ChatReportCharacter : Command
 	{
 		[JsonProperty(PropertyName = "action")]
 		public string Action { get; set; } = "report";
@@ -123,7 +123,7 @@ namespace libflist.FChat.Commands.Client.Global
 	}
 
 	[Command("TMO", MinRight = UserRight.Admin)]
-	public class TimeoutCharacterCommand : Command
+	public sealed class Client_TMO_ChatTimeoutCharacter : Command
 	{
 		[JsonProperty(PropertyName = "character", Required = Required.DisallowNull)]
 		public string Character { get; set; }
@@ -136,7 +136,7 @@ namespace libflist.FChat.Commands.Client.Global
 	}
 
 	[Command("UBN", MinRight = UserRight.ChatOP)]
-	public class UnbanCharacterCommand : Command
+	public sealed class Client_UBN_ChatUnbanCharacter : Command
 	{
 		[JsonProperty(PropertyName = "character", Required = Required.DisallowNull)]
 		public string Character { get; set; }

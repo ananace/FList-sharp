@@ -54,7 +54,7 @@ namespace libflist.FChat.Commands
 				if (CommandParser.AllowMeta
 					&& !(AllowMeta.HasValue && !AllowMeta.Value)
 					|| (AllowMeta.HasValue && AllowMeta.Value))
-					return new Meta.UnknownCommand { CMDToken = Token, Data = JSON };
+					return new Client_Meta_Unknown { CMDToken = Token, Data = JSON };
 			}
 			else
 			{
@@ -71,7 +71,7 @@ namespace libflist.FChat.Commands
 					if (CommandParser.AllowMeta
 						&& !(AllowMeta.HasValue && !AllowMeta.Value)
 						|| (AllowMeta.HasValue && AllowMeta.Value))
-						return new Meta.FailedCommand { CMDToken = Token, Data = JSON, Exception = ex };
+						return new Client_Meta_Failed { CMDToken = Token, Data = JSON, Exception = ex };
 				}
 			}
 
@@ -85,7 +85,7 @@ namespace libflist.FChat.Commands
 				if (CommandParser.AllowMeta
 					&& !(AllowMeta.HasValue && !AllowMeta.Value)
 					|| (AllowMeta.HasValue && AllowMeta.Value))
-					return new Meta.UnknownReply { CMDToken = Token, Data = JSON };
+					return new Server_Meta_Unknown { CMDToken = Token, Data = JSON };
 			}
 			else
 			{
@@ -102,7 +102,7 @@ namespace libflist.FChat.Commands
 					if (CommandParser.AllowMeta
 						&& !(AllowMeta.HasValue && !AllowMeta.Value)
 						|| (AllowMeta.HasValue && AllowMeta.Value))
-						return new Meta.FailedReply { CMDToken = Token, Data = JSON, Exception = ex };
+						return new Server_Meta_Failed { CMDToken = Token, Data = JSON, Exception = ex };
 				}
 			}
 

@@ -74,10 +74,9 @@ namespace libflist.FChat
 
 		public Character GetCharacter(string Name)
 		{
-			if (string.IsNullOrEmpty(Name))
-				return null;
-
-			return Connection.GetOrCreateCharacter(Name);
+			return string.IsNullOrEmpty(Name) 
+				? null
+				: Connection.GetOrCreateCharacter(Name);
 		}
 
 		public void SendLFRP(string message)
@@ -85,7 +84,7 @@ namespace libflist.FChat
 			if (ChatMode == ChannelMode.Chat)
 				throw new Exception("Can't send LFRPs in a Chat-only channel.");
 
-			SendCommand(new Commands.Client.Channel.SendLFRPCommand
+			SendCommand(new Client_LRP_ChannelLFRPMessage
 			{
 				Channel = ID,
 				Message = message
@@ -97,7 +96,7 @@ namespace libflist.FChat
 			if (ChatMode == ChannelMode.Ads)
 				throw new Exception("Can't send messages in an LFRP-only channel.");
 
-			SendCommand(new Commands.Client.Channel.SendMessageCommand
+			SendCommand(new Client_MSG_ChannelChatMessage
 			{
 				Channel = ID,
 				Message = message
@@ -106,7 +105,7 @@ namespace libflist.FChat
 
 		public void SendRoll(string roll)
 		{
-			SendCommand(new Commands.Client.Channel.SendRollCommand
+			SendCommand(new Client_RLL_ChannelRollMessage
 			{
 				Channel = ID,
 				Roll = roll
@@ -127,7 +126,7 @@ namespace libflist.FChat
 			{
 				case "JCH":
 					{
-						var jch = cmd as Commands.Server.Channel.JoinReply;
+						var jch = cmd as Server_JCH_ChannelJoin;
 
 						var character = Connection.GetOrCreateCharacter(jch.Character.Identity);
 						_Characters.Add(character);
@@ -142,7 +141,7 @@ namespace libflist.FChat
 
 				case "LCH":
 					{
-						var lch = cmd as Commands.Server.Channel.LeaveReply;
+						var lch = cmd as Server_LCH_ChannelLeave;
 
 						var character = GetCharacter(lch.Character);
 						_Characters.Remove(character);
@@ -154,7 +153,7 @@ namespace libflist.FChat
 
 				case "ICH":
 					{
-						var ich = cmd as Commands.Server.Channel.InitialDataReply;
+						var ich = cmd as Server_ICH_ChannelInitialData;
 
 						ChatMode = ich.Mode;
 						Joined = true;
@@ -166,7 +165,7 @@ namespace libflist.FChat
 
 				case "COL":
 					{
-						var col = cmd as Commands.Server.Channel.OPListReply;
+						var col = cmd as Server_COL_ChannelGetOPs;
 
 						foreach (var op in col.OPs)
 							if (!string.IsNullOrWhiteSpace(op))
@@ -176,7 +175,7 @@ namespace libflist.FChat
 
 				case "CDS":
 					{
-						var cds = cmd as Commands.Server.Channel.ChangeDescriptionReply;
+						var cds = cmd as Server_CDS_ChannelChangeDescription;
 
 						Description = cds.Description;
 					}
@@ -184,7 +183,7 @@ namespace libflist.FChat
 
 				case "RMO":
 					{
-						var rmo = cmd as Commands.Server.Channel.SetModeReply;
+						var rmo = cmd as Server_RMO_ChannelSetMode;
 
 						ChatMode = rmo.Mode;
 					}
@@ -192,7 +191,7 @@ namespace libflist.FChat
 
 				case "CSO":
 					{
-						var cso = cmd as Commands.Server.Channel.SetOwnerReply;
+						var cso = cmd as Server_CSO_ChannelSetOwner;
 
 						_OwnerName = cso.Character;
 					}
@@ -200,7 +199,7 @@ namespace libflist.FChat
 
 				case "RST":
 					{
-						var rst = cmd as Commands.Server.Channel.SetStatusReply;
+						var rst = cmd as Server_RST_ChannelSetStatus;
 
 						_Status = rst.Status;
 					}
@@ -208,7 +207,7 @@ namespace libflist.FChat
 
 				case "COA":
 					{
-						var coa = cmd as Commands.Server.Channel.MakeOPReply;
+						var coa = cmd as Server_COA_ChannelMakeOP;
 
 						var character = GetCharacter(coa.Character);
 						_OPs.Add(character);
@@ -217,7 +216,7 @@ namespace libflist.FChat
 
 				case "COR":
 					{
-						var cor = cmd as Commands.Server.Channel.RemoveOPReply;
+						var cor = cmd as Server_COR_ChannelRemoveOP;
 
 						var character = GetCharacter(cor.Character);
 						_OPs.Remove(character);
@@ -226,7 +225,7 @@ namespace libflist.FChat
 
 				case "CKU":
 					{
-						var cku = cmd as Commands.Server.Channel.KickCharacterReply;
+						var cku = cmd as Server_CKU_ChannelKickCharacter;
 
 						var character = GetCharacter(cku.Character);
 						_Characters.Remove(character);
@@ -238,7 +237,7 @@ namespace libflist.FChat
 
 				case "CBU":
 					{
-						var cbu = cmd as Commands.Server.Channel.BanCharacterReply;
+						var cbu = cmd as Server_CBU_ChannelBanCharacter;
 
 						var character = GetCharacter(cbu.Character);
 						_Characters.Remove(character);
@@ -252,7 +251,7 @@ namespace libflist.FChat
 
 				case "CUB":
 					{
-						var cub = cmd as Commands.Server.Channel.UnbanCharacterReply;
+						var cub = cmd as Server_CUB_ChannelUnbanCharacter;
 
 						var character = GetCharacter(cub.Character);
 
@@ -262,7 +261,7 @@ namespace libflist.FChat
 
 				case "CTU":
 					{
-						var ctu = cmd as Commands.Server.Channel.TimeoutCharacterReply;
+						var ctu = cmd as Server_CTU_ChannelTimeoutCharacter;
 
 						var character = GetCharacter(ctu.Character);
 						_Characters.Remove(character);

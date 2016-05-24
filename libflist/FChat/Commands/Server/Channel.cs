@@ -1,10 +1,16 @@
 ﻿using libflist.Util.Converters;
 using Newtonsoft.Json;
 
-namespace libflist.FChat.Commands.Server.Channel
+namespace libflist.FChat.Commands
 {
+	public sealed class User
+	{
+		[JsonProperty(PropertyName = "identity")]
+		public string Identity { get; set; }
+	}
+
 	[Reply("CDS")]
-	public class ChangeDescriptionReply : Command, Command.IChannelCommand
+	public sealed class Server_CDS_ChannelChangeDescription : Command, Command.IChannelCommand
 	{
 		[JsonProperty(PropertyName = "channel")]
 		public string Channel { get; set; }
@@ -13,7 +19,7 @@ namespace libflist.FChat.Commands.Server.Channel
 	}
 
 	[Reply("CBU")]
-	public class BanCharacterReply : Command, Command.IChannelCommand
+	public sealed class Server_CBU_ChannelBanCharacter : Command, Command.IChannelCommand
 	{
 		[JsonProperty(PropertyName = "operator")]
 		public string OP { get; set; }
@@ -26,7 +32,7 @@ namespace libflist.FChat.Commands.Server.Channel
 	}
 
 	[Reply("CKU")]
-	public class KickCharacterReply : Command, Command.IChannelCommand
+	public sealed class Server_CKU_ChannelKickCharacter : Command, Command.IChannelCommand
 	{
 		[JsonProperty(PropertyName = "operator")]
 		public string OP { get; set; }
@@ -39,7 +45,7 @@ namespace libflist.FChat.Commands.Server.Channel
 	}
 
 	[Reply("COA")]
-	public class MakeOPReply : Command, Command.IChannelCommand
+	public sealed class Server_COA_ChannelMakeOP : Command, Command.IChannelCommand
 	{
 		[JsonProperty(PropertyName = "channel")]
 		public string Channel { get; set; }
@@ -49,7 +55,7 @@ namespace libflist.FChat.Commands.Server.Channel
 	}
 
 	[Reply("COL")]
-	public class OPListReply : Command, Command.IChannelCommand
+	public sealed class Server_COL_ChannelGetOPs : Command, Command.IChannelCommand
 	{
 		[JsonProperty(PropertyName = "channel")]
 		public string Channel { get; set; }
@@ -59,7 +65,7 @@ namespace libflist.FChat.Commands.Server.Channel
 	}
 
 	[Reply("COR")]
-	public class RemoveOPReply : Command, Command.IChannelCommand
+	public sealed class Server_COR_ChannelRemoveOP : Command, Command.IChannelCommand
 	{
 		[JsonProperty(PropertyName = "channel")]
 		public string Channel { get; set; }
@@ -69,7 +75,7 @@ namespace libflist.FChat.Commands.Server.Channel
 	}
 
 	[Reply("CSO")]
-	public class SetOwnerReply : Command, Command.IChannelCommand
+	public sealed class Server_CSO_ChannelSetOwner : Command, Command.IChannelCommand
 	{
 		[JsonProperty(PropertyName = "channel")]
 		public string Channel { get; set; }
@@ -79,7 +85,7 @@ namespace libflist.FChat.Commands.Server.Channel
 	}
 
 	[Reply("CTU")]
-	public class TimeoutCharacterReply : Command, Command.IChannelCommand
+	public sealed class Server_CTU_ChannelTimeoutCharacter : Command, Command.IChannelCommand
 	{
 		[JsonProperty(PropertyName = "operator")]
 		public string OP { get; set; }
@@ -95,7 +101,7 @@ namespace libflist.FChat.Commands.Server.Channel
 	}
 
 	[Reply("CUB")]
-	public class UnbanCharacterReply : Command, Command.IChannelCommand
+	public sealed class Server_CUB_ChannelUnbanCharacter : Command, Command.IChannelCommand
 	{
 		[JsonProperty(PropertyName = "operator")]
 		public string OP { get; set; }
@@ -108,7 +114,7 @@ namespace libflist.FChat.Commands.Server.Channel
 	}
 
 	[Reply("ICH")]
-	public class InitialDataReply : Command, Command.IChannelCommand
+	public sealed class Server_ICH_ChannelInitialData : Command, Command.IChannelCommand
 	{
 		[JsonProperty(PropertyName = "channel")]
 		public string Channel { get; set; }
@@ -123,7 +129,7 @@ namespace libflist.FChat.Commands.Server.Channel
 	}
 
 	[Reply("JCH")]
-	public class JoinReply : Command, Command.IChannelCommand
+	public sealed class Server_JCH_ChannelJoin : Command, Command.IChannelCommand
 	{
 		[JsonProperty(PropertyName = "channel", Required = Required.Always)]
 		public string Channel { get; set; }
@@ -136,7 +142,7 @@ namespace libflist.FChat.Commands.Server.Channel
 	}
 
 	[Reply("LCH")]
-	public class LeaveReply : Command, Command.IChannelCommand
+	public sealed class Server_LCH_ChannelLeave : Command, Command.IChannelCommand
 	{
 		[JsonProperty(PropertyName = "channel", Required = Required.Always)]
 		public string Channel { get; set; }
@@ -146,7 +152,7 @@ namespace libflist.FChat.Commands.Server.Channel
 	}
 
 	[Reply("LRP")]
-	public class SendLFRPReply : Command, Command.IChannelCommand
+	public sealed class Server_LRP_ChannelLFRPMessage : Command, Command.IChannelCommand
 	{
 		[JsonProperty(PropertyName = "channel", Required = Required.Always)]
 		public string Channel { get; set;  }
@@ -159,7 +165,7 @@ namespace libflist.FChat.Commands.Server.Channel
 	}
 
 	[Reply("MSG")]
-	public class SendMessageReply : Command, Command.IChannelCommand
+	public sealed class Server_MSG_ChannelChatMessage : Command, Command.IChannelCommand
 	{
 		[JsonProperty(PropertyName = "channel", Required = Required.Always)]
 		public string Channel { get; set;  }
@@ -172,7 +178,7 @@ namespace libflist.FChat.Commands.Server.Channel
 	}
 
 	[Reply("RLL")]
-	public class SendRollReply : Command, Command.IChannelCommand
+	public sealed class Server_RLL_ChannelRollMessage : Command, Command.IChannelCommand
 	{
 		public enum RollType
 		{
@@ -202,7 +208,7 @@ namespace libflist.FChat.Commands.Server.Channel
 	}
 
 	[Reply("RMO")]
-	public class SetModeReply : Command, Command.IChannelCommand
+	public sealed class Server_RMO_ChannelSetMode : Command, Command.IChannelCommand
 	{
 		[JsonProperty(PropertyName = "channel", Required = Required.Always)]
 		public string Channel { get; set; }
@@ -212,7 +218,7 @@ namespace libflist.FChat.Commands.Server.Channel
 		public ChannelMode Mode { get; set; }
 	}
 	[Reply("RST")]
-	public class SetStatusReply : Command, Command.IChannelCommand
+	public sealed class Server_RST_ChannelSetStatus : Command, Command.IChannelCommand
 	{
 		[JsonProperty(PropertyName = "channel", Required = Required.Always)]
 		public string Channel { get; set; }

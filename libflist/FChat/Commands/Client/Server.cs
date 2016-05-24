@@ -1,21 +1,19 @@
-﻿using System;
-
-namespace libflist.FChat.Commands.Client.Server
+﻿namespace libflist.FChat.Commands
 {
 	[Command("PIN")]
-	public class PingCommand : Command
+	public sealed class Client_PIN_ChatPing : Command
 	{ 
 
 	}
 	
 	[Command("RLD", MinRight = UserRight.ChatOP)]
-	public class ReloadConfigCommand : Command
+	public sealed class Client_RLD_ChatReloadConfig : Command
 	{
 		
 	}
 
 	[Command("UPT")]
-	public class UptimeCommand : Command
+	public sealed class Client_UPT_ChatGetUptime : Command
 	{
 
 	}

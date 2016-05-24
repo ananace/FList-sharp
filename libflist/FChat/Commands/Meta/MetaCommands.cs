@@ -1,15 +1,15 @@
 ﻿using System;
 
-namespace libflist.FChat.Commands.Meta
+namespace libflist.FChat.Commands
 {
 	[Command("???")]
-	public class UnknownCommand : Command
+	public sealed class Client_Meta_Unknown : Command
 	{
 		public string CMDToken { get; set; }
 		public string Data { get; set; }
 	}
 	[Command("!!!")]
-	public class FailedCommand : Command
+	public sealed class Client_Meta_Failed : Command
 	{
 		public string CMDToken { get; set; }
 		public string Data { get; set; }
@@ -17,13 +17,13 @@ namespace libflist.FChat.Commands.Meta
 	}
 
 	[Reply("???")]
-	public class UnknownReply : Command
+	public sealed class Server_Meta_Unknown : Command
 	{
 		public string CMDToken { get; set; }
 		public string Data { get; set; }
 	}
 	[Reply("!!!")]
-	public class FailedReply : Command
+	public sealed class Server_Meta_Failed : Command
 	{
 		public string CMDToken { get; set; }
 		public string Data { get; set; }

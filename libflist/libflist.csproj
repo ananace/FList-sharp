@@ -66,7 +66,6 @@
     <Compile Include="FChat\Commands\Client\Connection.cs" />
     <Compile Include="FChat\Commands\Client\Global.cs" />
     <Compile Include="FChat\Commands\Client\Server.cs" />
-    <Compile Include="FChat\Commands\Command.cs" />
     <Compile Include="FChat\Commands\CommandAttribute.cs" />
     <Compile Include="FChat\Commands\CommandParser.cs" />
     <Compile Include="FChat\Commands\Meta\MetaCommands.cs" />
@@ -77,6 +76,7 @@
     <Compile Include="FChat\Events\ChannelUserEntryEventArgs.cs" />
     <Compile Include="FChat\Events\ChannelUserMessageEventArgs.cs" />
     <Compile Include="FChat\Events\ChannelAdminActionEventArgs.cs" />
+    <Compile Include="FChat\Command.cs" />
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>

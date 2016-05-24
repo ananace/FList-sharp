@@ -70,7 +70,7 @@ namespace libflist.FChat
 				if (AutoUpdate && DateTime.Now > _LastPublicUpdate + OFFICIAL_TIMEOUT)
 				{
 					_LastPublicUpdate = DateTime.Now;
-					RequestCommand<Commands.Server.ChatGetPublicChannels>(new Commands.Client.Global.GetPublicChannelsCommand());
+					RequestCommand<Server_CHA_ChatListPublicChannels>(new Client_CHA_ChatListOfficialChannels());
 					return _OfficialChannels;
 				}
 				return _OfficialChannels;
@@ -83,7 +83,7 @@ namespace libflist.FChat
 				if (AutoUpdate && DateTime.Now > _LastPrivateUpdate + PRIVATE_TIMEOUT)
 				{
 					_LastPrivateUpdate = DateTime.Now;
-					RequestCommand<Commands.Server.PrivateChannelListReply>(new Commands.Client.Global.GetPrivateChannelsCommand());
+					RequestCommand<Server_ORS_ChatListPrivateChannels>(new Client_ORS_ChatListPrivateChannels());
 					return _PrivateChannels;
 				}
 				return _PrivateChannels;
@@ -200,17 +200,17 @@ namespace libflist.FChat
 			_Connection = null;
 		}
 
-		public void SendCommand(Commands.Command command)
+		public void SendCommand(Command command)
 		{
-			if (command.Source != Commands.CommandSource.Client)
+			if (command.Source != CommandSource.Client)
 				throw new ArgumentException("Command source is invalid.", nameof(command));
 
 			lock (_Connection)
 				_Connection.Send(command.Serialize());
 		}
-		public async Task<bool> SendCommandAsync(Commands.Command command)
+		public async Task<bool> SendCommandAsync(Command command)
 		{
-			if (command.Source != Commands.CommandSource.Client)
+			if (command.Source != CommandSource.Client)
 				throw new ArgumentException("Command source is invalid.", nameof(command));
 
 			bool result = false;
@@ -362,7 +362,7 @@ namespace libflist.FChat
 				_Connection.Connect();
 
 				if (AutoLogin)
-					SendCommand(new Commands.Client.Connection.IdentifyCommand {
+					SendCommand(new Client_IDN_ChatIdentify {
 						Account = _User,
 						Ticket = Ticket.Ticket,
 						Character = _Character
@@ -386,7 +386,7 @@ namespace libflist.FChat
 					return;
 
 				_Character = Character;
-				SendCommand(new Commands.Client.Connection.IdentifyCommand
+				SendCommand(new Client_IDN_ChatIdentify
 				{
 					Account = _User,
 					Ticket = Ticket.Ticket,
@@ -427,7 +427,7 @@ namespace libflist.FChat
 				if (chan != null && chan.Joined)
 					return chan;
 
-				var reply = RequestCommand<Commands.Server.Channel.JoinReply>(new Commands.Client.Channel.JoinCommand { Channel = ID });
+				var reply = RequestCommand<Server_JCH_ChannelJoin>(new Client_JCH_ChannelJoin { Channel = ID });
 
 				if (chan == null)
 				{
@@ -447,7 +447,7 @@ namespace libflist.FChat
 				if (chan != null && chan.Joined)
 					return chan;
 
-				SendCommand(new Commands.Client.Channel.JoinCommand { Channel = ID });
+				SendCommand(new Client_JCH_ChannelJoin { Channel = ID });
 
 				if (chan == null)
 				{
@@ -465,7 +465,7 @@ namespace libflist.FChat
 				if (chan != null && chan.Joined)
 					return chan;
 
-				var reply = RequestCommand<Commands.Server.Channel.JoinReply>(new Commands.Client.Channel.JoinCommand { Channel = ID });
+				var reply = RequestCommand<Server_JCH_ChannelJoin>(new Client_JCH_ChannelJoin { Channel = ID });
 
 				if (chan == null)
 				{
@@ -536,10 +536,10 @@ namespace libflist.FChat
 			bool preRun = false;
 			// Run initial join before calling the handler
 			if (cmd.Token == "JCH"
-				&& !_Channels.Any(c => c.ID.Equals((cmd as Commands.Server.Channel.JoinReply).Channel))
-				|| !_Channels.First(c => c.ID.Equals((cmd as Commands.Server.Channel.JoinReply).Channel)).Joined)
+				&& !_Channels.Any(c => c.ID.Equals((cmd as Server_JCH_ChannelJoin).Channel))
+				|| !_Channels.First(c => c.ID.Equals((cmd as Server_JCH_ChannelJoin).Channel)).Joined)
 			{
-				var chan = GetOrCreateChannel((cmd as Commands.Server.Channel.JoinReply).Channel);
+				var chan = GetOrCreateChannel((cmd as Server_JCH_ChannelJoin).Channel);
 				chan.PushCommand(cmd);
 
 				preRun = true;
