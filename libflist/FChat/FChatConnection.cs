@@ -98,7 +98,7 @@ namespace libflist.FChat
 		public event EventHandler OnIdentified;
 
 		// Message events
-		public event EventHandler OnError;
+		public event EventHandler<ErrorEventArgs> OnError;
 		public event EventHandler<CommandEventArgs> OnErrorMessage;
 		public event EventHandler<CommandEventArgs> OnRawMessage;
 		public event EventHandler<CommandEventArgs> OnSYSMessage;
@@ -447,9 +447,7 @@ namespace libflist.FChat
 				if (chan != null && chan.Joined)
 					return chan;
 
-#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-				SendCommandAsync(new Commands.Client.Channel.JoinCommand { Channel = ID });
-#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+				SendCommand(new Commands.Client.Channel.JoinCommand { Channel = ID });
 
 				if (chan == null)
 				{
@@ -512,20 +510,12 @@ namespace libflist.FChat
 
 			var reply = Commands.CommandParser.ParseReply(token, data, true);
 
-			_HandleMessage(reply);
+			_Connection_HandleMessage(reply);
 		}
 
 		void _Connection_OnError(object sender, ErrorEventArgs e)
 		{
 			OnError?.Invoke(this, e);
-
-			_HandleMessage(new Commands.Meta.FailedReply
-			{
-				Data = e.Message,
-				Exception = e.Exception
-			});
-
-			Disconnect();
 		}
 
 		void _Connection_OnClose(object sender, CloseEventArgs e)
@@ -539,41 +529,38 @@ namespace libflist.FChat
 				Task.Delay(15000).ContinueWith(_ => Reconnect());
 		}
 
-		void _HandleMessage(Command cmd)
+		void _Connection_HandleMessage(Command cmd)
 		{
 			OnRawMessage?.Invoke(this, new CommandEventArgs(cmd));
+
+			bool preRun = false;
+			// Run initial join before calling the handler
+			if (cmd.Token == "JCH"
+				&& !_Channels.Any(c => c.ID.Equals((cmd as Commands.Server.Channel.JoinReply).Channel))
+				|| !_Channels.First(c => c.ID.Equals((cmd as Commands.Server.Channel.JoinReply).Channel)).Joined)
+			{
+				var chan = GetOrCreateChannel((cmd as Commands.Server.Channel.JoinReply).Channel);
+				chan.PushCommand(cmd);
+
+				preRun = true;
+			}
 
 			if (_Handlers.ContainsKey(cmd.Token))
 				_Handlers[cmd.Token]?.Invoke(this, cmd);
 			else
 				Debug.WriteLine(string.Format("Unhandled command; {0}", cmd.Token));
 			
-			Channel disposed = null;
-			if (cmd is Command.IChannelCommand &&
-				!string.IsNullOrEmpty((cmd as Command.IChannelCommand).Channel))
+			if (!preRun
+				&& cmd is Command.IChannelCommand
+				&& !string.IsNullOrEmpty((cmd as Command.IChannelCommand).Channel))
 			{
-				var channel = (cmd as Command.IChannelCommand).Channel;
+				var channel = GetOrCreateChannel((cmd as Command.IChannelCommand).Channel);
 
-				Channel channelObj;
-				lock (_Channels)
-				{
-					channelObj = _Channels.FirstOrDefault(c => c.ID == channel);
-					if (channelObj == null)
-					{
-						channelObj = new Channel(this, channel, channel);
-						_Channels.Add(channelObj);
-					}
-				}
+				channel.PushCommand(cmd);
 
-				channelObj.PushCommand(cmd);
-
-				if (channelObj.IsDisposed)
-					disposed = channelObj;
+				if (channel.IsDisposed)
+					_Channels.Remove(channel);
 			}
-			
-			lock (_Channels)
-				if (disposed != null)
-					_Channels.Remove(disposed);
 		}
 	}
 

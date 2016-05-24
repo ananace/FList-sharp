@@ -129,7 +129,7 @@ namespace libflist.FChat
 					{
 						var jch = cmd as Commands.Server.Channel.JoinReply;
 
-						var character = new Character(Connection, jch.Character.Identity);
+						var character = Connection.GetOrCreateCharacter(jch.Character.Identity);
 						_Characters.Add(character);
 
 						if (!string.IsNullOrEmpty(jch.Title))
