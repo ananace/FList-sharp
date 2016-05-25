@@ -77,7 +77,6 @@
     <Compile Include="FChat\Events\ChannelAdminActionEventArgs.cs" />
     <Compile Include="FChat\Command.cs" />
     <Compile Include="JSON\FListClient.cs" />
-    <Compile Include="JSON\Responses\BookmarkListResponse.cs" />
     <Compile Include="JSON\Character.cs" />
   </ItemGroup>
   <ItemGroup />

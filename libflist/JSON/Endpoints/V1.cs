@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Net.Http;
 using libflist.JSON.Responses;
+using Newtonsoft.Json;
 
 namespace libflist.JSON
 {
@@ -57,29 +58,103 @@ namespace libflist.JSON
 				throw new Exception("failed");
 		}
 
-		public Task<List<Character>> GetBookmarks()
+		public async Task<List<Character>> GetBookmarks()
 		{
-			throw new NotImplementedException();
+			if (!HasTicket)
+				throw new Exception();
+
+			var msg = await RunQuery(Path.BookmarkList, new Dictionary<string,string> {
+				{ "account", Ticket.Account },
+				{ "ticket", Ticket.Ticket }
+			});
+
+			if (!msg.IsSuccessStatusCode)
+				throw new Exception("HTTP request failed.");
+
+			var resp = Response.Create<BookmarkListResponse>(await msg.Content.ReadAsStringAsync());
+			if (!resp.Successful)
+				throw new Exception("failed");
+
+			return new List<Character>();
 		}
 
-		public Task RemoveBookmark(Character character)
+		public async Task RemoveBookmark(Character character)
 		{
-			throw new NotImplementedException();
+			if (!HasTicket)
+				throw new Exception();
+
+			var msg = await RunQuery(Path.BookmarkRemove, new Dictionary<string,string> {
+				{ "account", Ticket.Account },
+				{ "ticket", Ticket.Ticket },
+				{ "name", character.Name }
+			});
+
+			if (!msg.IsSuccessStatusCode)
+				throw new Exception("HTTP request failed.");
+
+			var resp = Response.Create<Response>(await msg.Content.ReadAsStringAsync());
+			if (!resp.Successful)
+				throw new Exception("failed");
 		}
 
-		public Task AddFriend(Character source, Character target)
+		public async Task AddFriend(Character source, Character target)
 		{
-			throw new NotImplementedException();
+			if (!HasTicket)
+				throw new Exception();
+
+			var msg = await RunQuery(Path.RequestSend, new Dictionary<string,string> {
+				{ "account", Ticket.Account },
+				{ "ticket", Ticket.Ticket },
+				{ "source_name", source.Name },
+				{ "dest_name", target.Name }
+			});
+
+			if (!msg.IsSuccessStatusCode)
+				throw new Exception("HTTP request failed.");
+
+			var resp = Response.Create<Response>(await msg.Content.ReadAsStringAsync());
+			if (!resp.Successful)
+				throw new Exception("failed");
 		}
 
-		public Task<List<Character>> GetFriends(Character source)
+		public async Task<List<Character>> GetFriends(Character source)
 		{
-			throw new NotImplementedException();
+			if (!HasTicket)
+				throw new Exception();
+
+			var msg = await RunQuery(Path.BookmarkList, new Dictionary<string,string> {
+				{ "account", Ticket.Account },
+				{ "ticket", Ticket.Ticket }
+			});
+
+			if (!msg.IsSuccessStatusCode)
+				throw new Exception("HTTP request failed.");
+
+			var resp = Response.Create<FriendListResponse>(await msg.Content.ReadAsStringAsync());
+			if (!resp.Successful)
+				throw new Exception("failed");
+
+			return new List<Character>();
 		}
 
-		public Task RemoveFriend(Character source, Character target)
+		public async Task RemoveFriend(Character source, Character target)
 		{
-			throw new NotImplementedException();
+			if (!HasTicket)
+				throw new Exception();
+
+			var msg = await RunQuery(Path.RequestSend, new Dictionary<string,string> {
+				{ "account", Ticket.Account },
+				{ "ticket", Ticket.Ticket },
+				{ "source_name", source.Name },
+				{ "dest_name", target.Name }
+			});
+
+			if (!msg.IsSuccessStatusCode)
+				throw new Exception("HTTP request failed.");
+
+			var resp = Response.Create<Response>(await msg.Content.ReadAsStringAsync());
+			if (!resp.Successful)
+				throw new Exception("failed");
 		}
 
 		static void _Verify(Path p, IReadOnlyDictionary<string, string> Arguments)
@@ -142,6 +217,15 @@ namespace libflist.JSON
 				return Arguments == null
 					? http.PostAsync(BuildURI(p), null)
 					: http.PostAsync(BuildURI(p), new FormUrlEncodedContent(Arguments));
+		}
+
+		sealed class BookmarkListResponse : Response
+		{
+			// TODO
+		}
+		sealed class FriendListResponse : Response
+		{
+			// TODO
 		}
 	}
 }
