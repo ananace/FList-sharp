@@ -10,7 +10,7 @@ using System.Reflection;
 using System.Threading;
 using WebSocketSharp;
 using libflist.FChat.Commands;
-using libflist.JSON;
+using libflist.FList;
 
 namespace libflist.FChat
 {

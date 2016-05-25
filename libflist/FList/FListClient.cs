@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace libflist.JSON
+namespace libflist.FList
 {
 	enum Path
 	{

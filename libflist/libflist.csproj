@@ -44,9 +44,6 @@
     <Compile Include="FChat\FChatConnectionHandlers.cs" />
     <Compile Include="FChat\Util\AsyncAutoResetEvent.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="JSON\Endpoints\V1.cs" />
-    <Compile Include="JSON\Endpoints\V2.cs" />
-    <Compile Include="JSON\Response.cs" />
     <Compile Include="FChat\ServerVariables.cs" />
     <Compile Include="Util\Converters\JsonEnumConverter.cs" />
     <Compile Include="Util\EnumValueAttribute.cs" />
@@ -74,9 +71,12 @@
     <Compile Include="FChat\Events\ChannelUserMessageEventArgs.cs" />
     <Compile Include="FChat\Events\ChannelAdminActionEventArgs.cs" />
     <Compile Include="FChat\Command.cs" />
-    <Compile Include="JSON\FListClient.cs" />
-    <Compile Include="JSON\Character.cs" />
-    <Compile Include="JSON\AuthTicket.cs" />
+    <Compile Include="FList\Endpoints\V1.cs" />
+    <Compile Include="FList\Endpoints\V2.cs" />
+    <Compile Include="FList\Response.cs" />
+    <Compile Include="FList\FListClient.cs" />
+    <Compile Include="FList\Character.cs" />
+    <Compile Include="FList\AuthTicket.cs" />
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>

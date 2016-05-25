@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using System.Net.Http;
 using Newtonsoft.Json;
 
-namespace libflist.JSON
+namespace libflist.FList
 {
 	public sealed class FListClientV1 : IFListClient, IInternalFListClient
 	{

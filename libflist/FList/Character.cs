@@ -1,4 +1,4 @@
-﻿namespace libflist.JSON
+﻿namespace libflist.FList
 {
 	public class Character
 	{

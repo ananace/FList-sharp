@@ -9,6 +9,7 @@ using ConsoleMessenger.Types;
 using ConsoleMessenger.UI.Panels;
 using libflist.FChat;
 using libflist.FChat.Commands;
+using libflist.FList;
 using Newtonsoft.Json;
 using ConsoleMessenger.UI;
 using ConsoleMessenger.UI.FChat;
@@ -99,7 +100,7 @@ namespace ConsoleMessenger
 	{
 		public class StoredTicket
 		{
-			public libflist.JSON.AuthTicket Ticket { get; set; }
+			public AuthTicket Ticket { get; set; }
 			public string Account { get; set; }
 			public DateTime Timestamp { get; set; }
 		}
@@ -398,7 +399,7 @@ namespace ConsoleMessenger
 			WriteMessage(Text);
 		}
 
-		public static void WriteMessage(string Text, Channel inputChan = null, Character inputChar = null)
+		public static void WriteMessage(string Text, Channel inputChan = null, libflist.FChat.Character inputChar = null)
 		{
 			var Char = inputChar;
 			if (Char == null)

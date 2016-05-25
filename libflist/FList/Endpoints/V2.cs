@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Net.Http;
 
-namespace libflist.JSON
+namespace libflist.FList
 {
 	public sealed class FListClientV2 : IFListClient, IInternalFListClient
 	{

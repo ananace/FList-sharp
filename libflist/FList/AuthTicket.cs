@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace libflist.JSON
+namespace libflist.FList
 {
 	public class AuthTicket
 	{
