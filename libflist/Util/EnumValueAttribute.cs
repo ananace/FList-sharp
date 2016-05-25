@@ -2,7 +2,7 @@
 
 namespace libflist.Util
 {
-	public sealed class EnumValueAttribute : Attribute
+	sealed class EnumValueAttribute : Attribute
 	{
 		public string Name { get; set; }
 

@@ -12,9 +12,8 @@ namespace ConsoleMessenger.Commands
 				throw new ArgumentException("Can't connect without a valid ticket, try /connect <username> <password>");
 
 			Debug.WriteLine("Attempting connection with earlier ticket.");
-			Application.Connection.Ticket = Application.Ticket.Ticket;
-			Application.Connection.TicketTimestamp = Application.Ticket.Timestamp;
-			Application.Connection.Connect(Application.Ticket.Account, null, true);
+			Application.Connection.FListClient.Ticket = Application.Ticket.Ticket;
+			Application.Connection.Connect();
 		}
 
 		public void Call(string username, string password)
@@ -23,17 +22,17 @@ namespace ConsoleMessenger.Commands
 				(Caller as UI.InputControl).PopHistory(); // Don't store the connect command
 
 			Debug.WriteLine(string.Format("Connecting with username {0}", username));
-			Application.Connection.Connect(username, password);
+			if (!Application.Connection.AquireTicket(username, password))
+				throw new Exception("Failed to aquire ticket, invalid login data?");
 
-			if (Application.Connection.Ticket.Successful)
+			if (Application.Connection.FListClient.Ticket.Successful)
 				Application.Ticket = new Application.StoredTicket
 				{
 					Account = username,
-					Ticket = Application.Connection.Ticket,
-					Timestamp = Application.Connection.TicketTimestamp
+					Ticket = Application.Connection.FListClient.Ticket
 				};
 			else
-				throw new Exception(Application.Connection.Ticket.ErrorData ?? Application.Connection.Ticket.Error);
+				throw new Exception(Application.Connection.FListClient.Ticket.ErrorData ?? Application.Connection.FListClient.Ticket.Error);
 		}
 	}
 }

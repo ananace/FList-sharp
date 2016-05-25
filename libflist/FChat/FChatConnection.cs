@@ -5,12 +5,12 @@ using System.Threading.Tasks;
 using libflist.Events;
 using libflist.FChat.Events;
 using libflist.FChat.Util;
-using libflist.JSON.Responses;
 using System.Diagnostics;
 using System.Reflection;
 using System.Threading;
 using WebSocketSharp;
 using libflist.FChat.Commands;
+using libflist.JSON;
 
 namespace libflist.FChat
 {
@@ -50,8 +50,9 @@ namespace libflist.FChat
 		readonly ServerVariables _Variables;
 		WebSocket _Connection;
 		bool _Identified = false;
-		string _User;
 		string _Character;
+
+		public IFListClient FListClient { get; set; } = new FListClientV1();
 
 		public bool AutoPing { get; set; }
 		public bool AutoReconnect { get; set; }
@@ -59,8 +60,6 @@ namespace libflist.FChat
 
 		public IReadOnlyDictionary<string, EventHandler<Command>> MessageHandlers { get { return _Handlers; } }
 		public ServerVariables Variables { get { return _Variables; } }
-		public TicketResponse Ticket { get; set; }
-		public DateTime TicketTimestamp { get; set; }
 
 		public IEnumerable<KnownChannel> AllKnownChannels { get { return _OfficialChannels.Concat(_PrivateChannels); } }
 		public IReadOnlyCollection<KnownChannel> OfficialChannels
@@ -195,8 +194,6 @@ namespace libflist.FChat
 			_Characters = null;
 
 			_Character = null;
-			Ticket = null;
-			_User = null;
 			_Connection = null;
 		}
 
@@ -286,35 +283,22 @@ namespace libflist.FChat
 		//   void FChat.Login(string Character);
 		// For instance.
 
-		public void Connect(string User, string Password, bool UseTicket = false)
+		public bool AquireTicket(string User, string Password)
+		{
+			var res = FListClient.Authenticate(User, Password);
+			res.Wait();
+
+			return res.Result;
+		}
+
+		public void Connect()
 		{
 			if (_Connection != null)
 				Disconnect();
 
-			if (User == null)
-				throw new ArgumentNullException(nameof(User));
-
-			if (!UseTicket)
-			{
-				if (Password == null)
-					throw new ArgumentNullException(nameof(Password));
-
-				using (var jr = new JSON.Request(JSON.Endpoint.Path.Ticket))
-				{
-					jr.Data = new Dictionary<string, string> {
-						{ "account", User },
-						{ "password", Password }
-					};
-
-					Ticket = jr.Get<TicketResponse>() as TicketResponse;
-					if (!Ticket.Successful)
-						return;
-
-					TicketTimestamp = DateTime.Now;
-				}
-			}
-
-			_User = User;
+			if (!FListClient.HasTicket)
+				throw new Exception("You need to aquire a ticket first, in order to connect to the FChat network");
+			
 			_Variables.Clear();
 
 			_Connection = new WebSocket(Endpoint.AbsoluteUri);
@@ -350,31 +334,25 @@ namespace libflist.FChat
 
 		public void Reconnect(bool AutoLogin = true)
 		{
-			if (Ticket == null || _User == null)
-				throw new ArgumentNullException(nameof(Ticket));
+			if (!FListClient.HasTicket)
+				throw new Exception("Needs a ticket");
 
-			if (DateTime.Now - TicketTimestamp > TimeSpan.FromHours(24))
-				throw new ArgumentException("Ticket has timed out, reconnect is not possible");
+			Disconnect();
+			Connect();
 
-			_Variables.Clear();
-			lock (_Connection)
-			{
-				_Connection.Connect();
-
-				if (AutoLogin)
-					SendCommand(new Client_IDN_ChatIdentify {
-						Account = _User,
-						Ticket = Ticket.Ticket,
-						Character = _Character
-					});
-			}
+			if (AutoLogin)
+				SendCommand(new Client_IDN_ChatIdentify {
+					Account = FListClient.Ticket.Account,
+					Ticket = FListClient.Ticket.Ticket,
+					Character = _Character
+				});
 		}
 
 		public void Login(string Character)
 		{
 			if (Character == null)
 				throw new ArgumentNullException(nameof(Character));
-			if (!Ticket.Characters.Contains(Character))
+			if (!FListClient.Ticket.Characters.Contains(Character))
 				throw new ArgumentException("Unknown character specified", nameof(Character));
 
 			lock (_Connection)
@@ -388,8 +366,8 @@ namespace libflist.FChat
 				_Character = Character;
 				SendCommand(new Client_IDN_ChatIdentify
 				{
-					Account = _User,
-					Ticket = Ticket.Ticket,
+					Account = FListClient.Ticket.Account,
+					Ticket = FListClient.Ticket.Ticket,
 					Character = _Character
 				});
 			}

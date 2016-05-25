@@ -5,6 +5,8 @@ namespace libflist.JSON.Responses
 {
 	public sealed class TicketResponse : Response
 	{
+		[JsonIgnore]
+		public string Account { get; set; }
 		[JsonProperty(PropertyName = "ticket")]
 		public string Ticket { get; set; }
 

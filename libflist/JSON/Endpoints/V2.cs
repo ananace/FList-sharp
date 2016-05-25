@@ -1,16 +1,52 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
+using System.Net.Http;
 
-namespace libflist.JSON.Endpoints
+namespace libflist.JSON
 {
-	public sealed class V2 : Endpoint
+	public sealed class FListClientV2 : IFListClient
 	{
-		public V2()
+		public Task<bool> Authenticate(string username, string password, bool isApiKey = false)
 		{
-			BaseURI = "https://www.f-list.net/api/v2/";
-			Paths = new Dictionary<Path, string> {
-				{ Path.Ticket, "auth" }
-			};
+			throw new NotImplementedException();
+		}
+		public Task AddBookmark(Character character)
+		{
+			throw new NotImplementedException();
+		}
+		public Task<List<Character>> GetBookmarks()
+		{
+			throw new NotImplementedException();
+		}
+		public Task RemoveBookmark(Character character)
+		{
+			throw new NotImplementedException();
+		}
+		public Task AddFriend(Character source, Character target)
+		{
+			throw new NotImplementedException();
+		}
+		public Task<List<Character>> GetFriends(Character source)
+		{
+			throw new NotImplementedException();
+		}
+		public Task RemoveFriend(Character source, Character target)
+		{
+			throw new NotImplementedException();
+		}
+		public bool HasTicket {
+			get {
+				throw new NotImplementedException();
+			}
+		}
+		public libflist.JSON.Responses.TicketResponse Ticket {
+			get {
+				throw new NotImplementedException();
+			}
+			set {
+				throw new NotImplementedException();
+			}
 		}
 	}
 }

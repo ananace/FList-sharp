@@ -3,7 +3,7 @@ using Newtonsoft.Json;
 
 namespace libflist.Util.Converters
 {
-	public sealed class JsonDateTimeConverter : JsonConverter
+	sealed class JsonDateTimeConverter : JsonConverter
 	{
 		public enum TimestampPrecision
 		{
