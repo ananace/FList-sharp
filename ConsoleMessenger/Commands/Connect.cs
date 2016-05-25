@@ -21,18 +21,24 @@ namespace ConsoleMessenger.Commands
 			if (Caller is UI.InputControl)
 				(Caller as UI.InputControl).PopHistory(); // Don't store the connect command
 
-			Debug.WriteLine(string.Format("Connecting with username {0}", username));
+			Debug.WriteLine(string.Format("Aquiring ticket for {0}...", username));
 			if (!Application.Connection.AquireTicket(username, password))
 				throw new Exception("Failed to aquire ticket, invalid login data?");
 
-			if (Application.Connection.FListClient.Ticket.Successful)
-				Application.Ticket = new Application.StoredTicket
-				{
+			if (Application.Connection.FListClient.HasTicket)
+				Application.Ticket = new Application.StoredTicket {
 					Account = username,
 					Ticket = Application.Connection.FListClient.Ticket
 				};
 			else
-				throw new Exception(Application.Connection.FListClient.Ticket.ErrorData ?? Application.Connection.FListClient.Ticket.Error);
+				throw new Exception("Aquired ticket but still failed?");
+
+			Debug.WriteLine(string.Format("Aquired ticket for {0}. Available characters are:", username));
+			Debug.WriteLine(Application.Connection.FListClient.Ticket.Characters.ToString(", "));
+
+			Debug.Write("Connecting to FChat network...");
+			Application.Connection.Connect();
+			Debug.WriteLine(" Done.");
 		}
 	}
 }

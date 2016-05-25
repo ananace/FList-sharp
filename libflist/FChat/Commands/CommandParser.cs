@@ -6,7 +6,7 @@ using Newtonsoft.Json;
 
 namespace libflist.FChat.Commands
 {
-	public static class CommandParser
+	static class CommandParser
 	{
 		static readonly Dictionary<string, Type> _CommandTypes = new Dictionary<string, Type>();
 		static readonly Dictionary<string, Type> _ReplyTypes = new Dictionary<string, Type>();
@@ -29,7 +29,14 @@ namespace libflist.FChat.Commands
 
 		static CommandParser()
 		{
-			AddCommandsFrom(Assembly.GetExecutingAssembly());
+			HashSet<Assembly> toLoadFrom = new HashSet<Assembly>();
+			toLoadFrom.Add(Assembly.GetCallingAssembly());
+			toLoadFrom.Add(Assembly.GetEntryAssembly());
+			toLoadFrom.Add(Assembly.GetExecutingAssembly());
+
+			foreach (var assembly in toLoadFrom)
+				AddCommandsFrom(assembly);
+
 		}
 
 		public static void AddCommandsFrom(Assembly assembly)

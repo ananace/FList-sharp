@@ -5,12 +5,32 @@ using System.Net.Http;
 
 namespace libflist.JSON
 {
-	public sealed class FListClientV2 : IFListClient
+	public sealed class FListClientV2 : IFListClient, IInternalFListClient
 	{
+		public bool HasTicket {
+			get {
+				throw new NotImplementedException();
+			}
+		}
+		public AuthTicket Ticket {
+			get {
+				throw new NotImplementedException();
+			}
+			set {
+				throw new NotImplementedException();
+			}
+		}
+
 		public Task<bool> Authenticate(string username, string password, bool isApiKey = false)
 		{
 			throw new NotImplementedException();
 		}
+
+		public Task<List<Character>> GetCharacters()
+		{
+			throw new NotImplementedException();
+		}
+
 		public Task AddBookmark(Character character)
 		{
 			throw new NotImplementedException();
@@ -35,19 +55,35 @@ namespace libflist.JSON
 		{
 			throw new NotImplementedException();
 		}
-		public bool HasTicket {
-			get {
-				throw new NotImplementedException();
-			}
+
+		public Task GetCustomKinks(Character character)
+		{
+			throw new NotImplementedException();
 		}
-		public libflist.JSON.Responses.TicketResponse Ticket {
-			get {
-				throw new NotImplementedException();
-			}
-			set {
-				throw new NotImplementedException();
-			}
+
+		public Task GetDescription(Character character)
+		{
+			throw new NotImplementedException();
+		}
+
+		public Task GetImages(Character character)
+		{
+			throw new NotImplementedException();
+		}
+
+		public Task GetInfo(Character character)
+		{
+			throw new NotImplementedException();
+		}
+
+		public Task GetInlines(Character character)
+		{
+			throw new NotImplementedException();
+		}
+
+		public Task GetKinks(Character character)
+		{
+			throw new NotImplementedException();
 		}
 	}
 }
-

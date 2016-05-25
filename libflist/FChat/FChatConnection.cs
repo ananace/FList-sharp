@@ -350,6 +350,12 @@ namespace libflist.FChat
 
 		public void Login(string Character)
 		{
+			if (_Connection == null)
+				throw new Exception("Not connected.");
+
+			if (_Identified)
+				return;
+			
 			if (Character == null)
 				throw new ArgumentNullException(nameof(Character));
 			if (!FListClient.Ticket.Characters.Contains(Character))
@@ -357,12 +363,6 @@ namespace libflist.FChat
 
 			lock (_Connection)
 			{
-				if (_Connection == null)
-					throw new Exception("Not connected.");
-
-				if (_Identified)
-					return;
-
 				_Character = Character;
 				SendCommand(new Client_IDN_ChatIdentify
 				{
@@ -486,7 +486,7 @@ namespace libflist.FChat
 			var token = e.Data.Substring(0, 3);
 			var data = e.Data.Substring(4);
 
-			var reply = Commands.CommandParser.ParseReply(token, data, true);
+			var reply = CommandParser.ParseReply(token, data, true);
 
 			_Connection_HandleMessage(reply);
 		}

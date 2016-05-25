@@ -9,7 +9,6 @@ using ConsoleMessenger.Types;
 using ConsoleMessenger.UI.Panels;
 using libflist.FChat;
 using libflist.FChat.Commands;
-using libflist.JSON.Responses;
 using Newtonsoft.Json;
 using ConsoleMessenger.UI;
 using ConsoleMessenger.UI.FChat;
@@ -100,7 +99,7 @@ namespace ConsoleMessenger
 	{
 		public class StoredTicket
 		{
-			public TicketResponse Ticket { get; set; }
+			public libflist.JSON.AuthTicket Ticket { get; set; }
 			public string Account { get; set; }
 			public DateTime Timestamp { get; set; }
 		}

@@ -1,10 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace libflist.JSON
 {
-	internal enum Path
+	enum Path
 	{
 		Ticket,
 
@@ -12,11 +11,12 @@ namespace libflist.JSON
 		BookmarkList,
 		BookmarkRemove,
 
-		CharacterCustomkinks,
-		CharacterGet,
-		CharacterImages,
-		CharacterInfo,
-		CharacterKinks,
+		CharacterGetCustomkinks,
+		CharacterGetDescription,
+		CharacterGetImages,
+		CharacterGetInfo,
+		CharacterGetInlines,
+		CharacterGetKinks,
 		CharacterList,
 
 		FriendList,
@@ -26,7 +26,7 @@ namespace libflist.JSON
 		RequestCancel,
 		RequestDeny,
 		RequestList,
-		RequestPending,
+		RequestPendingList,
 		RequestSend,
 
 		GroupList,
@@ -38,9 +38,11 @@ namespace libflist.JSON
 	public interface IFListClient
 	{
 		bool HasTicket { get; }
-		Responses.TicketResponse Ticket { get; set; }
+		AuthTicket Ticket { get; set; }
 
 		Task<bool> Authenticate(string username, string password, bool isApiKey = false);
+
+		Task<List<Character>> GetCharacters();
 
 		Task AddBookmark(Character character);
 		Task<List<Character>> GetBookmarks();
@@ -49,5 +51,14 @@ namespace libflist.JSON
 		Task<List<Character>> GetFriends(Character source);
 		Task RemoveFriend(Character source, Character target);
 	}
-}
 
+	interface IInternalFListClient : IFListClient
+	{
+		Task GetCustomKinks(Character character);
+		Task GetDescription(Character character);
+		Task GetImages(Character character);
+		Task GetInfo(Character character);
+		Task GetInlines(Character character);
+		Task GetKinks(Character character);
+	}
+}

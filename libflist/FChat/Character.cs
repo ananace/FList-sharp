@@ -194,9 +194,7 @@ namespace libflist.FChat
 
 		public bool IsOPInChannel(Channel c)
 		{
-			if (c == null)
-				return false;
-			return c.OPs.Contains(this);
+			return c != null && c.OPs.Contains(this);
 		}
 
 		public void SendMessage(string message)

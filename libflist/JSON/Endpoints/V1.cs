@@ -2,35 +2,38 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Net.Http;
-using libflist.JSON.Responses;
 using Newtonsoft.Json;
 
 namespace libflist.JSON
 {
-	public sealed class FListClientV1 : IFListClient
+	public sealed class FListClientV1 : IFListClient, IInternalFListClient
 	{
-		public bool HasTicket { get { return Ticket != null && Ticket.Successful; } }
-		public TicketResponse Ticket { get; set; }
+		public bool HasTicket { get { return Ticket != null; } }
+		public AuthTicket Ticket { get; set; }
 
 		public async Task<bool> Authenticate(string username, string password, bool isApiKey = false)
 		{
 			if (isApiKey)
 				throw new Exception("V1 doesn't support api keys.");
 
-			var msg = await RunQuery(Path.Ticket, new Dictionary<string,string>{
-				{ "account", username},
-				{ "password", password }
-			});
+			AuthTicket.TicketResponse response = null;
+			using (var http = new HttpClient())
+			{
+				var msg = await RunQuery(http, Path.Ticket, new Dictionary<string,string> {
+					{ "account", username },
+					{ "password", password }
+				});
 
-			if (!msg.IsSuccessStatusCode)
-				throw new Exception("HTTP request failed.");
+				if (!msg.IsSuccessStatusCode)
+					throw new Exception("HTTP request failed.");
 
-			var content = await msg.Content.ReadAsStringAsync();
+				var content = await msg.Content.ReadAsStringAsync();
+				response = Response.Create<AuthTicket.TicketResponse>(content);
+			}
 
-			var response = Response.Create<Responses.TicketResponse>(content);
 			if (response.Successful)
 			{
-				Ticket = response;
+				Ticket = new AuthTicket(response);
 				Ticket.Account = username;
 
 				return true;
@@ -39,23 +42,31 @@ namespace libflist.JSON
 				return false;
 		}
 
+		public Task<List<Character>> GetCharacters()
+		{
+			throw new NotImplementedException();
+		}
+
 		public async Task AddBookmark(Character character)
 		{
 			if (!HasTicket)
 				throw new Exception();
 
-			var msg = await RunQuery(Path.BookmarkAdd, new Dictionary<string,string> {
-				{ "account", Ticket.Account },
-				{ "ticket", Ticket.Ticket },
-				{ "name", character.Name }
-			});
+			using (var http = new HttpClient())
+			{
+				var msg = await RunQuery(http, Path.BookmarkAdd, new Dictionary<string,string> {
+					{ "account", Ticket.Account },
+					{ "ticket", Ticket.Ticket },
+					{ "name", character.Name }
+				});
 
-			if (!msg.IsSuccessStatusCode)
-				throw new Exception("HTTP request failed.");
+				if (!msg.IsSuccessStatusCode)
+					throw new Exception("HTTP request failed.");
 
-			var resp = Response.Create<Response>(await msg.Content.ReadAsStringAsync());
-			if (!resp.Successful)
-				throw new Exception("failed");
+				var resp = Response.Create<Response>(await msg.Content.ReadAsStringAsync());
+				if (!resp.Successful)
+					throw new Exception("failed");
+			}
 		}
 
 		public async Task<List<Character>> GetBookmarks()
@@ -63,17 +74,21 @@ namespace libflist.JSON
 			if (!HasTicket)
 				throw new Exception();
 
-			var msg = await RunQuery(Path.BookmarkList, new Dictionary<string,string> {
-				{ "account", Ticket.Account },
-				{ "ticket", Ticket.Ticket }
-			});
+			BookmarkListResponse resp = null;
+			using (var http = new HttpClient())
+			{
+				var msg = await RunQuery(http, Path.BookmarkList, new Dictionary<string,string> {
+					{ "account", Ticket.Account },
+					{ "ticket", Ticket.Ticket }
+				});
 
-			if (!msg.IsSuccessStatusCode)
-				throw new Exception("HTTP request failed.");
+				if (!msg.IsSuccessStatusCode)
+					throw new Exception("HTTP request failed.");
 
-			var resp = Response.Create<BookmarkListResponse>(await msg.Content.ReadAsStringAsync());
-			if (!resp.Successful)
-				throw new Exception("failed");
+				resp = Response.Create<BookmarkListResponse>(await msg.Content.ReadAsStringAsync());
+				if (!resp.Successful)
+					throw new Exception("failed");
+			}
 
 			return new List<Character>();
 		}
@@ -83,18 +98,21 @@ namespace libflist.JSON
 			if (!HasTicket)
 				throw new Exception();
 
-			var msg = await RunQuery(Path.BookmarkRemove, new Dictionary<string,string> {
-				{ "account", Ticket.Account },
-				{ "ticket", Ticket.Ticket },
-				{ "name", character.Name }
-			});
+			using (var http = new HttpClient())
+			{
+				var msg = await RunQuery(http, Path.BookmarkRemove, new Dictionary<string,string> {
+					{ "account", Ticket.Account },
+					{ "ticket", Ticket.Ticket },
+					{ "name", character.Name }
+				});
 
-			if (!msg.IsSuccessStatusCode)
-				throw new Exception("HTTP request failed.");
+				if (!msg.IsSuccessStatusCode)
+					throw new Exception("HTTP request failed.");
 
-			var resp = Response.Create<Response>(await msg.Content.ReadAsStringAsync());
-			if (!resp.Successful)
-				throw new Exception("failed");
+				var resp = Response.Create<Response>(await msg.Content.ReadAsStringAsync());
+				if (!resp.Successful)
+					throw new Exception("failed");
+			}
 		}
 
 		public async Task AddFriend(Character source, Character target)
@@ -102,19 +120,22 @@ namespace libflist.JSON
 			if (!HasTicket)
 				throw new Exception();
 
-			var msg = await RunQuery(Path.RequestSend, new Dictionary<string,string> {
-				{ "account", Ticket.Account },
-				{ "ticket", Ticket.Ticket },
-				{ "source_name", source.Name },
-				{ "dest_name", target.Name }
-			});
+			using (var http = new HttpClient())
+			{
+				var msg = await RunQuery(http, Path.RequestSend, new Dictionary<string,string> {
+					{ "account", Ticket.Account },
+					{ "ticket", Ticket.Ticket },
+					{ "source_name", source.Name },
+					{ "dest_name", target.Name }
+				});
 
-			if (!msg.IsSuccessStatusCode)
-				throw new Exception("HTTP request failed.");
+				if (!msg.IsSuccessStatusCode)
+					throw new Exception("HTTP request failed.");
 
-			var resp = Response.Create<Response>(await msg.Content.ReadAsStringAsync());
-			if (!resp.Successful)
-				throw new Exception("failed");
+				var resp = Response.Create<Response>(await msg.Content.ReadAsStringAsync());
+				if (!resp.Successful)
+					throw new Exception("failed");
+			}
 		}
 
 		public async Task<List<Character>> GetFriends(Character source)
@@ -122,17 +143,21 @@ namespace libflist.JSON
 			if (!HasTicket)
 				throw new Exception();
 
-			var msg = await RunQuery(Path.BookmarkList, new Dictionary<string,string> {
-				{ "account", Ticket.Account },
-				{ "ticket", Ticket.Ticket }
-			});
+			FriendListResponse resp = null;
+			using (var http = new HttpClient())
+			{
+				var msg = await RunQuery(http, Path.BookmarkList, new Dictionary<string,string> {
+					{ "account", Ticket.Account },
+					{ "ticket", Ticket.Ticket }
+				});
 
-			if (!msg.IsSuccessStatusCode)
-				throw new Exception("HTTP request failed.");
+				if (!msg.IsSuccessStatusCode)
+					throw new Exception("HTTP request failed.");
 
-			var resp = Response.Create<FriendListResponse>(await msg.Content.ReadAsStringAsync());
-			if (!resp.Successful)
-				throw new Exception("failed");
+				resp = Response.Create<FriendListResponse>(await msg.Content.ReadAsStringAsync());
+				if (!resp.Successful)
+					throw new Exception("failed");
+			}
 
 			return new List<Character>();
 		}
@@ -142,19 +167,52 @@ namespace libflist.JSON
 			if (!HasTicket)
 				throw new Exception();
 
-			var msg = await RunQuery(Path.RequestSend, new Dictionary<string,string> {
-				{ "account", Ticket.Account },
-				{ "ticket", Ticket.Ticket },
-				{ "source_name", source.Name },
-				{ "dest_name", target.Name }
-			});
+			using (var http = new HttpClient())
+			{
+				var msg = await RunQuery(http, Path.RequestSend, new Dictionary<string,string> {
+					{ "account", Ticket.Account },
+					{ "ticket", Ticket.Ticket },
+					{ "source_name", source.Name },
+					{ "dest_name", target.Name }
+				});
 
-			if (!msg.IsSuccessStatusCode)
-				throw new Exception("HTTP request failed.");
+				if (!msg.IsSuccessStatusCode)
+					throw new Exception("HTTP request failed.");
 
-			var resp = Response.Create<Response>(await msg.Content.ReadAsStringAsync());
-			if (!resp.Successful)
-				throw new Exception("failed");
+				var resp = Response.Create<Response>(await msg.Content.ReadAsStringAsync());
+				if (!resp.Successful)
+					throw new Exception("failed");
+			}
+		}
+
+		public Task GetCustomKinks(Character character)
+		{
+			throw new NotImplementedException();
+		}
+
+		public Task GetDescription(Character character)
+		{
+			throw new NotImplementedException();
+		}
+
+		public Task GetImages(Character character)
+		{
+			throw new NotImplementedException();
+		}
+
+		public Task GetInfo(Character character)
+		{
+			throw new NotImplementedException();
+		}
+
+		public Task GetInlines(Character character)
+		{
+			throw new NotImplementedException();
+		}
+
+		public Task GetKinks(Character character)
+		{
+			throw new NotImplementedException();
 		}
 
 		static void _Verify(Path p, IReadOnlyDictionary<string, string> Arguments)
@@ -168,27 +226,49 @@ namespace libflist.JSON
 
 			case Path.BookmarkList:
 			case Path.CharacterList:
+			case Path.RequestList:
+			case Path.RequestPendingList:
 				if (Arguments == null || !Arguments.ContainsKey("account") || !Arguments.ContainsKey("ticket"))
 					throw new ArgumentException($"{p} requires 'account' and 'ticket'");
 				break;
 
 			case Path.BookmarkAdd:
 			case Path.BookmarkRemove:
-			case Path.CharacterCustomkinks:
-			case Path.CharacterGet:
-			case Path.CharacterImages:
-			case Path.CharacterInfo:
-			case Path.CharacterKinks:
+			case Path.CharacterGetCustomkinks:
+			case Path.CharacterGetDescription:
+			case Path.CharacterGetImages:
+			case Path.CharacterGetInfo:
+			case Path.CharacterGetKinks:
+				if (Arguments == null
+				    || !Arguments.ContainsKey("account")
+				    || !Arguments.ContainsKey("ticket")
+				    || !Arguments.ContainsKey("name"))
+					throw new ArgumentException($"{p} requires 'account', 'ticket', and 'name'");
+				break;
+
+			case Path.RequestSend:
+			case Path.FriendRemove:
 				if (Arguments == null
 					|| !Arguments.ContainsKey("account")
 					|| !Arguments.ContainsKey("ticket")
-					|| !Arguments.ContainsKey("name"))
-					throw new ArgumentException($"{p} requires 'account', 'ticket', and 'name'");
+					|| !Arguments.ContainsKey("source_name")
+					|| !Arguments.ContainsKey("dest_name"))
+					throw new ArgumentException($"{p} requires 'account', 'ticket', 'source_name', and 'dest_name'");
+				break;
+
+			case Path.RequestAccept:
+			case Path.RequestCancel:
+			case Path.RequestDeny:
+				if (Arguments == null
+					|| !Arguments.ContainsKey("account")
+					|| !Arguments.ContainsKey("ticket")
+					|| !Arguments.ContainsKey("request_id"))
+					throw new ArgumentException($"{p} requires 'account', 'ticket', and 'request_id'");
 				break;
 			}
 		}
 
-		Uri BuildURI(Path p)
+		static Uri BuildURI(Path p)
 		{
 			var build = new UriBuilder("https://www.f-list.net/json/api/");
 
@@ -209,14 +289,13 @@ namespace libflist.JSON
 			return build.Uri;
 		}
 
-		Task<HttpResponseMessage> RunQuery(Path p, IReadOnlyDictionary<string, string> Arguments)
+		static Task<HttpResponseMessage> RunQuery(HttpClient http, Path p, IReadOnlyDictionary<string, string> Arguments)
 		{
 			_Verify(p, Arguments);
 
-			using (var http = new HttpClient())
-				return Arguments == null
-					? http.PostAsync(BuildURI(p), null)
-					: http.PostAsync(BuildURI(p), new FormUrlEncodedContent(Arguments));
+			return Arguments == null
+				? http.PostAsync(BuildURI(p), null)
+				: http.PostAsync(BuildURI(p), new FormUrlEncodedContent(Arguments));
 		}
 
 		sealed class BookmarkListResponse : Response
@@ -229,4 +308,3 @@ namespace libflist.JSON
 		}
 	}
 }
-

@@ -2,7 +2,7 @@
 
 namespace libflist.JSON
 {
-	public abstract class Response
+	abstract class Response
 	{
 		[JsonIgnore]
 		public bool Successful { get { return string.IsNullOrEmpty(Error) && string.IsNullOrEmpty(ErrorData); } }
@@ -18,4 +18,3 @@ namespace libflist.JSON
 		}
 	}
 }
-
