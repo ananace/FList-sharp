@@ -21,6 +21,16 @@ namespace libflist.FList
 			}
 		}
 
+		public Character GetOrCreateCharacter(string name)
+		{
+			throw new NotImplementedException();
+		}
+
+		public Character GetOrCreateCharacter(string name, int id)
+		{
+			throw new NotImplementedException();
+		}
+
 		public Task<bool> Authenticate(string username, string password, bool isApiKey = false)
 		{
 			throw new NotImplementedException();

@@ -3,13 +3,43 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Net.Http;
 using Newtonsoft.Json;
+using System.Linq;
 
 namespace libflist.FList
 {
 	public sealed class FListClientV1 : IFListClient, IInternalFListClient
 	{
+		List<Character> _Characters = new List<Character>();
+
 		public bool HasTicket { get { return Ticket != null; } }
 		public AuthTicket Ticket { get; set; }
+
+		public Character GetOrCreateCharacter(string name)
+		{
+			lock (_Characters)
+			{
+				var character = _Characters.FirstOrDefault(c => c.Name.Equals(name, StringComparison.CurrentCultureIgnoreCase));
+				if (character == null)
+				{
+					character = new Character(this, name);
+					_Characters.Add(character);
+				}
+				return character;
+			}
+		}
+		public Character GetOrCreateCharacter(string name, int id)
+		{
+			lock (_Characters)
+			{
+				var character = _Characters.FirstOrDefault(c => c.Name.Equals(name, StringComparison.CurrentCultureIgnoreCase));
+				if (character == null)
+				{
+					character = new Character(this, name, id);
+					_Characters.Add(character);
+				}
+				return character;
+			}
+		}
 
 		public async Task<bool> Authenticate(string username, string password, bool isApiKey = false)
 		{
@@ -42,9 +72,31 @@ namespace libflist.FList
 				return false;
 		}
 
-		public Task<List<Character>> GetCharacters()
+		public async Task<List<Character>> GetCharacters()
 		{
-			throw new NotImplementedException();
+			if (!HasTicket)
+				throw new Exception();
+
+			CharacterListResponse resp;
+			using (var http = new HttpClient())
+			{
+				var msg = await RunQuery(http, Path.CharacterList, new Dictionary<string,string> {
+					{ "account", Ticket.Account },
+					{ "ticket", Ticket.Ticket }
+				});
+
+				if (!msg.IsSuccessStatusCode)
+					throw new Exception("HTTP request failed.");
+
+				resp = Response.Create<CharacterListResponse>(await msg.Content.ReadAsStringAsync());
+				if (!resp.Successful)
+					throw new Exception("failed");
+			}
+
+			var list = new List<Character>();
+			foreach (var character in resp.Characters)
+				list.Add(GetOrCreateCharacter(character));
+			return list;
 		}
 
 		public async Task AddBookmark(Character character)
@@ -74,7 +126,7 @@ namespace libflist.FList
 			if (!HasTicket)
 				throw new Exception();
 
-			BookmarkListResponse resp = null;
+			CharacterListResponse resp;
 			using (var http = new HttpClient())
 			{
 				var msg = await RunQuery(http, Path.BookmarkList, new Dictionary<string,string> {
@@ -85,12 +137,15 @@ namespace libflist.FList
 				if (!msg.IsSuccessStatusCode)
 					throw new Exception("HTTP request failed.");
 
-				resp = Response.Create<BookmarkListResponse>(await msg.Content.ReadAsStringAsync());
+				resp = Response.Create<CharacterListResponse>(await msg.Content.ReadAsStringAsync());
 				if (!resp.Successful)
 					throw new Exception("failed");
 			}
 
-			return new List<Character>();
+			var list = new List<Character>();
+			foreach (var character in resp.Characters)
+				list.Add(GetOrCreateCharacter(character));
+			return list;
 		}
 
 		public async Task RemoveBookmark(Character character)
@@ -159,7 +214,10 @@ namespace libflist.FList
 					throw new Exception("failed");
 			}
 
-			return new List<Character>();
+			var list = new List<Character>();
+			foreach (var character in resp.Friends.Where(f => f.Character.Equals(source.Name, StringComparison.CurrentCultureIgnoreCase)))
+				list.Add(GetOrCreateCharacter(character.Friend));
+			return list;
 		}
 
 		public async Task RemoveFriend(Character source, Character target)
@@ -185,34 +243,59 @@ namespace libflist.FList
 			}
 		}
 
-		public Task GetCustomKinks(Character character)
+		async Task<CharacterResponse> UpdateCharacter(Path p, Character character)
 		{
-			throw new NotImplementedException();
+			if (!HasTicket)
+				throw new Exception();
+			
+			CharacterResponse resp;
+			using (var http = new HttpClient())
+			{
+				var msg = await RunQuery(http, p, new Dictionary<string,string> {
+					{ "account", Ticket.Account },
+					{ "ticket", Ticket.Ticket },
+					{ "name", character.Name }
+				});
+
+				if (!msg.IsSuccessStatusCode)
+					throw new Exception("HTTP request failed.");
+
+				resp = Response.Create<CharacterResponse>(await msg.Content.ReadAsStringAsync());
+				if (!resp.Successful)
+					throw new Exception("failed");
+			}
+
+			return resp;
 		}
 
-		public Task GetDescription(Character character)
+		public async Task GetCustomKinks(Character character)
 		{
-			throw new NotImplementedException();
+			var data = await UpdateCharacter(Path.CharacterGetCustomkinks, character);
+			// TODO
 		}
 
-		public Task GetImages(Character character)
+		public async Task GetDescription(Character character)
 		{
-			throw new NotImplementedException();
+			var data = await UpdateCharacter(Path.CharacterGetDescription, character);
+			character._Description = data.Character.Description;
 		}
 
-		public Task GetInfo(Character character)
+		public async Task GetImages(Character character)
 		{
-			throw new NotImplementedException();
+			var data = await UpdateCharacter(Path.CharacterGetImages, character);
+			// TODO
 		}
 
-		public Task GetInlines(Character character)
+		public async Task GetInfo(Character character)
 		{
-			throw new NotImplementedException();
+			var data = await UpdateCharacter(Path.CharacterGetInfo, character);
+			// TODO
 		}
 
-		public Task GetKinks(Character character)
+		public async Task GetKinks(Character character)
 		{
-			throw new NotImplementedException();
+			var data = await UpdateCharacter(Path.CharacterGetKinks, character);
+			// TODO
 		}
 
 		static void _Verify(Path p, IReadOnlyDictionary<string, string> Arguments)
@@ -278,9 +361,17 @@ namespace libflist.FList
 				build.Path = "/json/getApiTicket.php";
 				break;
 
+			case Path.CharacterList: build.Path += "character-list.php"; break;
+
 			case Path.BookmarkAdd: build.Path += "bookmark-add.php"; break;
 			case Path.BookmarkList: build.Path += "bookmark-list.php"; break;
 			case Path.BookmarkRemove: build.Path += "bookmark-remove.php"; break;
+
+			case Path.CharacterGetCustomkinks: build.Path += "character-customkinks.php"; break;
+			case Path.CharacterGetDescription: build.Path += "character-get.php"; break;
+			case Path.CharacterGetImages: build.Path += "character-images.php"; break;
+			case Path.CharacterGetInfo: build.Path += "character-info.php"; break;
+			case Path.CharacterGetKinks: build.Path += "character-kinks.php"; break;
 				
 			default:
 				throw new NotImplementedException();
@@ -298,13 +389,45 @@ namespace libflist.FList
 				: http.PostAsync(BuildURI(p), new FormUrlEncodedContent(Arguments));
 		}
 
-		sealed class BookmarkListResponse : Response
+		sealed class CharacterListResponse : Response
 		{
-			// TODO
+			[JsonProperty("characters")]
+			public string[] Characters { get; set; }
 		}
 		sealed class FriendListResponse : Response
 		{
-			// TODO
+			public class FriendMapping
+			{
+				[JsonProperty("source")]
+				public string Character { get; set; }
+				[JsonProperty("dest")]
+				public string Friend { get; set; }
+				[JsonProperty("last_online")]
+				public int LastOnline { get; set; }
+			}
+
+			[JsonProperty("friends")]
+			public FriendMapping[] Friends { get; set; }
+		}
+		sealed class CharacterData
+		{
+			[JsonProperty("name")]
+			public string Name { get; set; }
+
+			[JsonProperty("description")]
+			public string Description { get; set; }
+			[JsonProperty("datetime_created")]
+			public string CreatedAt { get; set; }
+			[JsonProperty("datetime_changed")]
+			public string UpdatedAt { get; set; }
+			[JsonProperty("pageviews")]
+			public string Views { get; set; }
+		}
+
+		sealed class CharacterResponse : Response
+		{
+			[JsonProperty("character")]
+			public CharacterData Character { get; set; }
 		}
 	}
 }

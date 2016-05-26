@@ -15,7 +15,6 @@ namespace libflist.FList
 		CharacterGetDescription,
 		CharacterGetImages,
 		CharacterGetInfo,
-		CharacterGetInlines,
 		CharacterGetKinks,
 		CharacterList,
 
@@ -40,6 +39,9 @@ namespace libflist.FList
 		bool HasTicket { get; }
 		AuthTicket Ticket { get; set; }
 
+		Character GetOrCreateCharacter(string name);
+		Character GetOrCreateCharacter(string name, int id);
+
 		Task<bool> Authenticate(string username, string password, bool isApiKey = false);
 
 		Task<List<Character>> GetCharacters();
@@ -58,7 +60,6 @@ namespace libflist.FList
 		Task GetDescription(Character character);
 		Task GetImages(Character character);
 		Task GetInfo(Character character);
-		Task GetInlines(Character character);
 		Task GetKinks(Character character);
 	}
 }

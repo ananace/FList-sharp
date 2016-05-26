@@ -8,6 +8,17 @@
 		public string Name { get; internal set; }
 		public int ID { get; internal set; }
 
+		internal string _Description;
+		public string Description
+		{
+			get
+			{
+				if (string.IsNullOrEmpty(_Description))
+					_Client.GetDescription(this).Wait();
+				return _Description;
+			}
+		}
+
 		internal Character(IInternalFListClient client, string name)
 		{
 			_Client = client;

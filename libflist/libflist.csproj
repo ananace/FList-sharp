@@ -71,12 +71,12 @@
     <Compile Include="FChat\Events\ChannelUserMessageEventArgs.cs" />
     <Compile Include="FChat\Events\ChannelAdminActionEventArgs.cs" />
     <Compile Include="FChat\Command.cs" />
-    <Compile Include="FList\Endpoints\V1.cs" />
     <Compile Include="FList\Endpoints\V2.cs" />
     <Compile Include="FList\Response.cs" />
     <Compile Include="FList\FListClient.cs" />
     <Compile Include="FList\Character.cs" />
     <Compile Include="FList\AuthTicket.cs" />
+    <Compile Include="FList\Endpoints\FListClientV1.cs" />
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
