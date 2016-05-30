@@ -1,6 +1,5 @@
 ﻿using System;
 using libflist.FChat;
-using libflist.FChat.Commands;
 
 namespace libflist.Events
 {
@@ -30,4 +29,3 @@ namespace libflist.Events
 		}
 	}
 }
-

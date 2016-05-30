@@ -1,16 +1,15 @@
 ﻿using System;
 using libflist.FChat;
-using libflist.FChat.Commands;
 
 namespace libflist.Events
 {
 	public class AdminActionEventArgs : EventArgs
 	{
-		public Character Character { get; private set; }
-		public Character Admin { get; private set; }
+		public FChat.Character Character { get; private set; }
+		public FChat.Character Admin { get; private set; }
 		public Command Command { get; private set; }
 
-		public AdminActionEventArgs(Character character, Character admin, Command command)
+		public AdminActionEventArgs(FChat.Character character, FChat.Character admin, Command command)
 		{
 			Character = character;
 			Admin = admin;
@@ -18,4 +17,3 @@ namespace libflist.Events
 		}
 	}
 }
-

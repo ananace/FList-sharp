@@ -1,5 +1,4 @@
 ﻿using System;
-using libflist.FChat.Commands;
 
 namespace libflist.FChat.Events
 {

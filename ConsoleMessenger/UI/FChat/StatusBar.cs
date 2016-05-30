@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using ConsoleMessenger.Types;
 
 namespace ConsoleMessenger.UI.FChat
 {
@@ -54,7 +55,7 @@ namespace ConsoleMessenger.UI.FChat
 			int i = 0;
 			Content = string.Format("{0}{1}{2}",
 				_Chat.LocalCharacter != null ?
-					oB + _Chat.LocalCharacter.Name.Color(_Chat.LocalCharacter.GenderColor) + cB:
+					oB + _Chat.LocalCharacter.Name.Color(_Chat.LocalCharacter.GetGenderColor()) + cB:
 					"",
 				oB /* TODO <cur chan number>:<chan name> */ + cB,
 				oB + "Act: " + string.Join(",",_Chat.ActiveChannels.Select(c => i++)) + cB // FIXME Actually show activity, not just buffers

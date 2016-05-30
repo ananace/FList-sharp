@@ -1,16 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using libflist.Events;
-using libflist.FChat.Events;
-using libflist.FChat.Util;
 using System.Diagnostics;
+using System.Linq;
 using System.Reflection;
 using System.Threading;
-using WebSocketSharp;
+using System.Threading.Tasks;
+using libflist.Events;
 using libflist.FChat.Commands;
-using libflist.FList;
+using libflist.FChat.Events;
+using libflist.Util;
+using WebSocketSharp;
 
 namespace libflist.FChat
 {
@@ -43,7 +42,6 @@ namespace libflist.FChat
 		List<KnownChannel> _PrivateChannels;
 
 		List<Channel> _Channels;
-		List<Character> _Characters;
 
 		Timer _VariableTimer;
 
@@ -54,7 +52,7 @@ namespace libflist.FChat
 		bool _Identified = false;
 		string _Character;
 
-		public IFListClient FListClient { get; set; } = new FListClientV1();
+		public IFListClient FListClient { get; set; }
 
 		public bool AutoPing { get; set; }
 		public bool AutoReconnect { get; set; }
@@ -165,14 +163,15 @@ namespace libflist.FChat
 		// Character message events
 		public event EventHandler<CharacterMessageEventArgs> OnCharacterChatMessage;
 
-
-		public FChatConnection()
+		
+		public FChatConnection(IFListClient client = null)
 		{
+			FListClient = client ?? new FListClientV1();
+
 			_OfficialChannels = new List<KnownChannel>();
 			_PrivateChannels = new List<KnownChannel>();
 
 			_Channels = new List<Channel>();
-			_Characters = new List<Character>();
 			_Variables = new ServerVariables();
 			_VariableTimer = new Timer((_) => {
 				OnServerVariableUpdate?.Invoke(this, EventArgs.Empty);
@@ -197,7 +196,6 @@ namespace libflist.FChat
 
 			_Variables.Clear();
 			_Channels = null;
-			_Characters = null;
 
 			_Character = null;
 			_Connection = null;
@@ -461,23 +459,40 @@ namespace libflist.FChat
 		}
 		public Character GetCharacter(string Name)
 		{
-			lock (_Characters)
+			lock (FListClient.Characters)
 			{
-				return _Characters.FirstOrDefault(c => c.Name.Equals(Name, StringComparison.CurrentCultureIgnoreCase));
+				var character = FListClient.Characters.FirstOrDefault(c => c.Name.Equals(Name, StringComparison.CurrentCultureIgnoreCase));
+
+				if (!(character is Character))
+				{
+					FListClient.Characters.Remove(character);
+					var oldCharacter = character;
+
+					character = new Character(this, Name);
+					FListClient.Characters.Add(character);
+
+					// TODO: Copy data.
+				}
+
+				return character as Character;
 			}
 		}
 		public Character GetOrCreateCharacter(string Name)
 		{
-			lock (_Characters)
+			lock (FListClient.Characters)
 			{
-				var charac = _Characters.FirstOrDefault(c => c.Name.Equals(Name, StringComparison.CurrentCultureIgnoreCase));
-				if (charac != null)
-					return charac;
+				var character = FListClient.GetOrCreateCharacter(Name);
 
-				charac = new Character(this, Name);
-				_Characters.Add(charac);
+				if (!(character is Character))
+				{
+					FListClient.Characters.Remove(character);
+					var oldCharacter = character;
 
-				return charac;
+					character = new Character(this, Name);
+					FListClient.Characters.Add(character);
+				}
+
+				return character as Character;
 			}
 		}
 

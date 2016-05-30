@@ -5,14 +5,46 @@ using System.Net.Http;
 using Newtonsoft.Json;
 using System.Linq;
 
-namespace libflist.FList
+namespace libflist
 {
-	public sealed class FListClientV1 : IFListClient, IInternalFListClient
+	public sealed class FListClientV1 : IFListClient
 	{
+		enum Path
+		{
+			Ticket,
+
+			BookmarkAdd,
+			BookmarkList,
+			BookmarkRemove,
+
+			CharacterGetCustomkinks,
+			CharacterGetDescription,
+			CharacterGetImages,
+			CharacterGetInfo,
+			CharacterGetKinks,
+			CharacterList,
+
+			FriendList,
+			FriendRemove,
+
+			RequestAccept,
+			RequestCancel,
+			RequestDeny,
+			RequestList,
+			RequestPendingList,
+			RequestSend,
+
+			GroupList,
+			IgnoreList,
+			InfoList,
+			KinkList
+		}
+
 		List<Character> _Characters = new List<Character>();
 
 		public bool HasTicket { get { return Ticket != null; } }
 		public AuthTicket Ticket { get; set; }
+		public IList<Character> Characters { get { return _Characters; } }
 
 		public Character GetOrCreateCharacter(string name)
 		{
@@ -41,9 +73,9 @@ namespace libflist.FList
 			}
 		}
 
-		public async Task<bool> Authenticate(string username, string password, bool isApiKey = false)
+		public async Task<bool> Authenticate(string username, string password, AuthMethod method)
 		{
-			if (isApiKey)
+			if (method == AuthMethod.APIKey)
 				throw new Exception("V1 doesn't support api keys.");
 
 			AuthTicket.TicketResponse response = null;
@@ -72,7 +104,7 @@ namespace libflist.FList
 				return false;
 		}
 
-		public async Task<List<Character>> GetCharacters()
+		public async Task<List<string>> GetCharacters()
 		{
 			if (!HasTicket)
 				throw new Exception();
@@ -93,13 +125,13 @@ namespace libflist.FList
 					throw new Exception("failed");
 			}
 
-			var list = new List<Character>();
+			var list = new List<string>();
 			foreach (var character in resp.Characters)
-				list.Add(GetOrCreateCharacter(character));
+				list.Add(character);
 			return list;
 		}
 
-		public async Task AddBookmark(Character character)
+		public async Task<bool> AddBookmark(string character)
 		{
 			if (!HasTicket)
 				throw new Exception();
@@ -109,19 +141,21 @@ namespace libflist.FList
 				var msg = await RunQuery(http, Path.BookmarkAdd, new Dictionary<string,string> {
 					{ "account", Ticket.Account },
 					{ "ticket", Ticket.Ticket },
-					{ "name", character.Name }
+					{ "name", character }
 				});
 
 				if (!msg.IsSuccessStatusCode)
-					throw new Exception("HTTP request failed.");
+					return false;
 
 				var resp = Response.Create<Response>(await msg.Content.ReadAsStringAsync());
 				if (!resp.Successful)
-					throw new Exception("failed");
+					return false;
 			}
+
+			return true;
 		}
 
-		public async Task<List<Character>> GetBookmarks()
+		public async Task<List<string>> GetBookmarks()
 		{
 			if (!HasTicket)
 				throw new Exception();
@@ -142,13 +176,13 @@ namespace libflist.FList
 					throw new Exception("failed");
 			}
 
-			var list = new List<Character>();
+			var list = new List<string>();
 			foreach (var character in resp.Characters)
-				list.Add(GetOrCreateCharacter(character));
+				list.Add(character);
 			return list;
 		}
 
-		public async Task RemoveBookmark(Character character)
+		public async Task RemoveBookmark(string character)
 		{
 			if (!HasTicket)
 				throw new Exception();
@@ -158,7 +192,7 @@ namespace libflist.FList
 				var msg = await RunQuery(http, Path.BookmarkRemove, new Dictionary<string,string> {
 					{ "account", Ticket.Account },
 					{ "ticket", Ticket.Ticket },
-					{ "name", character.Name }
+					{ "name", character }
 				});
 
 				if (!msg.IsSuccessStatusCode)
@@ -170,7 +204,7 @@ namespace libflist.FList
 			}
 		}
 
-		public async Task AddFriend(Character source, Character target)
+		public async Task<bool> AddFriend(string source, string target)
 		{
 			if (!HasTicket)
 				throw new Exception();
@@ -180,20 +214,22 @@ namespace libflist.FList
 				var msg = await RunQuery(http, Path.RequestSend, new Dictionary<string,string> {
 					{ "account", Ticket.Account },
 					{ "ticket", Ticket.Ticket },
-					{ "source_name", source.Name },
-					{ "dest_name", target.Name }
+					{ "source_name", source },
+					{ "dest_name", target }
 				});
 
 				if (!msg.IsSuccessStatusCode)
-					throw new Exception("HTTP request failed.");
+					return false;
 
 				var resp = Response.Create<Response>(await msg.Content.ReadAsStringAsync());
 				if (!resp.Successful)
-					throw new Exception("failed");
+					return false;
 			}
+
+			return true;
 		}
 
-		public async Task<List<Character>> GetFriends(Character source)
+		public async Task<List<string>> GetFriends(string source)
 		{
 			if (!HasTicket)
 				throw new Exception();
@@ -214,13 +250,13 @@ namespace libflist.FList
 					throw new Exception("failed");
 			}
 
-			var list = new List<Character>();
-			foreach (var character in resp.Friends.Where(f => f.Character.Equals(source.Name, StringComparison.CurrentCultureIgnoreCase)))
-				list.Add(GetOrCreateCharacter(character.Friend));
+			var list = new List<string>();
+			foreach (var character in resp.Friends.Where(f => f.Character.Equals(source, StringComparison.CurrentCultureIgnoreCase)))
+				list.Add(character.Friend);
 			return list;
 		}
 
-		public async Task RemoveFriend(Character source, Character target)
+		public async Task RemoveFriend(string source, string target)
 		{
 			if (!HasTicket)
 				throw new Exception();
@@ -230,8 +266,8 @@ namespace libflist.FList
 				var msg = await RunQuery(http, Path.RequestSend, new Dictionary<string,string> {
 					{ "account", Ticket.Account },
 					{ "ticket", Ticket.Ticket },
-					{ "source_name", source.Name },
-					{ "dest_name", target.Name }
+					{ "source_name", source },
+					{ "dest_name", target }
 				});
 
 				if (!msg.IsSuccessStatusCode)
@@ -243,7 +279,7 @@ namespace libflist.FList
 			}
 		}
 
-		async Task<CharacterResponse> UpdateCharacter(Path p, Character character)
+		async Task<CharacterResponse> UpdateCharacter(Path p, string name)
 		{
 			if (!HasTicket)
 				throw new Exception();
@@ -254,7 +290,7 @@ namespace libflist.FList
 				var msg = await RunQuery(http, p, new Dictionary<string,string> {
 					{ "account", Ticket.Account },
 					{ "ticket", Ticket.Ticket },
-					{ "name", character.Name }
+					{ "name", name }
 				});
 
 				if (!msg.IsSuccessStatusCode)
@@ -268,34 +304,38 @@ namespace libflist.FList
 			return resp;
 		}
 
-		public async Task GetCustomKinks(Character character)
+		public async Task<Character> GetCustomKinks(string name)
 		{
-			var data = await UpdateCharacter(Path.CharacterGetCustomkinks, character);
+			var data = await UpdateCharacter(Path.CharacterGetCustomkinks, name);
 			// TODO
+			return GetOrCreateCharacter(name);
 		}
 
-		public async Task GetDescription(Character character)
+		public async Task<string> GetDescription(string name)
 		{
-			var data = await UpdateCharacter(Path.CharacterGetDescription, character);
-			character._Description = data.Character.Description;
+			var data = await UpdateCharacter(Path.CharacterGetDescription, name);
+			return data.Character.Description;
 		}
 
-		public async Task GetImages(Character character)
+		public async Task<Character> GetImages(string name)
 		{
-			var data = await UpdateCharacter(Path.CharacterGetImages, character);
+			var data = await UpdateCharacter(Path.CharacterGetImages, name);
 			// TODO
+			return GetOrCreateCharacter(name);
 		}
 
-		public async Task GetInfo(Character character)
+		public async Task<Character> GetInfo(string name)
 		{
-			var data = await UpdateCharacter(Path.CharacterGetInfo, character);
+			var data = await UpdateCharacter(Path.CharacterGetInfo, name);
 			// TODO
+			return GetOrCreateCharacter(name);
 		}
 
-		public async Task GetKinks(Character character)
+		public async Task<Character> GetKinks(string name)
 		{
-			var data = await UpdateCharacter(Path.CharacterGetKinks, character);
+			var data = await UpdateCharacter(Path.CharacterGetKinks, name);
 			// TODO
+			return GetOrCreateCharacter(name);
 		}
 
 		static void _Verify(Path p, IReadOnlyDictionary<string, string> Arguments)

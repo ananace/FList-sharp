@@ -9,7 +9,7 @@ using ConsoleMessenger.Types;
 using ConsoleMessenger.UI.Panels;
 using libflist.FChat;
 using libflist.FChat.Commands;
-using libflist.FList;
+using libflist;
 using Newtonsoft.Json;
 using ConsoleMessenger.UI;
 using ConsoleMessenger.UI.FChat;
@@ -428,18 +428,18 @@ namespace ConsoleMessenger
 			if (Text.StartsWith("/me", StringComparison.OrdinalIgnoreCase))
 				buffer.PushMessage(string.Format("{2} {0} {1}",
 					inputChar == null ?
-						Char.Name.Color(Char.GenderColor).BackgroundColor(ConsoleColor.DarkGray) :
-						Char.Name.Color(Char.GenderColor),
+						Char.Name.Color(Char.GetGenderColor()).BackgroundColor(ConsoleColor.DarkGray) :
+						Char.Name.Color(Char.GetGenderColor()),
 					Text.Length > 3 ? Text.Substring(4).Color(ConsoleColor.White) : "",
-					Char.StatusChar.ToString().Color(Char.StatusColor)
+					Char.GetStatusChar().ToString().Color(Char.GetStatusColor())
 					));
 			else
 				buffer.PushMessage(string.Format("{2} {0}: {1}",
 					inputChar == null ?
-						Char.Name.Color(Char.GenderColor).BackgroundColor(ConsoleColor.DarkGray) :
-						Char.Name.Color(Char.GenderColor),
+						Char.Name.Color(Char.GetGenderColor()).BackgroundColor(ConsoleColor.DarkGray) :
+						Char.Name.Color(Char.GetGenderColor()),
 					Text,
-					Char.StatusChar.ToString().Color(Char.StatusColor)
+					Char.GetStatusChar().ToString().Color(Char.GetStatusColor())
 					));
 		}
 

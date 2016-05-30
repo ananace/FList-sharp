@@ -274,8 +274,7 @@ namespace libflist.FChat
 
 				OnCharacterOffline?.Invoke(this, new CharacterEntryEventArgs(character, fln));
 
-				lock (_Characters)
-					_Characters.Remove(character);
+				character.Status = CharacterStatus.Offline;
 
 				foreach (var chan in _Channels.Where(C => C.Characters.Contains(character)))
 					chan.PushCommand(new Server_LCH_ChannelLeave

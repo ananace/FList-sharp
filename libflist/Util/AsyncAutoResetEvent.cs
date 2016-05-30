@@ -3,7 +3,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace libflist.FChat.Util
+namespace libflist.Util
 {
 	sealed class AsyncAutoResetEvent
 	{
