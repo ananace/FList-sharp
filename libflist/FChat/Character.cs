@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using libflist.FChat.Commands;
 using libflist.Util;
 
 namespace libflist.FChat
@@ -193,14 +194,12 @@ namespace libflist.FChat
 
 		public bool IsOPInChannel(Channel c)
 		{
-			if (c == null)
-				return false;
-			return c.OPs.Contains(this);
+			return c != null && c.OPs.Contains(this);
 		}
 
 		public void SendMessage(string message)
 		{
-			Connection.SendCommand(new Commands.Client.Character.SendMessageCommand {
+			Connection.SendCommand(new Client_PRI_CharacterSendMessage {
 				Character = Name,
 				Message = message
 			});

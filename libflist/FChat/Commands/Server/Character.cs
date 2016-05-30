@@ -1,17 +1,17 @@
 ﻿using libflist.Util.Converters;
 using Newtonsoft.Json;
 
-namespace libflist.FChat.Commands.Server.Character
+namespace libflist.FChat.Commands
 {
 	[Reply("FLN")]
-	public class OfflineReply : Command, Command.ICharacterCommand
+	public sealed class Server_FLN_CharacterOffline : Command, Command.ICharacterCommand
 	{
 		[JsonProperty(PropertyName = "character")]
 		public string Character { get; set; }
 	}
 
 	[Reply("KID")]
-	public class GetKinksReply : Command
+	public sealed class Server_KID_CharacterKinkList : Command
 	{
 		public enum MessageType
 		{
@@ -34,7 +34,7 @@ namespace libflist.FChat.Commands.Server.Character
 	}
 
 	[Reply("NLN")]
-	public class OnlineReply : Command, Command.ICharacterCommand
+	public sealed class Server_NLN_CharacterOnline : Command, Command.ICharacterCommand
 	{
 		[JsonIgnore]
 		public string CharacterName { get { return Character ?? Identity; } }
@@ -54,7 +54,7 @@ namespace libflist.FChat.Commands.Server.Character
 	}
 
 	[Reply("PRI")]
-	public class SendMessageReply : Command, Command.ICharacterCommand
+	public sealed class Server_PRI_CharacterChatMessage : Command, Command.ICharacterCommand
 	{
 		[JsonProperty(PropertyName = "character", Required = Required.Always)]
 		public string Character { get; set; }
@@ -63,7 +63,7 @@ namespace libflist.FChat.Commands.Server.Character
 	}
 
 	[Reply("PRD")]
-	public class GetTagsReply : Command, Command.ICharacterCommand
+	public sealed class Server_PRD_CharacterGetTags : Command, Command.ICharacterCommand
 	{
 		public enum MessageType
 		{
@@ -87,7 +87,7 @@ namespace libflist.FChat.Commands.Server.Character
 	}
 
 	[Reply("STA")]
-	public class StatusReply : Command, Command.ICharacterCommand
+	public sealed class Server_STA_CharacterStatus : Command, Command.ICharacterCommand
 	{
 		[JsonProperty(PropertyName = "character", Required = Required.Always)]
 		public string Character { get; set; }
@@ -101,7 +101,7 @@ namespace libflist.FChat.Commands.Server.Character
 	}
 
 	[Reply("TPN")]
-	public class TypingReply : Command, Command.ICharacterCommand
+	public sealed class Server_TPN_CharacterTypingStatus : Command, Command.ICharacterCommand
 	{
 		[JsonProperty(PropertyName = "character", Required = Required.Always)]
 		public string Character { get; set; }

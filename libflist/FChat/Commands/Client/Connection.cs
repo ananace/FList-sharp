@@ -2,10 +2,10 @@
 using System.Reflection;
 using Newtonsoft.Json;
 
-namespace libflist.FChat.Commands.Client.Connection
+namespace libflist.FChat.Commands
 {
 	[Command("IDN", MinRight = UserRight.Disconnected)]
-	public class IdentifyCommand : Command
+	public sealed class Client_IDN_ChatIdentify : Command
 	{
 		[JsonProperty(PropertyName = "method")]
 		public string Method { get; set; } = "ticket";
@@ -22,7 +22,7 @@ namespace libflist.FChat.Commands.Client.Connection
 		[JsonProperty(PropertyName = "cversion")]
 		public string ClientVersion { get; set; }
 
-		public IdentifyCommand()
+		public Client_IDN_ChatIdentify()
 		{
 			var app = Assembly.GetEntryAssembly();
 			var appname = app.GetName();

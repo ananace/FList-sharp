@@ -6,7 +6,7 @@ using Newtonsoft.Json;
 
 namespace libflist.FChat.Commands
 {
-	public static class CommandParser
+	static class CommandParser
 	{
 		static readonly Dictionary<string, Type> _CommandTypes = new Dictionary<string, Type>();
 		static readonly Dictionary<string, Type> _ReplyTypes = new Dictionary<string, Type>();
@@ -29,7 +29,14 @@ namespace libflist.FChat.Commands
 
 		static CommandParser()
 		{
-			AddCommandsFrom(Assembly.GetExecutingAssembly());
+			HashSet<Assembly> toLoadFrom = new HashSet<Assembly>();
+			toLoadFrom.Add(Assembly.GetCallingAssembly());
+			toLoadFrom.Add(Assembly.GetEntryAssembly());
+			toLoadFrom.Add(Assembly.GetExecutingAssembly());
+
+			foreach (var assembly in toLoadFrom)
+				AddCommandsFrom(assembly);
+
 		}
 
 		public static void AddCommandsFrom(Assembly assembly)
@@ -54,7 +61,7 @@ namespace libflist.FChat.Commands
 				if (CommandParser.AllowMeta
 					&& !(AllowMeta.HasValue && !AllowMeta.Value)
 					|| (AllowMeta.HasValue && AllowMeta.Value))
-					return new Meta.UnknownCommand { CMDToken = Token, Data = JSON };
+					return new Client_Meta_Unknown { CMDToken = Token, Data = JSON };
 			}
 			else
 			{
@@ -71,7 +78,7 @@ namespace libflist.FChat.Commands
 					if (CommandParser.AllowMeta
 						&& !(AllowMeta.HasValue && !AllowMeta.Value)
 						|| (AllowMeta.HasValue && AllowMeta.Value))
-						return new Meta.FailedCommand { CMDToken = Token, Data = JSON, Exception = ex };
+						return new Client_Meta_Failed { CMDToken = Token, Data = JSON, Exception = ex };
 				}
 			}
 
@@ -85,7 +92,7 @@ namespace libflist.FChat.Commands
 				if (CommandParser.AllowMeta
 					&& !(AllowMeta.HasValue && !AllowMeta.Value)
 					|| (AllowMeta.HasValue && AllowMeta.Value))
-					return new Meta.UnknownReply { CMDToken = Token, Data = JSON };
+					return new Server_Meta_Unknown { CMDToken = Token, Data = JSON };
 			}
 			else
 			{
@@ -102,7 +109,7 @@ namespace libflist.FChat.Commands
 					if (CommandParser.AllowMeta
 						&& !(AllowMeta.HasValue && !AllowMeta.Value)
 						|| (AllowMeta.HasValue && AllowMeta.Value))
-						return new Meta.FailedReply { CMDToken = Token, Data = JSON, Exception = ex };
+						return new Server_Meta_Failed { CMDToken = Token, Data = JSON, Exception = ex };
 				}
 			}
 

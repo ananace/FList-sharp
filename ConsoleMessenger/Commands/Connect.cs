@@ -12,9 +12,8 @@ namespace ConsoleMessenger.Commands
 				throw new ArgumentException("Can't connect without a valid ticket, try /connect <username> <password>");
 
 			Debug.WriteLine("Attempting connection with earlier ticket.");
-			Application.Connection.Ticket = Application.Ticket.Ticket;
-			Application.Connection.TicketTimestamp = Application.Ticket.Timestamp;
-			Application.Connection.Connect(Application.Ticket.Account, null, true);
+			Application.Connection.FListClient.Ticket = Application.Ticket.Ticket;
+			Application.Connection.Connect();
 		}
 
 		public void Call(string username, string password)
@@ -22,18 +21,24 @@ namespace ConsoleMessenger.Commands
 			if (Caller is UI.InputControl)
 				(Caller as UI.InputControl).PopHistory(); // Don't store the connect command
 
-			Debug.WriteLine(string.Format("Connecting with username {0}", username));
-			Application.Connection.Connect(username, password);
+			Debug.WriteLine(string.Format("Aquiring ticket for {0}...", username));
+			if (!Application.Connection.AquireTicket(username, password))
+				throw new Exception("Failed to aquire ticket, invalid login data?");
 
-			if (Application.Connection.Ticket.Successful)
-				Application.Ticket = new Application.StoredTicket
-				{
+			if (Application.Connection.FListClient.HasTicket)
+				Application.Ticket = new Application.StoredTicket {
 					Account = username,
-					Ticket = Application.Connection.Ticket,
-					Timestamp = Application.Connection.TicketTimestamp
+					Ticket = Application.Connection.FListClient.Ticket
 				};
 			else
-				throw new Exception(Application.Connection.Ticket.ErrorData ?? Application.Connection.Ticket.Error);
+				throw new Exception("Aquired ticket but still failed?");
+
+			Debug.WriteLine(string.Format("Aquired ticket for {0}. Available characters are:", username));
+			Debug.WriteLine(Application.Connection.FListClient.Ticket.Characters.ToString(", "));
+
+			Debug.Write("Connecting to FChat network...");
+			Application.Connection.Connect();
+			Debug.WriteLine(" Done.");
 		}
 	}
 }

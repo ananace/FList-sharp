@@ -2,37 +2,32 @@
 using Newtonsoft.Json;
 using libflist.Util.Converters;
 
-namespace libflist.FChat.Commands.Server
+namespace libflist.FChat.Commands
 {
-	public class User
-	{
-		[JsonProperty(PropertyName = "identity")]
-		public string Identity { get; set; }
-	}
 
 	[Reply("ADL")]
-	public class ChatOPList : Command
+	public sealed class Server_ADL_ChatListOPs : Command
 	{
 		[JsonProperty(PropertyName = "ops")]
 		public string[] OPs { get; set; }
 	}
 
 	[Reply("AOP")]
-	public class ChatMakeOP : Command
+	public sealed class Server_AOP_ChatAddOP : Command
 	{
 		[JsonProperty(PropertyName = "character")]
 		public string Character { get; set; }
 	}
 
 	[Reply("BRO")]
-	public class ChatBroadcast : Command
+	public sealed class Server_BRO_ChatBroadcastMessage : Command
 	{
 		[JsonProperty(PropertyName = "message")]
 		public string Message { get; set; }
 	}
 
 	[Reply("CHA")]
-	public class ChatGetPublicChannels : Command
+	public sealed class Server_CHA_ChatListPublicChannels : Command
 	{
 		public class Channel
 		{
@@ -50,7 +45,7 @@ namespace libflist.FChat.Commands.Server
 	}
 
 	[Reply("CIU")]
-	public class InviteCharacterReply : Command
+	public sealed class Server_CIU_ChatChannelInvite : Command
 	{
 		[JsonProperty(PropertyName = "sender")]
 		public string Sender { get; set; }
@@ -62,7 +57,7 @@ namespace libflist.FChat.Commands.Server
 	}
 
 	[Reply("CON")]
-	public class ServerConnected : Command
+	public sealed class Server_CON_ChatConnectedUsers : Command
 	{
 		[JsonProperty(PropertyName = "count")]
 		public int ConnectedUsers { get; set; }
@@ -70,14 +65,14 @@ namespace libflist.FChat.Commands.Server
 
 
 	[Reply("DOP")]
-	public class ChatRemoveOP : Command
+	public sealed class Server_DOP_ChatRemoveOP : Command
 	{
 		[JsonProperty(PropertyName = "character")]
 		public string Character { get; set; }
 	}
 
 	[Reply("ERR")]
-	public class ChatError : Command
+	public sealed class Server_ERR_ChatError : Command
 	{
 		[JsonProperty(PropertyName = "message")]
 		public string Error { get; set; }
@@ -86,7 +81,7 @@ namespace libflist.FChat.Commands.Server
 	}
 
 	[Reply("FKS")]
-	public class ChatFindCharacters : Command
+	public sealed class Server_FKS_ChatFindCharacters : Command
 	{
 		[JsonProperty(PropertyName = "characters")]
 		public string[] Characters { get; set; }
@@ -95,28 +90,28 @@ namespace libflist.FChat.Commands.Server
 	}
 
 	[Reply("FRL")]
-	public class FriendListReply : Command
+	public sealed class Server_FRL_ChatListFriends : Command
 	{
 		[JsonProperty(PropertyName = "characters")]
 		public string[] FriendsAndBookmarks { get; set; }
 	}
 
 	[Reply("HLO")]
-	public class ServerHello : Command
+	public sealed class Server_HLO_ChatHello : Command
 	{
 		[JsonProperty(PropertyName = "message")]
 		public string Message { get; set; }
 	}
 
 	[Reply("IDN")]
-	public class ServerIdentify : Command
+	public sealed class Server_IDN_ChatIdentify : Command
 	{
 		[JsonProperty(PropertyName = "character")]
 		public string Character { get; set; }
 	}
 
 	[Reply("IGN")]
-	public class IgnoreListReply : Command
+	public sealed class Server_IGN_ChatListIgnores : Command
 	{
 		public enum IgnoreAction
 		{
@@ -139,14 +134,14 @@ namespace libflist.FChat.Commands.Server
 	}
 
 	[Reply("LIS")]
-	public class UserListReply : Command
+	public sealed class Server_LIS_ChatListUsers : Command
 	{
 		[JsonProperty(PropertyName = "characters")]
 		public string[][] CharacterData { get; set; }
 	}
 
 	[Reply("ORS")]
-	public class PrivateChannelListReply : Command
+	public sealed class Server_ORS_ChatListPrivateChannels : Command
 	{
 		public class Channel
 		{
@@ -163,13 +158,13 @@ namespace libflist.FChat.Commands.Server
 	}
 
 	[Reply("PIN")]
-	public class ServerPing : Command
+	public sealed class Server_PIN_ChatPing : Command
 	{
 		
 	}
 
 	[Reply("RTB")]
-	public class FListMessageReply : Command, Command.ICharacterCommand
+	public sealed class Server_RTB_FListMessage : Command, Command.ICharacterCommand
 	{
 		[JsonProperty(PropertyName = "type")]
 		public string Type { get; set; }
@@ -179,7 +174,7 @@ namespace libflist.FChat.Commands.Server
 	}
 
 	[Reply("SFC")]
-	public class IssueReportReply : Command
+	public sealed class Server_SFC_ChatIssueReport : Command
 	{
 		public enum ReportType
 		{
@@ -209,7 +204,7 @@ namespace libflist.FChat.Commands.Server
 	}
 
 	[Reply("SYS")]
-	public class SysReply : Command, Command.IChannelCommand
+	public sealed class Server_SYS_ChatSYSMessage : Command, Command.IChannelCommand
 	{
 		[JsonProperty(PropertyName = "channel")]
 		public string Channel { get; set; }
@@ -219,7 +214,7 @@ namespace libflist.FChat.Commands.Server
 	}
 
 	[Reply("UPT")]
-	public class ServerUptime : Command
+	public sealed class Server_UPT_ChatUptime : Command
 	{
 		[JsonProperty(PropertyName = "time")]
 		[JsonConverter(typeof(JsonDateTimeConverter), JsonDateTimeConverter.TimestampPrecision.Seconds)]
@@ -246,7 +241,7 @@ namespace libflist.FChat.Commands.Server
 	}
 
 	[Reply("VAR")]
-	public class ServerVariable : Command
+	public sealed class Server_VAR_ChatVariable : Command
 	{
 		[JsonProperty(PropertyName = "variable")]
 		public string Name { get; set; }

@@ -1,8 +1,8 @@
 ﻿using Newtonsoft.Json;
 
-namespace libflist.JSON
+namespace libflist.FList
 {
-	public abstract class Response
+	abstract class Response
 	{
 		[JsonIgnore]
 		public bool Successful { get { return string.IsNullOrEmpty(Error) && string.IsNullOrEmpty(ErrorData); } }
@@ -12,10 +12,9 @@ namespace libflist.JSON
 		[JsonProperty(PropertyName = "error")]
 		public string Error { get; private set; }
 
-		static internal Response Create<T>(string Data)
+		static internal T Create<T>(string Data) where T : Response
 		{
-			return JsonConvert.DeserializeObject<T>(Data) as Response;
+			return JsonConvert.DeserializeObject<T>(Data);
 		}
 	}
 }
-

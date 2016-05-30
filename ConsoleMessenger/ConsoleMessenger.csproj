@@ -63,6 +63,7 @@
     <Compile Include="UI\Types.cs" />
     <Compile Include="Commands\Help.cs" />
     <Compile Include="Commands\Info.cs" />
+    <Compile Include="ChatBuffer.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\libflist\libflist.csproj">

@@ -5,12 +5,12 @@ using System.Threading.Tasks;
 using libflist.Events;
 using libflist.FChat.Events;
 using libflist.FChat.Util;
-using libflist.JSON.Responses;
 using System.Diagnostics;
 using System.Reflection;
 using System.Threading;
 using WebSocketSharp;
 using libflist.FChat.Commands;
+using libflist.FList;
 
 namespace libflist.FChat
 {
@@ -52,8 +52,9 @@ namespace libflist.FChat
 		readonly ServerVariables _Variables;
 		WebSocket _Connection;
 		bool _Identified = false;
-		string _User;
 		string _Character;
+
+		public IFListClient FListClient { get; set; } = new FListClientV1();
 
 		public bool AutoPing { get; set; }
 		public bool AutoReconnect { get; set; }
@@ -61,8 +62,6 @@ namespace libflist.FChat
 
 		public IReadOnlyDictionary<string, EventHandler<Command>> MessageHandlers { get { return _Handlers; } }
 		public ServerVariables Variables { get { return _Variables; } }
-		public TicketResponse Ticket { get; set; }
-		public DateTime TicketTimestamp { get; set; }
 
 		public IEnumerable<KnownChannel> AllKnownChannels { get { return _OfficialChannels.Concat(_PrivateChannels); } }
 		public IReadOnlyCollection<KnownChannel> OfficialChannels
@@ -72,7 +71,7 @@ namespace libflist.FChat
 				if (AutoUpdate && DateTime.Now > _LastPublicUpdate + OFFICIAL_TIMEOUT)
 				{
 					_LastPublicUpdate = DateTime.Now;
-					RequestCommand<Commands.Server.ChatGetPublicChannels>(new Commands.Client.Global.GetPublicChannelsCommand());
+					RequestCommand<Server_CHA_ChatListPublicChannels>(new Client_CHA_ChatListOfficialChannels());
 					return _OfficialChannels;
 				}
 				return _OfficialChannels;
@@ -85,7 +84,7 @@ namespace libflist.FChat
 				if (AutoUpdate && DateTime.Now > _LastPrivateUpdate + PRIVATE_TIMEOUT)
 				{
 					_LastPrivateUpdate = DateTime.Now;
-					RequestCommand<Commands.Server.PrivateChannelListReply>(new Commands.Client.Global.GetPrivateChannelsCommand());
+					RequestCommand<Server_ORS_ChatListPrivateChannels>(new Client_ORS_ChatListPrivateChannels());
 					return _PrivateChannels;
 				}
 				return _PrivateChannels;
@@ -101,7 +100,7 @@ namespace libflist.FChat
 		public event EventHandler OnServerVariableUpdate;
 
 		// Message events
-		public event EventHandler OnError;
+		public event EventHandler<ErrorEventArgs> OnError;
 		public event EventHandler<CommandEventArgs> OnErrorMessage;
 		public event EventHandler<CommandEventArgs> OnRawMessage;
 		public event EventHandler<CommandEventArgs> OnSYSMessage;
@@ -201,22 +200,20 @@ namespace libflist.FChat
 			_Characters = null;
 
 			_Character = null;
-			Ticket = null;
-			_User = null;
 			_Connection = null;
 		}
 
-		public void SendCommand(Commands.Command command)
+		public void SendCommand(Command command)
 		{
-			if (command.Source != Commands.CommandSource.Client)
+			if (command.Source != CommandSource.Client)
 				throw new ArgumentException("Command source is invalid.", nameof(command));
 
 			lock (_Connection)
 				_Connection.Send(command.Serialize());
 		}
-		public async Task<bool> SendCommandAsync(Commands.Command command)
+		public async Task<bool> SendCommandAsync(Command command)
 		{
-			if (command.Source != Commands.CommandSource.Client)
+			if (command.Source != CommandSource.Client)
 				throw new ArgumentException("Command source is invalid.", nameof(command));
 
 			bool result = false;
@@ -292,35 +289,22 @@ namespace libflist.FChat
 		//   void FChat.Login(string Character);
 		// For instance.
 
-		public void Connect(string User, string Password, bool UseTicket = false)
+		public bool AquireTicket(string User, string Password)
+		{
+			var res = FListClient.Authenticate(User, Password);
+			res.Wait();
+
+			return res.Result;
+		}
+
+		public void Connect()
 		{
 			if (_Connection != null)
 				Disconnect();
 
-			if (User == null)
-				throw new ArgumentNullException(nameof(User));
-
-			if (!UseTicket)
-			{
-				if (Password == null)
-					throw new ArgumentNullException(nameof(Password));
-
-				using (var jr = new JSON.Request(JSON.Endpoint.Path.Ticket))
-				{
-					jr.Data = new Dictionary<string, string> {
-						{ "account", User },
-						{ "password", Password }
-					};
-
-					Ticket = jr.Get<TicketResponse>() as TicketResponse;
-					if (!Ticket.Successful)
-						return;
-
-					TicketTimestamp = DateTime.Now;
-				}
-			}
-
-			_User = User;
+			if (!FListClient.HasTicket)
+				throw new Exception("You need to aquire a ticket first, in order to connect to the FChat network");
+			
 			_Variables.Clear();
 
 			_Connection = new WebSocket(Endpoint.AbsoluteUri);
@@ -356,46 +340,40 @@ namespace libflist.FChat
 
 		public void Reconnect(bool AutoLogin = true)
 		{
-			if (Ticket == null || _User == null)
-				throw new ArgumentNullException(nameof(Ticket));
+			if (!FListClient.HasTicket)
+				throw new Exception("Needs a ticket");
 
-			if (DateTime.Now - TicketTimestamp > TimeSpan.FromHours(24))
-				throw new ArgumentException("Ticket has timed out, reconnect is not possible");
+			Disconnect();
+			Connect();
 
-			_Variables.Clear();
-			lock (_Connection)
-			{
-				_Connection.Connect();
-
-				if (AutoLogin)
-					SendCommand(new Commands.Client.Connection.IdentifyCommand {
-						Account = _User,
-						Ticket = Ticket.Ticket,
-						Character = _Character
-					});
-			}
+			if (AutoLogin)
+				SendCommand(new Client_IDN_ChatIdentify {
+					Account = FListClient.Ticket.Account,
+					Ticket = FListClient.Ticket.Ticket,
+					Character = _Character
+				});
 		}
 
 		public void Login(string Character)
 		{
+			if (_Connection == null)
+				throw new Exception("Not connected.");
+
+			if (_Identified)
+				return;
+			
 			if (Character == null)
 				throw new ArgumentNullException(nameof(Character));
-			if (!Ticket.Characters.Contains(Character))
+			if (!FListClient.Ticket.Characters.Contains(Character))
 				throw new ArgumentException("Unknown character specified", nameof(Character));
 
 			lock (_Connection)
 			{
-				if (_Connection == null)
-					throw new Exception("Not connected.");
-
-				if (_Identified)
-					return;
-
 				_Character = Character;
-				SendCommand(new Commands.Client.Connection.IdentifyCommand
+				SendCommand(new Client_IDN_ChatIdentify
 				{
-					Account = _User,
-					Ticket = Ticket.Ticket,
+					Account = FListClient.Ticket.Account,
+					Ticket = FListClient.Ticket.Ticket,
 					Character = _Character
 				});
 			}
@@ -433,7 +411,7 @@ namespace libflist.FChat
 				if (chan != null && chan.Joined)
 					return chan;
 
-				var reply = RequestCommand<Commands.Server.Channel.JoinReply>(new Commands.Client.Channel.JoinCommand { Channel = ID });
+				var reply = RequestCommand<Server_JCH_ChannelJoin>(new Client_JCH_ChannelJoin { Channel = ID });
 
 				if (chan == null)
 				{
@@ -453,9 +431,7 @@ namespace libflist.FChat
 				if (chan != null && chan.Joined)
 					return chan;
 
-#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-				SendCommandAsync(new Commands.Client.Channel.JoinCommand { Channel = ID });
-#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+				SendCommand(new Client_JCH_ChannelJoin { Channel = ID });
 
 				if (chan == null)
 				{
@@ -473,7 +449,7 @@ namespace libflist.FChat
 				if (chan != null && chan.Joined)
 					return chan;
 
-				var reply = RequestCommand<Commands.Server.Channel.JoinReply>(new Commands.Client.Channel.JoinCommand { Channel = ID });
+				var reply = RequestCommand<Server_JCH_ChannelJoin>(new Client_JCH_ChannelJoin { Channel = ID });
 
 				if (chan == null)
 				{
@@ -516,22 +492,14 @@ namespace libflist.FChat
 			var token = e.Data.Substring(0, 3);
 			var data = e.Data.Substring(4);
 
-			var reply = Commands.CommandParser.ParseReply(token, data, true);
+			var reply = CommandParser.ParseReply(token, data, true);
 
-			_HandleMessage(reply);
+			_Connection_HandleMessage(reply);
 		}
 
 		void _Connection_OnError(object sender, ErrorEventArgs e)
 		{
 			OnError?.Invoke(this, e);
-
-			_HandleMessage(new Commands.Meta.FailedReply
-			{
-				Data = e.Message,
-				Exception = e.Exception
-			});
-
-			Disconnect();
 		}
 
 		void _Connection_OnClose(object sender, CloseEventArgs e)
@@ -545,41 +513,38 @@ namespace libflist.FChat
 				Task.Delay(15000).ContinueWith(_ => Reconnect());
 		}
 
-		void _HandleMessage(Command cmd)
+		void _Connection_HandleMessage(Command cmd)
 		{
 			OnRawMessage?.Invoke(this, new CommandEventArgs(cmd));
+
+			bool preRun = false;
+			// Run initial join before calling the handler
+			if (cmd.Token == "JCH"
+				&& !_Channels.Any(c => c.ID.Equals((cmd as Server_JCH_ChannelJoin).Channel))
+				|| !_Channels.First(c => c.ID.Equals((cmd as Server_JCH_ChannelJoin).Channel)).Joined)
+			{
+				var chan = GetOrCreateChannel((cmd as Server_JCH_ChannelJoin).Channel);
+				chan.PushCommand(cmd);
+
+				preRun = true;
+			}
 
 			if (_Handlers.ContainsKey(cmd.Token))
 				_Handlers[cmd.Token]?.Invoke(this, cmd);
 			else
 				Debug.WriteLine(string.Format("Unhandled command; {0}", cmd.Token));
 			
-			Channel disposed = null;
-			if (cmd is Command.IChannelCommand &&
-				!string.IsNullOrEmpty((cmd as Command.IChannelCommand).Channel))
+			if (!preRun
+				&& cmd is Command.IChannelCommand
+				&& !string.IsNullOrEmpty((cmd as Command.IChannelCommand).Channel))
 			{
-				var channel = (cmd as Command.IChannelCommand).Channel;
+				var channel = GetOrCreateChannel((cmd as Command.IChannelCommand).Channel);
 
-				Channel channelObj;
-				lock (_Channels)
-				{
-					channelObj = _Channels.FirstOrDefault(c => c.ID == channel);
-					if (channelObj == null)
-					{
-						channelObj = new Channel(this, channel, channel);
-						_Channels.Add(channelObj);
-					}
-				}
+				channel.PushCommand(cmd);
 
-				channelObj.PushCommand(cmd);
-
-				if (channelObj.IsDisposed)
-					disposed = channelObj;
+				if (channel.IsDisposed)
+					_Channels.Remove(channel);
 			}
-			
-			lock (_Channels)
-				if (disposed != null)
-					_Channels.Remove(disposed);
 		}
 	}
 
