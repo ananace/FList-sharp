@@ -47,6 +47,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Commands\ListChats.cs" />
     <Compile Include="Commands\Command.cs" />
+    <Compile Include="Types\CharacterExtensions.cs" />
     <Compile Include="Types\Size.cs" />
     <Compile Include="Types\Rect.cs" />
     <Compile Include="UI\ContentControl.cs" />
@@ -63,6 +64,7 @@
     <Compile Include="UI\Types.cs" />
     <Compile Include="Commands\Help.cs" />
     <Compile Include="Commands\Info.cs" />
+    <Compile Include="ChatBuffer.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\libflist\libflist.csproj">

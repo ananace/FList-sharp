@@ -1,115 +1,80 @@
-﻿using System;
-using System.Linq;
-using libflist.Connection.Commands;
-using libflist.Connection.Types;
+﻿using libflist.Util;
+using System;
+using System.Collections.Generic;
 
 namespace libflist
 {
-	public class Character : IDisposable
+
+	public class Character
 	{
-		public FChat Chat { get; private set; }
 
-		public string Name { get; private set; }
-		public CharacterGender Gender { get; internal set; }
-		public CharacterStatus Status { get; internal set; }
-		public string StatusMessage { get; internal set; }
+		static readonly TimeSpan TIMEOUT = TimeSpan.FromMinutes(30);
 
-		public char StatusChar
+		public IFListClient Client { get; private set; }
+
+		public string Name { get; internal set; }
+		public int ID { get; internal set; }
+
+		internal ExpiringLazy<string> _Description;
+		internal ExpiringLazy<Info.ProfileInfo> _ProfileInfo;
+		internal ExpiringLazy<List<Info.ImageInfo>> _Images;
+		internal ExpiringLazy<Dictionary<Info.KinkInfo, Info.KinkChoice>> _Kinks;
+
+		/// <summary>
+		/// Character description block, with BBCode
+		/// </summary>
+		public string Description { get { return _Description.Value; } }
+		/// <summary>
+		/// Character information block
+		/// </summary>
+		public Info.ProfileInfo ProfileInfo { get { return _ProfileInfo.Value; } }
+		/// <summary>
+		/// Character images
+		/// </summary>
+		public IReadOnlyCollection<Info.ImageInfo> Images { get { return _Images.Value; } }
+		/// <summary>
+		/// Character kinks
+		/// </summary>
+		public IReadOnlyDictionary<Info.KinkInfo, Info.KinkChoice> Kinks { get { return _Kinks.Value; } }
+
+		internal Character(IFListClient client, string name) : this(client, name, -1)
 		{
-			get
+		}
+		internal Character(IFListClient client, string name, int id)
+		{
+			Client = client;
+			Name = name;
+			ID = id;
+
+			_Description = new ExpiringLazy<string>(() =>
 			{
-				switch (Status)
-				{
-				case CharacterStatus.Away: return '●';
-				case CharacterStatus.Busy: return '●';
-				case CharacterStatus.DND: return '●';
-				case CharacterStatus.Idle: return '●';
-				case CharacterStatus.Looking: return '●';
-				case CharacterStatus.Rewarded: return '☺';
-				}
+				var task = Client.GetDescription(Name);
+				task.Wait();
 
-				return '○';
-			}
-		}
-		public ConsoleColor StatusColor
-		{
-			get
+				return task.Result;
+			}, TIMEOUT);
+			_ProfileInfo = new ExpiringLazy<Info.ProfileInfo>(() =>
 			{
-				switch (Status)
-				{
-					case CharacterStatus.Away: return ConsoleColor.Gray;
-					case CharacterStatus.Busy: return ConsoleColor.Cyan;
-					case CharacterStatus.DND: return ConsoleColor.Red;
-					case CharacterStatus.Idle: return ConsoleColor.Yellow;
-					case CharacterStatus.Looking: return ConsoleColor.Green;
-					case CharacterStatus.Rewarded: return ConsoleColor.DarkYellow;
-				}
+				var task = Client.GetInfo(Name);
+				task.Wait();
 
-				return ConsoleColor.DarkGray;
-			}
-		}
-		public ConsoleColor GenderColor
-		{
-			get
+				return task.Result;
+			}, TIMEOUT);
+			_Images = new ExpiringLazy<List<Info.ImageInfo>>(() =>
 			{
-				switch (Gender)
-				{
-					case CharacterGender.Cuntboy:
-						return ConsoleColor.Green;
-					case CharacterGender.Female:
-						return ConsoleColor.Red;
-					case CharacterGender.Herm:
-						return ConsoleColor.DarkMagenta;
-					case CharacterGender.Male:
-						return ConsoleColor.Blue;
-					case CharacterGender.MaleHerm:
-						return ConsoleColor.DarkBlue;
-					case CharacterGender.None:
-						return ConsoleColor.Yellow;
-					case CharacterGender.Shemale:
-						return ConsoleColor.Magenta;
-					case CharacterGender.Transgender:
-						return ConsoleColor.DarkYellow;
-				}
+				var task = Client.GetImages(Name);
+				task.Wait();
 
-				return ConsoleColor.White;
-			}
-		}
+				return task.Result;
+			}, TIMEOUT);
+			_Kinks = new ExpiringLazy<Dictionary<Info.KinkInfo, Info.KinkChoice>>(() =>
+			{
+				var task = Client.GetKinks(Name);
+				task.Wait();
 
-		public bool IsDisposed { get; private set; }
-		public bool IsTyping { get; internal set; }
-
-		internal Character(FChat Chat, string Name)
-		{
-			this.Chat = Chat;
-			this.Name = Name;
-		}
-
-		public void Dispose()
-		{
-			Name = null;
-			Chat = null;
-
-			IsDisposed = true;
-		}
-
-		public bool IsOPInChannel(Channel c)
-		{
-			return c.OPs.Contains(this);
-		}
-
-		public void SendMessage(string message)
-		{
-			Chat.SendCommand(new libflist.Connection.Commands.Client.Character.SendMessageCommand {
-				Character = Name,
-				Message = message
-			});
-		}
-
-		public void SendCommand(Command cmd)
-		{
-			Chat.SendCommand(cmd);
+				return task.Result;
+			}, TIMEOUT);
 		}
 	}
-}
 
+}

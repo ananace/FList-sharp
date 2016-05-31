@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Linq;
+using ConsoleMessenger.Types;
 
 namespace ConsoleMessenger.UI.FChat
 {
 	class StatusBar : ContentControl
 	{
-		libflist.FChat _Chat;
-		public libflist.FChat Chat
+		libflist.FChat.FChatConnection _Chat;
+		public libflist.FChat.FChatConnection Chat
 		{
 			get { return _Chat; }
 			set
@@ -14,16 +15,16 @@ namespace ConsoleMessenger.UI.FChat
 				if (_Chat == value) return;
 				if (_Chat != null)
 				{
-					_Chat.Connection.OnIdentified -= OnEvent;
-					_Chat.OnJoinChannel -= OnEvent;
-					_Chat.OnLeaveChannel -= OnEvent;
+					_Chat.OnIdentified -= OnEvent;
+					_Chat.OnChannelJoin -= OnEvent;
+					_Chat.OnChannelLeave -= OnEvent;
 				}
 
 				_Chat = value;
 
-				_Chat.Connection.OnIdentified += OnEvent;
-				_Chat.OnJoinChannel += OnEvent;
-				_Chat.OnLeaveChannel += OnEvent;
+				_Chat.OnIdentified += OnEvent;
+				_Chat.OnChannelJoin += OnEvent;
+				_Chat.OnChannelLeave += OnEvent;
 			}
         }
 
@@ -54,10 +55,10 @@ namespace ConsoleMessenger.UI.FChat
 			int i = 0;
 			Content = string.Format("{0}{1}{2}",
 				_Chat.LocalCharacter != null ?
-					oB + _Chat.LocalCharacter.Name.Color(_Chat.LocalCharacter.GenderColor) + cB:
+					oB + _Chat.LocalCharacter.Name.Color(_Chat.LocalCharacter.GetGenderColor()) + cB:
 					"",
 				oB /* TODO <cur chan number>:<chan name> */ + cB,
-				oB + "Act: " + string.Join(",",_Chat.JoinedChannels.Select(c => i++)) + cB // FIXME Actually show activity, not just buffers
+				oB + "Act: " + string.Join(",",_Chat.ActiveChannels.Select(c => i++)) + cB // FIXME Actually show activity, not just buffers
 				);
 		}
 	}

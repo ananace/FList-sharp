@@ -7,8 +7,9 @@ using System.Reflection;
 using System.Text;
 using ConsoleMessenger.Types;
 using ConsoleMessenger.UI.Panels;
+using libflist.FChat;
+using libflist.FChat.Commands;
 using libflist;
-using libflist.JSON.Responses;
 using Newtonsoft.Json;
 using ConsoleMessenger.UI;
 using ConsoleMessenger.UI.FChat;
@@ -99,7 +100,7 @@ namespace ConsoleMessenger
 	{
 		public class StoredTicket
 		{
-			public TicketResponse Ticket { get; set; }
+			public AuthTicket Ticket { get; set; }
 			public string Account { get; set; }
 			public DateTime Timestamp { get; set; }
 		}
@@ -114,14 +115,14 @@ namespace ConsoleMessenger
 		static List<UI.FChat.ChannelBuffer> _ChannelBuffers = new List<UI.FChat.ChannelBuffer>();
 		static UI.FChat.ChannelBuffer _ConsoleBuffer;
 		static InputControl _InputBox;
-		static FChat _Chat = new FChat();
+		static FChatConnection _Chat = new FChatConnection();
 
 		static int _CurBuffer = 0;
 
 		static bool _Running = true;
 		static System.Threading.Timer _Redraw;
 
-		public static FChat Connection { get { return _Chat; } }
+		public static FChatConnection Connection { get { return _Chat; } }
 		public static StoredTicket Ticket { get; set; }
 		public static int CurrentBuffer
 		{
@@ -326,11 +327,11 @@ namespace ConsoleMessenger
 				return null;
 
 			var data = input
-					.Substring(1).Split('"')
-					.Select((element, index) => index % 2 == 0  // If even index
-						? element.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)  // Split the item
-						: new string[] { element })  // Keep the entire item
-					.SelectMany(element => element);
+				.Substring(1).Split('"')
+				.Select((element, index) => index % 2 == 0  // If even index
+					? element.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)  // Split the item
+					: new string[] { element })  // Keep the entire item
+				.SelectMany(element => element).ToArray();
 
 			IEnumerable<string> avail = null;
 			var cmd = data.Any() ? Command.Create(data.First()) : null;
@@ -360,11 +361,12 @@ namespace ConsoleMessenger
 					return null;
 			}
 
+			avail = avail.ToArray();
 			var trueprefix = avail.LongestCommonPrefix(StringComparison.CurrentCultureIgnoreCase);
 			var prefix = trueprefix;
 			if (prefix.Length > used.Length)
 				prefix = prefix.Substring(0, used.Length);
-			return new Command.CompleteResult { Prefix = prefix, TruePrefix = trueprefix, Found = avail.ToArray() };
+			return new Command.CompleteResult { Prefix = prefix, TruePrefix = trueprefix, Found = (string[])avail };
 		}
 
 		public static void RunCommand(string command, IEnumerable<string> Args, object source = null)
@@ -387,7 +389,8 @@ namespace ConsoleMessenger
 					.Select((element, index) => index % 2 == 0  // If even index
 						? element.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)  // Split the item
 						: new string[] { element })  // Keep the entire item
-					.SelectMany(element => element);
+					.SelectMany(element => element)
+					.ToArray();
 
 				RunCommand(data.First().ToLower(), data.Skip(1), source);
 				return;
@@ -396,7 +399,7 @@ namespace ConsoleMessenger
 			WriteMessage(Text);
 		}
 
-		public static void WriteMessage(string Text, Channel inputChan = null, Character inputChar = null)
+		public static void WriteMessage(string Text, Channel inputChan = null, libflist.FChat.Character inputChar = null)
 		{
 			var Char = inputChar;
 			if (Char == null)
@@ -425,18 +428,18 @@ namespace ConsoleMessenger
 			if (Text.StartsWith("/me", StringComparison.OrdinalIgnoreCase))
 				buffer.PushMessage(string.Format("{2} {0} {1}",
 					inputChar == null ?
-						Char.Name.Color(Char.GenderColor).BackgroundColor(ConsoleColor.DarkGray) :
-						Char.Name.Color(Char.GenderColor),
+						Char.Name.Color(Char.GetGenderColor()).BackgroundColor(ConsoleColor.DarkGray) :
+						Char.Name.Color(Char.GetGenderColor()),
 					Text.Length > 3 ? Text.Substring(4).Color(ConsoleColor.White) : "",
-					Char.StatusChar.ToString().Color(Char.StatusColor)
+					Char.GetStatusChar().ToString().Color(Char.GetStatusColor())
 					));
 			else
 				buffer.PushMessage(string.Format("{2} {0}: {1}",
 					inputChar == null ?
-						Char.Name.Color(Char.GenderColor).BackgroundColor(ConsoleColor.DarkGray) :
-						Char.Name.Color(Char.GenderColor),
+						Char.Name.Color(Char.GetGenderColor()).BackgroundColor(ConsoleColor.DarkGray) :
+						Char.Name.Color(Char.GetGenderColor()),
 					Text,
-					Char.StatusChar.ToString().Color(Char.StatusColor)
+					Char.GetStatusChar().ToString().Color(Char.GetStatusColor())
 					));
 		}
 
@@ -475,17 +478,15 @@ namespace ConsoleMessenger
 
 			Console.Title = string.Format("FChat Messenger v{0}", Assembly.GetExecutingAssembly().GetName().Version);
 
-			//_Chat.Connection.Endpoint = libflist.Connection.ChatConnection.TestingServerEndpoint;
-			_Chat.Connection.Endpoint = libflist.Connection.ChatConnection.LiveServerEndpoint;
+			_Chat.Endpoint = FChatConnection.TestingServerEndpoint;
+			//_Chat.Endpoint = FChatConnection.LiveServerEndpoint;
 
-			_Chat.Connection.OnIdentified += (_, __) => _StatusBar.InvalidateVisual();
+			_Chat.OnIdentified += (_, __) => _StatusBar.InvalidateVisual();
 
-			_Chat.OnErrorMessage += (_, e) =>
-			{
-				_ConsoleBuffer.PushMessage((e.Command as libflist.Connection.Commands.Server.ChatError).Error);
-			};
+			_Chat.OnErrorMessage += (_, e) => 
+				_ConsoleBuffer.PushMessage((e.Command as Server_ERR_ChatError).Error);
 
-			_Chat.OnJoinChannel += (_, e) =>
+			_Chat.OnChannelJoin += (_, e) =>
 			{
 				var chatBuf = new ChannelBuffer
 				{
@@ -494,16 +495,18 @@ namespace ConsoleMessenger
 					Foreground = ConsoleColor.Gray
 				};
 
-				e.Channel.OnChatMessage += (__, me) =>
-				{
-					WriteMessage(me.Message, me.Channel, me.Character);
-				};
-				e.Channel.OnRollMessage += (__, me) => chatBuf.PushMessage(me.Message);
-
 				_ChannelBuffers.Add(chatBuf);
 				CurrentBuffer = _ChannelBuffers.Count - 1;
 			};
-			_Chat.OnLeaveChannel += (_, e) =>
+			_Chat.OnChannelChatMessage += (_, e) => WriteMessage(e.Message, e.Channel, e.Character);
+			_Chat.OnChannelRollMessage += (_, e) => {
+				var roll = e.Command as Server_RLL_ChannelRollMessage;
+				WriteMessage(roll.Message, e.Channel, e.Character);
+			};
+			_Chat.OnCharacterChatMessage += (_, e) => {
+				WriteMessage(e.Message, null, e.Character);
+			}; 
+			_Chat.OnChannelLeave += (_, e) =>
 			{
 				int i = 0;
 				foreach (var c in _ChannelBuffers)
@@ -534,13 +537,13 @@ namespace ConsoleMessenger
 
 		public static void Main(string[] args)
 		{
-			Application.Ticket = LoadTicket();
+			Ticket = LoadTicket();
 
 			ConsoleHelper.Start();
-			Application.Run();
+			Run();
 			ConsoleHelper.Stop();
 
-			SaveTicket(Application.Ticket);
+			SaveTicket(Ticket);
 		}
 
 		public static StoredTicket LoadTicket()

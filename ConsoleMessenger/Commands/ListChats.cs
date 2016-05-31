@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using libflist.FChat.Commands;
 
 namespace ConsoleMessenger.Commands
 {
@@ -35,9 +36,9 @@ namespace ConsoleMessenger.Commands
 		{
 			// TODO: Only update if data is stale.
 			if (type == ChatType.Public)
-				Application.Connection.SendCommand(new libflist.Connection.Commands.Client.Global.GetPublicChannelsCommand());
+				Application.Connection.SendCommand(new Client_CHA_ChatListOfficialChannels());
 			else
-				Application.Connection.SendCommand(new libflist.Connection.Commands.Client.Global.GetPrivateChannelsCommand());
+				Application.Connection.SendCommand(new Client_ORS_ChatListPrivateChannels());
 		}
 	}
 }

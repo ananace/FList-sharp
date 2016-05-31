@@ -5,7 +5,7 @@ using Newtonsoft.Json;
 
 namespace libflist.Util.Converters
 {
-	public sealed class JsonEnumConverter : JsonConverter
+	sealed class JsonEnumConverter : JsonConverter
 	{
 		public enum EnumHandling
 		{

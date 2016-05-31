@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using libflist.FChat.Commands;
 
 namespace ConsoleMessenger.Commands
 {
@@ -28,9 +29,9 @@ namespace ConsoleMessenger.Commands
 			if (channel == null && !name.StartsWith("ADH-"))
 				throw new ArgumentException(string.Format("Unknown channel {0}", name), nameof(name));
 
-			Application.Connection.SendCommand(new libflist.Connection.Commands.Client.Channel.JoinCommand
+			Application.Connection.SendCommand(new Client_JCH_ChannelJoin
 			{
-				Channel = channel.ID
+				Channel = (channel != null ? channel.ID : name)
 			});
 		}
 	}
