@@ -114,9 +114,18 @@ namespace libflist.FChat
 		
 		public TypingStatus IsTyping { get; internal set; }
 
-		internal Character(FChatConnection Connection, string Name) : base(Connection.FListClient, Name)
+		internal Character(FChatConnection Connection, libflist.Character Character) : base(Character.Client, Character.Name)
 		{
 			this.Connection = Connection;
+
+			_Description.UnderlyingTimestamp = Character._Description.UnderlyingTimestamp;
+			_Description.UnderlyingValue = Character._Description.UnderlyingValue;
+			_Images.UnderlyingTimestamp = Character._Images.UnderlyingTimestamp;
+			_Images.UnderlyingValue = Character._Images.UnderlyingValue;
+			_Kinks.UnderlyingTimestamp = Character._Kinks.UnderlyingTimestamp;
+			_Kinks.UnderlyingValue = Character._Kinks.UnderlyingValue;
+			_ProfileInfo.UnderlyingTimestamp = Character._ProfileInfo.UnderlyingTimestamp;
+			_ProfileInfo.UnderlyingValue = Character._ProfileInfo.UnderlyingValue;
 		}
 
 		public void Dispose()

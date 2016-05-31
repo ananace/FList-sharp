@@ -159,7 +159,7 @@ namespace libflist.FChat
 						Joined = true;
 
 						foreach (var user in ich.Users)
-							_Characters.Add(new Character(Connection, user.Identity));
+							_Characters.Add(GetCharacter(user.Identity));
 					}
 					return;
 

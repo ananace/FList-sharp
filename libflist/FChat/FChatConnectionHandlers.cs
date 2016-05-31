@@ -266,7 +266,7 @@ namespace libflist.FChat
 				var character = GetCharacter(fln.Character);
 				if (character == null)
 				{
-					character = new Character(this, fln.Character);
+					character = new Character(this, new libflist.Character(FListClient, fln.Character));
 
 					OnCharacterOffline?.Invoke(this, new CharacterEntryEventArgs(character, fln));
 					return;

@@ -40,6 +40,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Info\ImageInfo.cs" />
+    <Compile Include="Info\KinkInfo.cs" />
+    <Compile Include="Info\ProfileInfo.cs" />
     <Compile Include="FChat\Events\CommandEventArgs.cs" />
     <Compile Include="FChat\FChatConnectionHandlers.cs" />
     <Compile Include="Util\AsyncAutoResetEvent.cs" />

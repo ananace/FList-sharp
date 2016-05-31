@@ -1,6 +1,6 @@
-﻿using libflist.Util;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using libflist.Util;
 
 namespace libflist
 {
@@ -8,7 +8,7 @@ namespace libflist
 	public class Character
 	{
 
-		static readonly TimeSpan TIMEOUT = TimeSpan.FromMinutes(30);
+		static readonly TimeSpan TIMEOUT = TimeSpan.FromHours(1);
 
 		public IFListClient Client { get; private set; }
 

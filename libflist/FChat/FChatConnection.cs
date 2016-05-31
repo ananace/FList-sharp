@@ -279,16 +279,12 @@ namespace libflist.FChat
 			return reply as T;
 		}
 
-
-		// TODO: Split connection into several steps;
-		//   bool FChat.AquireTicket(string User, string Password);
-		//   bool FChat.Ticket.IsValid { get; }
-		//   void FChat.Connect();
-		//   void FChat.Login(string Character);
-		// For instance.
-
+		
 		public bool AquireTicket(string User, string Password)
 		{
+			if (FListClient.HasTicket)
+				return true;
+
 			var res = FListClient.Authenticate(User, Password);
 			res.Wait();
 
@@ -468,10 +464,8 @@ namespace libflist.FChat
 					FListClient.Characters.Remove(character);
 					var oldCharacter = character;
 
-					character = new Character(this, Name);
+					character = new Character(this, oldCharacter);
 					FListClient.Characters.Add(character);
-
-					// TODO: Copy data.
 				}
 
 				return character as Character;
@@ -488,7 +482,7 @@ namespace libflist.FChat
 					FListClient.Characters.Remove(character);
 					var oldCharacter = character;
 
-					character = new Character(this, Name);
+					character = new Character(this, oldCharacter);
 					FListClient.Characters.Add(character);
 				}
 

@@ -80,10 +80,19 @@ namespace libflist.Util
 			}
 		}
 
+		public DateTime UnderlyingTimestamp
+		{
+			get { return _UpdateDate; }
+			set { _UpdateDate = value; }
+		}
 		public T UnderlyingValue
 		{
 			get { return _Value; }
-			set { _Value = value; }
+			set
+			{
+				_Value = value;
+				_HasValue = true;
+			}
 		}
 	}
 

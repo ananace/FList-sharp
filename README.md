@@ -3,19 +3,24 @@ The F-Chat communication library of the future.
 
 Just my version of a library for making bots and chat clients to F-Chat, no real such libraries exist after all.
 
-Note that this is **nowhere** near ready for prime-time use yet.
+Note that this is still a ways away from being ready for prime-time use.
 
 <hr>
 FList-sharp
 -----------
 
+A C# library for utilizing the F-List JSON API as well as FChat system.
+
 ### Working
 
-- Underlying connection.
+- JSON API
 	- Ticket aquiring.
-	- Connection.
-	- Basic message parsing.
-		- Still lacking test data for most message types.
+	- Character data lookup.
+- FChat connection.
+	- Auth & identification.
+	- Message parsing.
+		- Still lacking test data for a few message types.
+	- Events.
 - Chat extension.
 	- Channel management.
 	- Character management.
@@ -24,15 +29,13 @@ FList-sharp
 
 ### TODO
 
-- Move Commands out of the underlying namespace.
-- Clean up connection, make it more logical.
-	- `Connect(<user>, <password>)` should really be three separate functions.
-- Better event args.
-- Add in support for the unhandled messages.
-- Use the data recieved from VAR.
+- Clean up FChat connection, make it more logical.
+	- Connect should be split further into more functions.
 - Add in all the admin features.
 - Add a BBCode render system with different outputs.
 	- HTML, Markdown, Null, etc...
+- Implement the last of the JSON API
+	- Add V2 endpoint
 
 
 <hr>

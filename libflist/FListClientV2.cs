@@ -7,7 +7,15 @@ namespace libflist
 {
 	public sealed class FListClientV2 : IFListClient
 	{
-		public IList<Character> Characters
+		public ICollection<Character> Characters
+		{
+			get
+			{
+				throw new NotImplementedException();
+			}
+		}
+
+		public ICollection<Info.KinkInfo> GlobalKinks
 		{
 			get
 			{
@@ -51,17 +59,22 @@ namespace libflist
 			throw new NotImplementedException();
 		}
 
-		public Task<List<string>> GetBookmarks()
-		{
-			throw new NotImplementedException();
-		}
-
 		public Task<List<string>> GetAllCharacters()
 		{
 			throw new NotImplementedException();
 		}
 
-		public Task<Character> GetCustomKinks(string name)
+		public Task<List<Info.KinkInfo>> GetAllKinks()
+		{
+			throw new NotImplementedException();
+		}
+
+		public Task<List<string>> GetBookmarks()
+		{
+			throw new NotImplementedException();
+		}
+
+		public Task<List<Info.KinkInfo>> GetCustomKinks(string name)
 		{
 			throw new NotImplementedException();
 		}
@@ -76,17 +89,17 @@ namespace libflist
 			throw new NotImplementedException();
 		}
 
-		public Task<Character> GetImages(string name)
+		public Task<List<Info.ImageInfo>> GetImages(string name)
 		{
 			throw new NotImplementedException();
 		}
 
-		public Task<Character> GetInfo(string name)
+		public Task<Info.ProfileInfo> GetInfo(string name)
 		{
 			throw new NotImplementedException();
 		}
 
-		public Task<Character> GetKinks(string name)
+		public Task<Dictionary<Info.KinkInfo, Info.KinkChoice>> GetKinks(string name)
 		{
 			throw new NotImplementedException();
 		}
