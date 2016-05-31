@@ -8,9 +8,14 @@ namespace libflist
 		public bool Successful { get { return string.IsNullOrEmpty(Error) && string.IsNullOrEmpty(ErrorData); } }
 
 		[JsonProperty(PropertyName = "error_msg")]
-		public string ErrorData { get; private set; }
+		string ErrorData { get; set; }
 		[JsonProperty(PropertyName = "error")]
-		public string Error { get; private set; }
+		string Error { get; set; }
+
+		[JsonIgnore]
+		public string ErrorMessage { get { return ErrorData ?? Error; } }
+		[JsonIgnore]
+		public string ErrorCode { get { return ErrorData == null ? "generic" : Error; } }
 
 		static internal T Create<T>(string Data) where T : Response
 		{

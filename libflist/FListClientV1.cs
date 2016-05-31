@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using System.Net.Http;
 using Newtonsoft.Json;
 using System.Linq;
+using libflist.Util;
 
 namespace libflist
 {
@@ -41,10 +42,12 @@ namespace libflist
 		}
 
 		List<Character> _Characters = new List<Character>();
+		List<Info.KinkInfo> _Kinks = new List<Info.KinkInfo>();
 
 		public bool HasTicket { get { return Ticket != null; } }
 		public AuthTicket Ticket { get; set; }
-		public IList<Character> Characters { get { return _Characters; } }
+		public ICollection<Character> Characters { get { return _Characters; } }
+		public ICollection<Info.KinkInfo> GlobalKinks { get { return _Kinks; } }
 
 		public Character GetOrCreateCharacter(string name)
 		{
@@ -59,18 +62,10 @@ namespace libflist
 				return character;
 			}
 		}
-		public Character GetOrCreateCharacter(string name, int id)
+
+		public Character GetOrCreateCharacter(string name, int _)
 		{
-			lock (_Characters)
-			{
-				var character = _Characters.FirstOrDefault(c => c.Name.Equals(name, StringComparison.CurrentCultureIgnoreCase));
-				if (character == null)
-				{
-					character = new Character(this, name, id);
-					_Characters.Add(character);
-				}
-				return character;
-			}
+			return GetOrCreateCharacter(name);
 		}
 
 		public async Task<bool> Authenticate(string username, string password, AuthMethod method)
@@ -104,7 +99,7 @@ namespace libflist
 				return false;
 		}
 
-		public async Task<List<string>> GetCharacters()
+		public async Task<List<string>> GetAllCharacters()
 		{
 			if (!HasTicket)
 				throw new Exception();
@@ -128,6 +123,36 @@ namespace libflist
 			var list = new List<string>();
 			foreach (var character in resp.Characters)
 				list.Add(character);
+			return list;
+		}
+
+		public async Task<List<Info.KinkInfo>> GetAllKinks()
+		{
+			if (!HasTicket)
+				throw new Exception();
+
+			CharacterListResponse resp;
+			using (var http = new HttpClient())
+			{
+				var msg = await RunQuery(http, Path.KinkList, new Dictionary<string, string> {
+					{ "account", Ticket.Account },
+					{ "ticket", Ticket.Ticket }
+				});
+
+				if (!msg.IsSuccessStatusCode)
+					throw new Exception("HTTP request failed.");
+
+				resp = Response.Create<CharacterListResponse>(await msg.Content.ReadAsStringAsync());
+				if (!resp.Successful)
+					throw new Exception("failed");
+			}
+
+			var list = new List<Info.KinkInfo>();
+
+
+			_Kinks.Clear();
+			_Kinks.AddRange(list);
+
 			return list;
 		}
 
@@ -279,12 +304,12 @@ namespace libflist
 			}
 		}
 
-		async Task<CharacterResponse> UpdateCharacter(Path p, string name)
+		async Task<T> UpdateCharacter<T>(Path p, string name) where T : Response
 		{
 			if (!HasTicket)
 				throw new Exception();
 			
-			CharacterResponse resp;
+			T resp;
 			using (var http = new HttpClient())
 			{
 				var msg = await RunQuery(http, p, new Dictionary<string,string> {
@@ -296,7 +321,7 @@ namespace libflist
 				if (!msg.IsSuccessStatusCode)
 					throw new Exception("HTTP request failed.");
 
-				resp = Response.Create<CharacterResponse>(await msg.Content.ReadAsStringAsync());
+				resp = Response.Create<T>(await msg.Content.ReadAsStringAsync());
 				if (!resp.Successful)
 					throw new Exception("failed");
 			}
@@ -304,38 +329,99 @@ namespace libflist
 			return resp;
 		}
 
-		public async Task<Character> GetCustomKinks(string name)
+		public async Task<List<Info.KinkInfo>> GetCustomKinks(string name)
 		{
-			var data = await UpdateCharacter(Path.CharacterGetCustomkinks, name);
-			// TODO
-			return GetOrCreateCharacter(name);
+			var data = await UpdateCharacter<CustomKinkResponse>(Path.CharacterGetCustomkinks, name);
+			
+			return data.Kinks.Select(k => new Info.KinkInfo
+			{
+				Description = k.Description,
+				Name = k.Name,
+				Group = Info.KinkGroup.Custom
+			}).ToList();
 		}
 
 		public async Task<string> GetDescription(string name)
 		{
-			var data = await UpdateCharacter(Path.CharacterGetDescription, name);
+			var data = await UpdateCharacter<CharacterResponse>(Path.CharacterGetDescription, name);
 			return data.Character.Description;
 		}
 
-		public async Task<Character> GetImages(string name)
+		public async Task<List<Info.ImageInfo>> GetImages(string name)
 		{
-			var data = await UpdateCharacter(Path.CharacterGetImages, name);
-			// TODO
-			return GetOrCreateCharacter(name);
+			var data = await UpdateCharacter<ImagesResponse>(Path.CharacterGetImages, name);
+			
+			return data.Images.Select(i => new Info.ImageInfo
+			{
+				Description = i.Description,
+				Height = i.Height,
+				Width = i.Width,
+				Url = new Uri(i.Url)
+			}).ToList();
 		}
 
-		public async Task<Character> GetInfo(string name)
+		public async Task<Info.ProfileInfo> GetInfo(string name)
 		{
-			var data = await UpdateCharacter(Path.CharacterGetInfo, name);
-			// TODO
-			return GetOrCreateCharacter(name);
+			var data = await UpdateCharacter<InfoResponse>(Path.CharacterGetInfo, name);
+
+			var getValue = new Func<InfoResponse.InfoGroup, string, string>((g, n) => {
+				var block = data.InfoBlocks.Values.FirstOrDefault(b => b.Group == g);
+				if (block == null)
+					return null;
+
+				var item = block.Items.FirstOrDefault(i => i.Name.Equals(n, StringComparison.CurrentCultureIgnoreCase));
+				if (item == null)
+					return null;
+
+				return item.Value;
+			});
+
+			var info = new Info.ProfileInfo
+			{
+				GeneralDetails =
+				{
+					Age = getValue(InfoResponse.InfoGroup.GeneralDetails, "age"),
+					ApparentAge = getValue(InfoResponse.InfoGroup.GeneralDetails, "apparent age"),
+					EyeColor = getValue(InfoResponse.InfoGroup.GeneralDetails, "eye color"),
+					Hair = getValue(InfoResponse.InfoGroup.GeneralDetails, "hair"),
+					Height = getValue(InfoResponse.InfoGroup.GeneralDetails, "height/length"),
+					Location = getValue(InfoResponse.InfoGroup.GeneralDetails, "location"),
+					Master = getValue(InfoResponse.InfoGroup.GeneralDetails, "master/mistress/owner"),
+					Occupation = getValue(InfoResponse.InfoGroup.GeneralDetails, "occupation"),
+					Partner = getValue(InfoResponse.InfoGroup.GeneralDetails, "partner/mate/lover"),
+					Personality = getValue(InfoResponse.InfoGroup.GeneralDetails, "personality"),
+					Pets = getValue(InfoResponse.InfoGroup.GeneralDetails, "pets/slaves"),
+					SkinColor = getValue(InfoResponse.InfoGroup.GeneralDetails, "fur/scale/skin color"),
+					Species = getValue(InfoResponse.InfoGroup.GeneralDetails, "species"),
+					Weight = getValue(InfoResponse.InfoGroup.GeneralDetails, "weight")
+				},
+				RPingDetails =
+				{
+					CurrentlyLooking = getValue(InfoResponse.InfoGroup.RPingPreferences, "currently looking for")
+				},
+				SexualDetails =
+				{
+					BreastSize = getValue(InfoResponse.InfoGroup.SexualDetails, "breast size"),
+					CockDiameter = getValue(InfoResponse.InfoGroup.SexualDetails, "cock diameter (inches)"),
+					CockLength = getValue(InfoResponse.InfoGroup.SexualDetails, "cock length (inches)"),
+					KnotDiameter = getValue(InfoResponse.InfoGroup.SexualDetails, "knot diameter (inches)"),
+					Measurements = getValue(InfoResponse.InfoGroup.SexualDetails, "measurements"),
+					NippleColor = getValue(InfoResponse.InfoGroup.SexualDetails, "nipple color")
+				}
+			};
+
+			var contactBlock = data.InfoBlocks.Values.FirstOrDefault(b => b.Group == InfoResponse.InfoGroup.ContactDetails);
+			if (contactBlock != null)
+				info.ContactDetails = contactBlock.Items.ToDictionary(k => k.Name, v => v.Value);
+
+			return info;
 		}
 
-		public async Task<Character> GetKinks(string name)
+		public async Task<Dictionary<Info.KinkInfo, Info.KinkChoice>> GetKinks(string name)
 		{
-			var data = await UpdateCharacter(Path.CharacterGetKinks, name);
+			var data = await UpdateCharacter<KinksResponse>(Path.CharacterGetKinks, name);
 			// TODO
-			return GetOrCreateCharacter(name);
+			return null;
 		}
 
 		static void _Verify(Path p, IReadOnlyDictionary<string, string> Arguments)
@@ -468,6 +554,74 @@ namespace libflist
 		{
 			[JsonProperty("character")]
 			public CharacterData Character { get; set; }
+		}
+		sealed class CustomKinkResponse : Response
+		{
+			public class Kink
+			{
+				[JsonProperty("name")]
+				public string Name { get; set; }
+				[JsonProperty("description")]
+				public string Description { get; set; }
+			}
+
+			[JsonProperty("kinks")]
+			public List<Kink> Kinks { get; set; }
+		}
+		sealed class ImagesResponse : Response
+		{
+			public class ImageData
+			{
+				[JsonProperty("width")]
+				public uint Width { get; set; }
+				[JsonProperty("height")]
+				public uint Height { get; set; }
+				[JsonProperty("url")]
+				public string Url { get; set; }
+				[JsonProperty("description")]
+				public string Description { get; set; }
+			}
+
+			[JsonProperty("images")]
+			public List<ImageData> Images { get; set; }
+		}
+		sealed class InfoResponse : Response
+		{
+			public enum InfoGroup
+			{
+				[EnumValue("Contact details/Sites")]
+				ContactDetails,
+				[EnumValue("General details")]
+				GeneralDetails,
+				[EnumValue("RPing preferences")]
+				RPingPreferences,
+				[EnumValue("Sexual details")]
+				SexualDetails
+			}
+
+			public class InfoBlock
+			{
+				public class Data
+				{
+					[JsonProperty("id")]
+					public int ID { get; set; }
+					[JsonProperty("name")]
+					public string Name { get; set; }
+					[JsonProperty("value")]
+					public string Value { get; set; }
+				}
+				[JsonProperty("group")]
+				public InfoGroup Group { get; set; }
+				[JsonProperty("items")]
+				public List<Data> Items { get; set; }
+			}
+			
+			[JsonProperty("info")]
+			public Dictionary<int, InfoBlock> InfoBlocks { get; set; }
+		}
+		sealed class KinksResponse : Response
+		{
+
 		}
 	}
 }

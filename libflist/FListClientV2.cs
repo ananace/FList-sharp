@@ -56,7 +56,7 @@ namespace libflist
 			throw new NotImplementedException();
 		}
 
-		public Task<List<string>> GetCharacters()
+		public Task<List<string>> GetAllCharacters()
 		{
 			throw new NotImplementedException();
 		}
