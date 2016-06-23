@@ -1,5 +1,6 @@
 ﻿using System;
 using libflist.FChat;
+using libflist.Info;
 
 namespace ConsoleMessenger.Types
 {
@@ -38,21 +39,21 @@ namespace ConsoleMessenger.Types
 		{
 			switch (character.Gender)
 			{
-				case CharacterGender.Cuntboy:
+				case Genders.Cuntboy:
 					return ConsoleColor.Green;
-				case CharacterGender.Female:
+				case Genders.Female:
 					return ConsoleColor.Red;
-				case CharacterGender.Herm:
+				case Genders.Herm:
 					return ConsoleColor.DarkMagenta;
-				case CharacterGender.Male:
+				case Genders.Male:
 					return ConsoleColor.Blue;
-				case CharacterGender.MaleHerm:
+				case Genders.MaleHerm:
 					return ConsoleColor.DarkBlue;
-				case CharacterGender.None:
+				case Genders.None:
 					return ConsoleColor.Yellow;
-				case CharacterGender.Shemale:
+				case Genders.Shemale:
 					return ConsoleColor.Magenta;
-				case CharacterGender.Transgender:
+				case Genders.Transgender:
 					return ConsoleColor.DarkYellow;
 			}
 

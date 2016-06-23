@@ -1,4 +1,5 @@
-﻿using libflist.Util.Converters;
+﻿using libflist.Info;
+using libflist.Util.Converters;
 using Newtonsoft.Json;
 
 namespace libflist.FChat.Commands
@@ -46,7 +47,7 @@ namespace libflist.FChat.Commands
 
 		[JsonProperty(PropertyName = "gender")]
 		[JsonConverter(typeof(JsonEnumConverter), JsonEnumConverter.EnumHandling.Default)]
-		public CharacterGender Gender { get; set; }
+		public Genders Gender { get; set; }
 
 		[JsonProperty(PropertyName = "status")]
 		[JsonConverter(typeof(JsonEnumConverter), JsonEnumConverter.EnumHandling.Default)]

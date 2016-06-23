@@ -5,6 +5,7 @@ using libflist.Util.Converters;
 using System;
 using System.Diagnostics;
 using System.Linq;
+using libflist.Info;
 
 namespace libflist.FChat
 {
@@ -149,7 +150,7 @@ namespace libflist.FChat
 				{
 					var charObj = GetOrCreateCharacter(character[0]);
 
-					charObj.Gender = JsonEnumConverter.Convert<CharacterGender>(character[1]);
+					charObj.Gender = JsonEnumConverter.Convert<Genders>(character[1]);
 					charObj.Status = JsonEnumConverter.Convert<CharacterStatus>(character[2]);
 					charObj.StatusMessage = character[3];
 				}

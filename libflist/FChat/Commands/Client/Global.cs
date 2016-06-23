@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using libflist.Util.Converters;
+using libflist.Info;
 
 namespace libflist.FChat.Commands
 {
@@ -51,19 +52,19 @@ namespace libflist.FChat.Commands
 		public int[] Kinks { get; set; }
 		[JsonProperty(PropertyName = "genders", Required = Required.AllowNull,
 		              ItemConverterType = typeof(JsonEnumConverter))]
-		public CharacterGender[] Genders { get; set; }
+		public Genders[] Genders { get; set; }
 		[JsonProperty(PropertyName = "orientations", Required = Required.AllowNull,
 		              ItemConverterType = typeof(JsonEnumConverter))]
-		public CharacterOrientation[] Orientations { get; set; }
+		public Orientations[] Orientations { get; set; }
 		[JsonProperty(PropertyName = "languages", Required = Required.AllowNull,
 		              ItemConverterType = typeof(JsonEnumConverter))]
-		public CharacterLanguage[] Languages { get; set; }
+		public LanguagePreferences[] Languages { get; set; }
 		[JsonProperty(PropertyName = "preferences", Required = Required.AllowNull,
 		              ItemConverterType = typeof(JsonEnumConverter))]
-		public CharacterPreference[] Preferences { get; set; }
+		public FurryPreferences[] Preferences { get; set; }
 		[JsonProperty(PropertyName = "roles", Required = Required.AllowNull,
 		              ItemConverterType = typeof(JsonEnumConverter))]
-		public CharacterRole[] Roles { get; set; }
+		public DomRoles[] Roles { get; set; }
 	}
 
 	[Command("IGN")]
