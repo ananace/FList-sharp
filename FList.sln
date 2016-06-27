@@ -5,6 +5,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "libflist", "libflist\libfli
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleMessenger", "ConsoleMessenger\ConsoleMessenger.csproj", "{05EDE2F8-EF8B-4FDB-8B80-B80665C90001}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "libCBUI", "libCBUI\libCBUI.csproj", "{EB3621BB-B544-45E0-89F0-989AF189302E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x86 = Debug|x86
@@ -19,5 +21,9 @@ Global
 		{05EDE2F8-EF8B-4FDB-8B80-B80665C90001}.Debug|x86.Build.0 = Debug|x86
 		{05EDE2F8-EF8B-4FDB-8B80-B80665C90001}.Release|x86.ActiveCfg = Release|x86
 		{05EDE2F8-EF8B-4FDB-8B80-B80665C90001}.Release|x86.Build.0 = Release|x86
+		{EB3621BB-B544-45E0-89F0-989AF189302E}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{EB3621BB-B544-45E0-89F0-989AF189302E}.Debug|x86.Build.0 = Debug|Any CPU
+		{EB3621BB-B544-45E0-89F0-989AF189302E}.Release|x86.ActiveCfg = Release|Any CPU
+		{EB3621BB-B544-45E0-89F0-989AF189302E}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

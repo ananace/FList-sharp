@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 
-namespace ConsoleMessenger.Types
+namespace libCBUI
 {
 	[DebuggerDisplay("({Width}x{Height})")]
 	public struct Size : IEquatable<Size>

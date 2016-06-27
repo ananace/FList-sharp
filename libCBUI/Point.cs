@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 
-namespace ConsoleMessenger.Types
+namespace libCBUI
 {
 	[DebuggerDisplay("[{X},{Y}]")]
 	public struct Point : IEquatable<Point>

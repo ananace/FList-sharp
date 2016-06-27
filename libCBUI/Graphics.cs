@@ -1,20 +1,19 @@
 ﻿using System;
-using ConsoleMessenger.Types;
 using System.Linq;
 using System.Collections.Generic;
 
-namespace ConsoleMessenger.UI
+namespace libCBUI
 {
 	public static class StringHelper
 	{
 		public static int ANSILength(this string String)
 		{
 			var data = String.Split('\x1b');
-			return (data.First() + data.Skip(1).Select(s =>
+			return string.Join(" ", data.First() + data.Skip(1).Select(s =>
 			{
 				int i = s.IndexOf('m');
 				return i >= 0 ? s.Substring(i + 1) : s;
-			}).ToString("")).Length;
+			})).Length;
 		}
 
 		public static string ANSIColor(this ConsoleColor color, bool background = false)
@@ -55,6 +54,51 @@ namespace ConsoleMessenger.UI
 			if (String.EndsWith("\x1b[0m", StringComparison.OrdinalIgnoreCase))
 				String = String.Substring(0, String.Length - 4);
 			return string.Format("{0}{1}\x1b[0m", color.ANSIColor(), String);
+		}
+	}
+
+	class ColorChanger : IDisposable
+	{
+		readonly ConsoleColor Background;
+		readonly ConsoleColor Foreground;
+
+		public ColorChanger(ConsoleColor? background = null, ConsoleColor? foreground = null)
+		{
+			Background = Console.BackgroundColor;
+			Foreground = Console.ForegroundColor;
+
+			if (background.HasValue)
+				Console.BackgroundColor = background.Value;
+			if (foreground.HasValue)
+				Console.ForegroundColor = foreground.Value;
+		}
+
+		public void Dispose()
+		{
+			Console.BackgroundColor = Background;
+			Console.ForegroundColor = Foreground;
+		}
+	}
+	class CursorChanger : IDisposable
+	{
+		readonly Point Cursor;
+		readonly bool Visible;
+
+		public CursorChanger(Point? newPos = null, bool? visible = null)
+		{
+			Cursor = new Point(Console.CursorLeft, Console.CursorTop);
+			Visible = Console.CursorVisible;
+
+			if (newPos.HasValue)
+				Console.SetCursorPosition(newPos.Value.X, newPos.Value.Y);
+			if (visible.HasValue)
+				Console.CursorVisible = visible.Value;
+		}
+
+		public void Dispose()
+		{
+			Console.SetCursorPosition(Cursor.X, Cursor.Y);
+			Console.CursorVisible = Visible;
 		}
 	}
 
@@ -156,40 +200,21 @@ namespace ConsoleMessenger.UI
 
 		public static void DrawChar(Point p, char c, ConsoleColor Background = ConsoleColor.Black, ConsoleColor Foreground = ConsoleColor.White)
 		{
-			var oldPos = new Point(Console.CursorLeft, Console.CursorTop);
-			var oldBack = Console.BackgroundColor;
-			var oldFore = Console.ForegroundColor;
-
-			Console.BackgroundColor = Background;
-			Console.ForegroundColor = Foreground;
-			Console.SetCursorPosition(p.X, p.Y);
-
-			Console.Write(c);
-
-			Console.SetCursorPosition(oldPos.X, oldPos.Y);
-			Console.BackgroundColor = oldBack;
-			Console.ForegroundColor = oldFore;
+			using (new CursorChanger(p, false))
+			using (new ColorChanger(Background, Foreground))
+				Console.Write(c);
 		}
 
 		public static void DrawLine(Point a, Point b, ConsoleColor Background = ConsoleColor.White, ConsoleColor Foreground = ConsoleColor.White, char Character = ' ')
 		{
-			var oldPos = new Point(Console.CursorLeft, Console.CursorTop);
-			var oldBack = Console.BackgroundColor;
-			var oldFore = Console.ForegroundColor;
-
-			Console.BackgroundColor = Background;
-			Console.ForegroundColor = Foreground;
-
-			Line(a.X, a.Y, b.X, b.Y, (x, y) =>
-			{
-				Console.SetCursorPosition(x, y);
-				Console.Write(Character);
-				return true;
-			});
-
-			Console.SetCursorPosition(oldPos.X, oldPos.Y);
-			Console.BackgroundColor = oldBack;
-			Console.ForegroundColor = oldFore;
+			using (new CursorChanger(null, false))
+			using (new ColorChanger(Background, Foreground))
+				Line(a.X, a.Y, b.X, b.Y, (x, y) =>
+				{
+					Console.SetCursorPosition(x, y);
+					Console.Write(Character);
+					return true;
+				});
 		}
 
 		public static void DrawFilledBox(Point p1, Size sz, char c, ConsoleColor Background = ConsoleColor.Black, ConsoleColor Foreground = ConsoleColor.White)
@@ -199,24 +224,17 @@ namespace ConsoleMessenger.UI
 
 		public static void DrawFilledBox(Point p1, Point p2, char c, ConsoleColor Background = ConsoleColor.Black, ConsoleColor Foreground = ConsoleColor.White)
 		{
-			var oldPos = new Point(Console.CursorLeft, Console.CursorTop);
-			var oldBack = Console.BackgroundColor;
-			var oldFore = Console.ForegroundColor;
-
-			var tmp = new string(c, p2.X - p1.X);
-
-			Console.BackgroundColor = Background;
-			Console.ForegroundColor = Foreground;
-
-			for (int y = p1.Y; y != p2.Y; y += Math.Sign(p2.Y - p1.Y))
+			using (new CursorChanger(null, false))
+			using (new ColorChanger(Background, Foreground))
 			{
-				Console.SetCursorPosition(p1.X, y);
-				Console.Write(tmp);
-			}
+				var tmp = new string(c, p2.X - p1.X);
 
-			Console.SetCursorPosition(oldPos.X, oldPos.Y);
-			Console.BackgroundColor = oldBack;
-			Console.ForegroundColor = oldFore;
+				for (int y = p1.Y; y != p2.Y; y += Math.Sign(p2.Y - p1.Y))
+				{
+					Console.SetCursorPosition(p1.X, y);
+					Console.Write(tmp);
+				}
+			}
 		}
 
 		public static void DrawBox(Point pos, Point size, string BoxBrush, ConsoleColor Background = ConsoleColor.White, ConsoleColor Foreground = ConsoleColor.White)
@@ -226,23 +244,19 @@ namespace ConsoleMessenger.UI
 			if (BoxBrush.Length != 9)
 				throw new ArgumentOutOfRangeException(nameof(BoxBrush));
 
-			var oldPos = new Point(Console.CursorLeft, Console.CursorTop);
-			var oldBack = Console.BackgroundColor;
-			var oldFore = Console.ForegroundColor;
+			using (new CursorChanger(pos, false))
+			using (new ColorChanger(Background, Foreground))
+			{
+				DrawChar(pos, BoxBrush[0], Background, Foreground);
+				DrawChar(pos + new Point(size.X, 0), BoxBrush[2], Background, Foreground);
+				DrawChar(pos + new Point(size.X, size.Y), BoxBrush[8], Background, Foreground);
+				DrawChar(pos + new Point(0, size.Y), BoxBrush[6], Background, Foreground);
 
-			DrawChar(pos, BoxBrush[0], Background, Foreground);
-			DrawChar(pos + new Point(size.X, 0), BoxBrush[2], Background, Foreground);
-			DrawChar(pos + new Point(size.X, size.Y), BoxBrush[8], Background, Foreground);
-			DrawChar(pos + new Point(0, size.Y), BoxBrush[6], Background, Foreground);
-
-			DrawLine(pos + new Point(1, 0), pos + new Point(size.X - 1, 0), Background, Foreground, BoxBrush[1]);
-			DrawLine(pos + new Point(0, 1), pos + new Point(0, size.Y - 1), Background, Foreground, BoxBrush[3]);
-			DrawLine(pos + new Point(size.X, size.Y - 1), pos + new Point(size.X, 1), Background, Foreground, BoxBrush[5]);
-			DrawLine(pos + new Point(size.X - 1, size.Y), pos + new Point(1, size.Y), Background, Foreground, BoxBrush[7]);
-
-			Console.SetCursorPosition(oldPos.X, oldPos.Y);
-			Console.BackgroundColor = oldBack;
-			Console.ForegroundColor = oldFore;
+				DrawLine(pos + new Point(1, 0), pos + new Point(size.X - 1, 0), Background, Foreground, BoxBrush[1]);
+				DrawLine(pos + new Point(0, 1), pos + new Point(0, size.Y - 1), Background, Foreground, BoxBrush[3]);
+				DrawLine(pos + new Point(size.X, size.Y - 1), pos + new Point(size.X, 1), Background, Foreground, BoxBrush[5]);
+				DrawLine(pos + new Point(size.X - 1, size.Y), pos + new Point(1, size.Y), Background, Foreground, BoxBrush[7]);
+			}
 
 			DrawFilledBox(pos + new Point(1, 1), pos + size - new Point(1, 1), BoxBrush[4], Background, Foreground);
 		}

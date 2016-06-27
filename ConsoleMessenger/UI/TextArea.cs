@@ -7,10 +7,8 @@ namespace ConsoleMessenger.UI
 {
 	public class TextArea : Control
 	{
-		Point _Cursor;
-
 		int _Offset;
-		string _Text;
+		string _Text = "";
 		List<string> _TextSplits = new List<string>();
 
 		public bool InputEnabled { get; set; }
@@ -23,7 +21,7 @@ namespace ConsoleMessenger.UI
 			{
 				OnTextChanged?.Invoke(this, value);
 
-				_Text = value;
+				_Text = value ?? "";
 				updateSplits();
 			}
 		}
@@ -34,7 +32,13 @@ namespace ConsoleMessenger.UI
 			set
 			{
 				_Offset = value;
-				updateOffset();
+
+				if (_Offset < 0)
+					_Offset = 0;
+				else if (_TextSplits.Count > 0 && _Offset >= _TextSplits.Count)
+					_Offset = _TextSplits.Count - 1;
+				else
+					_Offset = 0;
 			}
 		}
 
@@ -58,13 +62,6 @@ namespace ConsoleMessenger.UI
 
 			if (lastSplit < _Text.Length)
 				_TextSplits.Add(_Text.Substring(lastSplit, _Text.Length - lastSplit));
-		}
-		void updateOffset()
-		{
-			if (_Offset < 0)
-				_Offset = 0;
-			else if (_Offset > _TextSplits.Count)
-				_Offset = _TextSplits.Count;
 		}
 
 

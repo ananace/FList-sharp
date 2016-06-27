@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace ConsoleMessenger.Types
+namespace libCBUI
 {
 	public struct Rect : IEquatable<Rect>
 	{
