@@ -457,7 +457,7 @@ namespace libflist.FChat
 		{
 			lock (FListClient.Characters)
 			{
-				var character = FListClient.Characters.FirstOrDefault(c => c.Name.Equals(Name, StringComparison.CurrentCultureIgnoreCase));
+				var character = FListClient.GetOrCreateCharacter(Name);
 
 				if (!(character is Character))
 				{
@@ -499,7 +499,7 @@ namespace libflist.FChat
 		void _Connection_OnMessage(object sender, MessageEventArgs e)
 		{
 			var token = e.Data.Substring(0, 3);
-			var data = e.Data.Substring(4);
+			var data = e.Data.Length > 3 ? e.Data.Substring(4) : "";
 
 			var reply = CommandParser.ParseReply(token, data, true);
 
@@ -527,10 +527,14 @@ namespace libflist.FChat
 			OnRawMessage?.Invoke(this, new CommandEventArgs(cmd));
 
 			bool preRun = false;
+			Channel preChannel = null;
 			// Run initial join before calling the handler
 			if (cmd.Token == "JCH"
-				&& !_Channels.Any(c => c.ID.Equals((cmd as Server_JCH_ChannelJoin).Channel))
-				|| !_Channels.First(c => c.ID.Equals((cmd as Server_JCH_ChannelJoin).Channel)).Joined)
+			    && ((preChannel = _Channels
+			        .FirstOrDefault(c => c.ID
+			                        .Equals((cmd as Server_JCH_ChannelJoin).Channel
+			                                , StringComparison.CurrentCultureIgnoreCase))) == null
+			        || (preChannel != null && !preChannel.Joined)))
 			{
 				var chan = GetOrCreateChannel((cmd as Server_JCH_ChannelJoin).Channel);
 				chan.PushCommand(cmd);
