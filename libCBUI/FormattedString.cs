@@ -4,23 +4,35 @@ using System.Collections.Generic;
 
 namespace libCBUI
 {
+
 	public sealed class FormattedString : IComparable, ICloneable, IEnumerable, IComparable<string>
 		, IEnumerable<char>, IEquatable<string>, IComparable<FormattedString>, IEquatable<FormattedString>
+		, IReadOnlyList<char>
 	{
-		string _UnformattedCopy;
-		string _ANSICopy;
+		readonly string _UnformattedCopy;
+		readonly string _ANSICopy;
 
 		public string Unformatted { get { return _UnformattedCopy; } }
+		public string ANSIFormatted { get { return _ANSICopy; } }
+
+		public int Count { get { return _UnformattedCopy.Length; } }
+		public char this[int index] { get { return _UnformattedCopy[index]; } }
 
 		public FormattedString()
 		{
 			
 		}
 
-		public FormattedString(string str)
+		public FormattedString(string rawStr)
+		{
+			_UnformattedCopy = rawStr;
+			_ANSICopy = rawStr;
+		}
+
+		public FormattedString(string str, ConsoleColor color)
 		{
 			_UnformattedCopy = str;
-			_ANSICopy = str;
+			_ANSICopy = str.Color(color);
 		}
 
 		public int CompareTo(object obj)

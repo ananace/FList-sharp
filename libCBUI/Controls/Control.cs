@@ -1,20 +1,21 @@
 ﻿using System;
-using ConsoleMessenger.Types;
 
-namespace ConsoleMessenger.UI
+namespace libCBUI.Controls
 {
-	public abstract class Control : IDisposable
+	public abstract class Control : IControl, IDisposable
 	{
 		Point _Position;
 		Size _Size;
 		SizingHint _SizeHint;
 
+		bool _IsActive = true;
 		bool _HasFocus;
 		bool _NeedsRedraw = true;
 		bool _Visible = true;
 		bool _UpdatingLayout;
 
 		public BorderStyle Border { get; set; }
+
 		internal string BorderBrush
 		{
 			get
@@ -56,15 +57,15 @@ namespace ConsoleMessenger.UI
 
 		public ConsoleColor? Background { get; set; }
 		public ConsoleColor Foreground { get; set; } = ConsoleColor.White;
-		public ConsoleColor? ActiveBackground { get; set; }
-		public ConsoleColor ActiveForeground { get; set; } = ConsoleColor.White;
-		public ConsoleColor? SelectedBackground { get; set; }
-		public ConsoleColor SelectedForeground { get; set; } = ConsoleColor.White;
+		public ConsoleColor? InactiveBackground { get; set; } = ConsoleColor.DarkGray;
+		public ConsoleColor InactiveForeground { get; set; } = ConsoleColor.Gray;
+		public ConsoleColor? FocusedBackground { get; set; } = ConsoleColor.Gray;
+		public ConsoleColor FocusedForeground { get; set; } = ConsoleColor.White;
 
 		public ShadowStyle Shadow { get; set; }
 
 		public object Tag { get; set; }
-		public Control Parent { get; internal set; }
+		public IControl Parent { get; internal set; }
 
 		public SizingHint Sizing
 		{ 
@@ -111,21 +112,36 @@ namespace ConsoleMessenger.UI
 		public virtual Rect Margin { get; set; }
 		public virtual Rect Padding { get; set; }
 
-		public bool Enabled { get; set; }
+		public bool IsActive
+		{
+			get { return _IsActive; }
+			set
+			{
+				_IsActive = value;
+
+				if (!value)
+					IsFocused &= !_HasFocus;
+
+				InvalidateVisual();
+			}
+		}
 
 		public bool IsFocused
 		{
 			get { return _HasFocus; }
-			internal set
+			set
 			{
-				if (value != _HasFocus)
+				if (IsFocusable && value != _HasFocus)
 				{
-					_HasFocus = value;
+					if (_HasFocus)
+					{
+						//TopmostParent.Children.ForEach(c => c.IsFocused = false);
+						OnFocusGained?.Invoke(this, EventArgs.Empty);
+					}
+					else
+						OnFocusLost?.Invoke(this, EventArgs.Empty);
 
-					if (_HasFocus && OnFocusGained != null)
-						OnFocusGained(this, EventArgs.Empty);
-					else if (!_HasFocus && OnFocusLost != null)
-						OnFocusLost(this, EventArgs.Empty);
+					_HasFocus = value;
 				}
 			}
 		}
@@ -169,10 +185,7 @@ namespace ConsoleMessenger.UI
 
 		public virtual void Focus()
 		{
-			if (IsFocusable)
-				IsFocused = true;
-			else if (Parent != null)
-				Parent.Focus();
+			IsFocused = true;
 		}
 
 		public virtual void PushInput(ConsoleKeyInfo key)
@@ -222,7 +235,7 @@ namespace ConsoleMessenger.UI
 				Parent.InvalidateVisual();
 		}
 
-		internal virtual Point GetChildOffset(Control control)
+		internal virtual Point GetChildOffset(BaseControl control)
 		{
 			if (Border == BorderStyle.None)
 				return new Point(0, 0);
@@ -231,7 +244,10 @@ namespace ConsoleMessenger.UI
 
 		protected void Clear()
 		{
-			Graphics.DrawFilledBox(DisplayPosition, Size, ' ', Background ?? (Parent != null ? Parent.Background : null) ?? ConsoleColor.Black);
+			Graphics.DrawFilledBox(DisplayPosition, Size, ' ', Background 
+			                       ?? Parent?.Background 
+			                       ?? TopmostParent.Background 
+			                       ?? ConsoleColor.Black);
 		}
 
 		public void Draw(bool force = false)
@@ -243,55 +259,53 @@ namespace ConsoleMessenger.UI
 
 			lock (Console.Out)
 			{
-				Console.SetCursorPosition(DisplayPosition.X, DisplayPosition.Y);
-
-				if (Border != BorderStyle.None)
+				using (new CursorChanger(new Point(DisplayPosition.X, DisplayPosition.Y)))
+				using (new ColorChanger())
 				{
-					if (!Background.HasValue)
-						Graphics.DrawBox(DisplayPosition,
-							Size, 
-							BorderBrush,
-							Background ?? (Parent != null ? Parent.Background : null) ?? ConsoleColor.Black,
-							Foreground);
+					if (Border != BorderStyle.None)
+					{
+						if (!Background.HasValue)
+							Graphics.DrawBox(DisplayPosition, Size, BorderBrush, Background ?? Parent?.Background
+											 ?? TopmostParent.Background ?? ConsoleColor.Black, Foreground);
 
-					Console.SetCursorPosition(DisplayPosition.X + 1, DisplayPosition.Y + 1);
+						Console.SetCursorPosition(DisplayPosition.X + 1, DisplayPosition.Y + 1);
+					}
+
+					var background = (!_IsActive ? InactiveBackground : (_HasFocus ? FocusedBackground : Background))
+						?? Background;
+					
+					if (background.HasValue)
+					{
+						Console.BackgroundColor = background.Value;
+						Point borderOffset = (Border == BorderStyle.None ? new Point(0, 0) : new Point(1, 1));
+						Size borderSize = (Border == BorderStyle.None ? new Size(0, 0) : new Size(2, 2));
+
+						if (Size >= borderSize)
+							Graphics.DrawFilledBox(DisplayPosition + borderOffset, Size - borderSize, ' ', background.Value);
+					}
+					else if (Parent != null && Parent.Background.HasValue)
+						Console.BackgroundColor = Parent.Background.Value;
+					else if (TopmostParent.Background.HasValue)
+						Console.BackgroundColor = TopmostParent.Background.Value;
+
+					Console.ForegroundColor = Foreground;
+
+					if (Shadow != ShadowStyle.None)
+					{
+						Graphics.DrawLine(DisplayPosition + new Size(0, Size.Height + 1),
+							DisplayPosition + Size + new Size(1, 1),
+							Parent != null ? Parent.Background ?? ConsoleColor.Black : ConsoleColor.Black,
+							Console.BackgroundColor,
+							ShadowBrush);
+						Graphics.DrawLine(DisplayPosition + new Size(Size.Width + 1, 0),
+							DisplayPosition + Size + new Size(1, 1),
+							Parent != null ? Parent.Background ?? ConsoleColor.Black : ConsoleColor.Black,
+							Console.BackgroundColor,
+							ShadowBrush);
+					}
+
+					Render();
 				}
-
-				var oldBack = Console.BackgroundColor;
-				var oldFront = Console.ForegroundColor;
-
-				if (Background.HasValue)
-				{
-					Console.BackgroundColor = Background.Value;
-					Point borderOffset = (Border == BorderStyle.None ? new Point(0, 0) : new Point(1, 1));
-					Size borderSize = (Border == BorderStyle.None ? new Size(0, 0) : new Size(2, 2));
-
-					if (Size >= borderSize)
-						Graphics.DrawFilledBox(DisplayPosition + borderOffset, Size - borderSize, ' ', Background.Value);
-				}
-				else if (Parent != null && Parent.Background.HasValue)
-					Console.BackgroundColor = Parent.Background.Value;
-
-				Console.ForegroundColor = Foreground;
-				
-				if (Shadow != ShadowStyle.None)
-				{
-					Graphics.DrawLine(DisplayPosition + new Size(0, Size.Height + 1),
-						DisplayPosition + Size + new Size(1, 1),
-						Parent != null ? Parent.Background ?? ConsoleColor.Black : ConsoleColor.Black,
-						Console.BackgroundColor,
-						ShadowBrush);
-					Graphics.DrawLine(DisplayPosition + new Size(Size.Width + 1, 0),
-						DisplayPosition + Size + new Size(1, 1),
-						Parent != null ? Parent.Background ?? ConsoleColor.Black : ConsoleColor.Black,
-						Console.BackgroundColor,
-						ShadowBrush);
-				}
-
-				Render();
-
-				Console.BackgroundColor = oldBack;
-				Console.ForegroundColor = oldFront;
 			}
 		}
 

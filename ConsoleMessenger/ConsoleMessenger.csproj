@@ -52,7 +52,6 @@
     <Compile Include="UI\FChat\ChannelBuffer.cs" />
     <Compile Include="UI\FChat\StatusBar.cs" />
     <Compile Include="UI\InputControl.cs" />
-    <Compile Include="UI\Control.cs" />
     <Compile Include="UI\Panel.cs" />
     <Compile Include="UI\Panels\VerticalPanel.cs" />
     <Compile Include="UI\Panels\TitledPanel.cs" />

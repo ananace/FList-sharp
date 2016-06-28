@@ -66,5 +66,10 @@ namespace libCBUI
 		{
 			return !a.Equals(b);
 		}
+
+		public bool Contains(Point p)
+		{
+			return p.X >= Left && p.X <= Left + Width && p.Y >= Top && p.Y <= Top + Height;
+		}
 	}
 }
