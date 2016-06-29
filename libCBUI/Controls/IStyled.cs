@@ -2,12 +2,12 @@
 
 namespace libCBUI.Controls
 {
-	public interface IStyled
+	public interface IStyled : IVisual
 	{
+		BorderStyle Border { get; set; }
+
 		ConsoleColor? Background { get; set; }
 		ConsoleColor? Foreground { get; set; }
-
-		BorderStyle Border { get; set; }
 
 		Thickness Padding { get; set; }
 	}

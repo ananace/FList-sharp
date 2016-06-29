@@ -1,6 +1,6 @@
 ﻿namespace libCBUI.Controls
 {
-	public interface ILayoutable
+	public interface ILayoutable : IVisual
 	{
 		Size DesiredSize { get; }
 
