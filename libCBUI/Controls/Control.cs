@@ -1,5 +1,6 @@
 ﻿using System;
-namespace libCBUI
+
+namespace libCBUI.Controls
 {
 	public class Control : IControl
 	{

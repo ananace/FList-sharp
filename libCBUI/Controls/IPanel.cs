@@ -1,8 +1,7 @@
-﻿using System;
-namespace libCBUI.Controls
+﻿namespace libCBUI.Controls
 {
 	public interface IPanel
 	{
-		Controls Children { get; }
+		ControlCollection Children { get; }
 	}
 }

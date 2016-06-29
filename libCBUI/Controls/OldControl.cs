@@ -2,7 +2,7 @@
 
 namespace libCBUI.Controls
 {
-	public abstract class Control
+	public abstract class OldControl
 	{
 		Point _Position;
 		Size _Size;

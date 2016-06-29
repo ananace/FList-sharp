@@ -1,8 +1,7 @@
-﻿using System;
-namespace libCBUI
+﻿namespace libCBUI.Controls
 {
 	public interface INamed
 	{
-		public string Name { get; }
+		string Name { get; }
 	}
 }

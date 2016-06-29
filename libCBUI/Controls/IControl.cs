@@ -1,4 +1,4 @@
-﻿namespace libCBUI
+﻿namespace libCBUI.Controls
 {
 	public interface IControl : IInputElement, ILayoutable, INamed, IVisual
 	{
