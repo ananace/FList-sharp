@@ -36,7 +36,7 @@
     <Compile Include="Size.cs" />
     <Compile Include="Graphics.cs" />
     <Compile Include="FormattedString.cs" />
-    <Compile Include="Controls\Control.cs" />
+    <Compile Include="Controls\OldControl.cs" />
     <Compile Include="Types.cs" />
     <Compile Include="Controls\IControl.cs" />
     <Compile Include="Controls\IPanel.cs" />
@@ -47,8 +47,9 @@
     <Compile Include="Controls\ILayoutable.cs" />
     <Compile Include="Controls\IInputElement.cs" />
     <Compile Include="Controls\IContentControl.cs" />
-    <Compile Include="Controls\ITemplated.cs" />
+    <Compile Include="Controls\IStyled.cs" />
     <Compile Include="Thickness.cs" />
+    <Compile Include="Controls\Control.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Controls\" />

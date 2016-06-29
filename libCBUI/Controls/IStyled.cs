@@ -1,7 +1,7 @@
 ﻿using System;
 namespace libCBUI
 {
-	public interface ITemplated
+	public interface IStyled
 	{
 		ConsoleColor? Background { get; set; }
 		ConsoleColor? Foreground { get; set; }
