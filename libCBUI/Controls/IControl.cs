@@ -7,6 +7,6 @@ namespace libCBUI.Controls
 		IControl Parent { get; }
 
 		IEnumerable<IControl> Parents { get; }
-		IReadOnlyList<IControl> Children { get; }
+		ControlCollection Children { get; }
 	}
 }

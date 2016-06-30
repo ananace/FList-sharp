@@ -39,7 +39,6 @@
     <Compile Include="Controls\IInputElement.cs" />
     <Compile Include="Controls\ILayoutable.cs" />
     <Compile Include="Controls\INamed.cs" />
-    <Compile Include="Controls\IPanel.cs" />
     <Compile Include="Controls\IStyled.cs" />
     <Compile Include="Controls\IVisual.cs" />
     <Compile Include="FormattedString.cs" />
@@ -49,9 +48,16 @@
     <Compile Include="Size.cs" />
     <Compile Include="Thickness.cs" />
     <Compile Include="Types.cs" />
+    <Compile Include="Controls\IFocusManager.cs" />
+    <Compile Include="Controls\FocusManager.cs" />
+    <Compile Include="Events\FocusGainedEventArgs.cs" />
+    <Compile Include="Events\FocusLostEventArgs.cs" />
+    <Compile Include="Controls\InputElement.cs" />
+    <Compile Include="Events\ConsoleKeyEventArgs.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Controls\" />
+    <Folder Include="Events\" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace libCBUI.Controls
 {
-	public abstract class Control : IControl
+	public abstract class Control : InputElement, IControl
 	{
 		int _MinWidth;
 		int _MaxWidth;
@@ -12,6 +12,9 @@ namespace libCBUI.Controls
 		int _MinHeight;
 		int _MaxHeight;
 		int _Height;
+		bool _Focused;
+
+		ControlCollection _Children = new ControlCollection();
 
 		int validateWidth(int newWidth)
 		{
@@ -22,6 +25,19 @@ namespace libCBUI.Controls
 			return newHeight < _MinHeight ? _MinHeight : newHeight > _MaxHeight ? _MaxHeight : newHeight;
 		}
 
+		public Rect EffectiveBounds
+		{
+			get
+			{
+				var bound = Bounds;
+
+				if (this is IStyled)
+					bound -= (this as IStyled).Padding;
+
+				return bound;
+			}
+		}
+
 		public Rect Bounds
 		{
 			get
@@ -30,27 +46,26 @@ namespace libCBUI.Controls
 			}
 		}
 
-		public IReadOnlyList<IControl> Children
+		public ControlCollection Children
 		{
 			get
 			{
-				throw new NotImplementedException();
+				return _Children;
 			}
 		}
 
-		public Size DesiredSize
-		{
-			get
-			{
-				throw new NotImplementedException();
-			}
-		}
+		public Size DesiredSize { get; set; }
 
 		public ConsoleColor EffectiveBackground
 		{
 			get
 			{
-				throw new NotImplementedException();
+				ConsoleColor? background = this.GetSelfAndParents()
+					.Where(p => (p is IStyled))
+					.Select(p => (p as IStyled).Background)
+					.FirstOrDefault(b => b.HasValue);
+
+				return background.HasValue ? background.Value : ConsoleColor.Black;
 			}
 		}
 
@@ -58,17 +73,20 @@ namespace libCBUI.Controls
 		{
 			get
 			{
-				throw new NotImplementedException();
+				ConsoleColor? foreground = this.GetSelfAndParents()
+					.Where(p => (p is IStyled))
+					.Select(p => (p as IStyled).Foreground)
+					.FirstOrDefault(f => f.HasValue);
+
+				return foreground.HasValue ? foreground.Value : ConsoleColor.White;
 			}
 		}
 
-		public bool Focusable { get; set; }
-
-		public bool IsEffectivelyEnabled
+		public override bool IsEffectivelyEnabled
 		{
 			get
 			{
-				return IsEnabled && Parents.All(p => p.IsEnabled);
+				return this.GetSelfAndParents().All(p => p.IsEnabled);
 			}
 		}
 
@@ -76,17 +94,7 @@ namespace libCBUI.Controls
 		{
 			get
 			{
-				return IsVisible && Parents.All(p => p.IsVisible);
-			}
-		}
-
-		public bool IsEnabled { get; set; }
-
-		public bool IsFocused
-		{
-			get
-			{
-				throw new NotImplementedException();
+				return this.GetSelfAndParents().All(p => p.IsVisible);
 			}
 		}
 
@@ -94,6 +102,7 @@ namespace libCBUI.Controls
 
 		public Thickness Margin { get; set; }
 
+		// TODO: Add validation
 		public int MaxHeight => _MaxHeight;
 		public int MaxWidth => _MaxWidth;
 		public int MinHeight => _MinHeight;
@@ -116,7 +125,6 @@ namespace libCBUI.Controls
 			}
 		}
 
-
 		public string Name { get; set; }
 		public IControl Parent { get; set; }
 
@@ -136,26 +144,35 @@ namespace libCBUI.Controls
 		public HorizontalAlignment HorizontalAlignment { get; set; }
 		public VerticalAlignment VerticalAlignment { get; set; }
 
-		public event EventHandler OnFocusGained;
-		public event EventHandler OnFocusLost;
-		public event EventHandler<ConsoleKeyInfo> OnKeyInput;
-
-		public void Focus()
-		{
-			if (!Focusable)
-				return;
-
-			throw new NotImplementedException();
-		}
 
 		public void InvalidateVisual()
 		{
 			throw new NotImplementedException();
 		}
 
-		public void Render()
+		public void Draw()
 		{
-			throw new NotImplementedException();
+			using (new ColorChanger(EffectiveBackground, EffectiveForeground))
+			using (new CursorChanger(EffectiveBounds.Position, null))
+			{
+				if (this is IStyled)
+				{
+					var vis = this as IStyled;
+
+					if (vis.Background.HasValue)
+					{
+						Graphics.DrawFilledBox(Bounds.Position, Bounds.Size, ' ', vis.Background.Value);
+					}
+					if (vis.Border != BorderStyle.None)
+					{
+						Graphics.DrawBox(Bounds.Position, Bounds.Size, vis.GetBorderBrush(), EffectiveBackground, EffectiveForeground);
+					}
+				}
+
+				Render();
+			}
 		}
+		public abstract void Render();
+
 	}
 }

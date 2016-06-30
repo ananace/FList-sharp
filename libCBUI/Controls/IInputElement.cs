@@ -7,7 +7,7 @@ namespace libCBUI.Controls
 		event EventHandler OnFocusGained;
 		event EventHandler OnFocusLost;
 
-		event EventHandler<ConsoleKeyInfo> OnKeyInput;
+		event EventHandler<Events.ConsoleKeyEventArgs> OnKeyInput;
 
 		bool Focusable { get; }
 		bool IsEnabled { get; }
@@ -15,5 +15,6 @@ namespace libCBUI.Controls
 		bool IsFocused { get; }
 
 		void Focus();
+		void RaiseEvent(EventArgs ev);
 	}
 }

@@ -57,5 +57,36 @@ namespace libCBUI
 				sz.Width - (th.Left + th.Right),
 				sz.Height - (th.Top + th.Bottom));
 		}
+
+		public static Point operator +(Point pt, Thickness th)
+		{
+			return new Point(
+				pt.X + th.Left + th.Right,
+				pt.Y + th.Top + th.Bottom);
+		}
+
+		public static Point operator -(Point pt, Thickness th)
+		{
+			return new Point(
+				pt.X - (th.Left + th.Right),
+		        pt.Y - (th.Top + th.Bottom));
+		}
+
+		public static Rect operator +(Rect r, Thickness th)
+		{
+			return new Rect(
+				r.Left - th.Left,
+				r.Top - th.Top,
+				r.Width + th.Right * 2,
+				r.Height + th.Bottom * 2);
+		}
+		public static Rect operator -(Rect r, Thickness th)
+		{
+			return new Rect(
+				r.Left + th.Left,
+				r.Top + th.Top,
+				r.Width - th.Right * 2,
+				r.Height - th.Bottom * 2);
+		}
 	}
 }
