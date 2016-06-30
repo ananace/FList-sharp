@@ -2,7 +2,7 @@
 
 namespace libCBUI.Controls
 {
-	public interface IStyled : IVisual
+	public interface IStyled : IControl
 	{
 		BorderStyle Border { get; set; }
 

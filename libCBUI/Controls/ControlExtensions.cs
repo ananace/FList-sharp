@@ -46,5 +46,36 @@ namespace libCBUI.Controls
 				return null;
 			}
 		}
+
+
+		public static ConsoleColor GetEffectiveBackground(this IControl control)
+		{
+			ConsoleColor? background = control.GetSelfAndParents()
+				.Where(p => (p is IStyled))
+				.Select(p => (p as IStyled).Background)
+				.FirstOrDefault(b => b.HasValue);
+
+			return background.HasValue ? background.Value : ConsoleColor.Black;
+		}
+
+		public static ConsoleColor GetEffectiveForeground(this IControl control)
+		{
+			ConsoleColor? foreground = control.GetSelfAndParents()
+				.Where(p => (p is IStyled))
+				.Select(p => (p as IStyled).Foreground)
+				.FirstOrDefault(f => f.HasValue);
+
+			return foreground.HasValue ? foreground.Value : ConsoleColor.White;
+		}
+
+		public static bool IsEffectivelyEnabled(this IControl control)
+		{
+			return control.GetSelfAndParents().All(p => p.IsEnabled);
+		}
+
+		public static bool IsEffectivelyVisible(this IControl control)
+		{
+			return control.GetSelfAndParents().All(p => p.IsVisible);
+		}
 	}
 }

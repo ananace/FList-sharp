@@ -55,49 +55,6 @@ namespace libCBUI.Controls
 		}
 
 		public Size DesiredSize { get; set; }
-
-		public ConsoleColor EffectiveBackground
-		{
-			get
-			{
-				ConsoleColor? background = this.GetSelfAndParents()
-					.Where(p => (p is IStyled))
-					.Select(p => (p as IStyled).Background)
-					.FirstOrDefault(b => b.HasValue);
-
-				return background.HasValue ? background.Value : ConsoleColor.Black;
-			}
-		}
-
-		public ConsoleColor EffectiveForeground
-		{
-			get
-			{
-				ConsoleColor? foreground = this.GetSelfAndParents()
-					.Where(p => (p is IStyled))
-					.Select(p => (p as IStyled).Foreground)
-					.FirstOrDefault(f => f.HasValue);
-
-				return foreground.HasValue ? foreground.Value : ConsoleColor.White;
-			}
-		}
-
-		public override bool IsEffectivelyEnabled
-		{
-			get
-			{
-				return this.GetSelfAndParents().All(p => p.IsEnabled);
-			}
-		}
-
-		public bool IsEffectivelyVisible
-		{
-			get
-			{
-				return this.GetSelfAndParents().All(p => p.IsVisible);
-			}
-		}
-
 		public bool IsVisible { get; set; }
 
 		public Thickness Margin { get; set; }
@@ -150,10 +107,10 @@ namespace libCBUI.Controls
 			throw new NotImplementedException();
 		}
 
-		public void Draw()
+		public virtual void Draw()
 		{
-			using (new ColorChanger(EffectiveBackground, EffectiveForeground))
-			using (new CursorChanger(EffectiveBounds.Position, null))
+			using (new ColorChanger(this.GetEffectiveBackground(), this.GetEffectiveForeground()))
+			using (new CursorChanger(EffectiveBounds.Position, false))
 			{
 				if (this is IStyled)
 				{
@@ -165,7 +122,7 @@ namespace libCBUI.Controls
 					}
 					if (vis.Border != BorderStyle.None)
 					{
-						Graphics.DrawBox(Bounds.Position, Bounds.Size, vis.GetBorderBrush(), EffectiveBackground, EffectiveForeground);
+						Graphics.DrawBox(Bounds.Position, Bounds.Size, vis.GetBorderBrush());
 					}
 				}
 

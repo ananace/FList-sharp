@@ -205,7 +205,7 @@ namespace libCBUI
 				Console.Write(c);
 		}
 
-		public static void DrawLine(Point a, Point b, ConsoleColor Background = ConsoleColor.White, ConsoleColor Foreground = ConsoleColor.White, char Character = ' ')
+		public static void DrawLine(Point a, Point b, char Character, ConsoleColor Background = ConsoleColor.Black, ConsoleColor Foreground = ConsoleColor.White)
 		{
 			using (new CursorChanger(null, false))
 			using (new ColorChanger(Background, Foreground))
@@ -247,18 +247,18 @@ namespace libCBUI
 			using (new CursorChanger(pos, false))
 			using (new ColorChanger(Background, Foreground))
 			{
-				DrawChar(pos, BoxBrush[0], Background, Foreground);
-				DrawChar(pos + new Point(size.X, 0), BoxBrush[2], Background, Foreground);
-				DrawChar(pos + new Point(size.X, size.Y), BoxBrush[8], Background, Foreground);
-				DrawChar(pos + new Point(0, size.Y), BoxBrush[6], Background, Foreground);
+				DrawChar(pos, BoxBrush[0]);
+				DrawChar(pos + new Point(size.X, 0), BoxBrush[2]);
+				DrawChar(pos + new Point(size.X, size.Y), BoxBrush[8]);
+				DrawChar(pos + new Point(0, size.Y), BoxBrush[6]);
 
-				DrawLine(pos + new Point(1, 0), pos + new Point(size.X - 1, 0), Background, Foreground, BoxBrush[1]);
-				DrawLine(pos + new Point(0, 1), pos + new Point(0, size.Y - 1), Background, Foreground, BoxBrush[3]);
-				DrawLine(pos + new Point(size.X, size.Y - 1), pos + new Point(size.X, 1), Background, Foreground, BoxBrush[5]);
-				DrawLine(pos + new Point(size.X - 1, size.Y), pos + new Point(1, size.Y), Background, Foreground, BoxBrush[7]);
+				DrawLine(pos + new Point(1, 0), pos + new Point(size.X - 1, 0), BoxBrush[1]);
+				DrawLine(pos + new Point(0, 1), pos + new Point(0, size.Y - 1), BoxBrush[3]);
+				DrawLine(pos + new Point(size.X, size.Y - 1), pos + new Point(size.X, 1), BoxBrush[5]);
+				DrawLine(pos + new Point(size.X - 1, size.Y), pos + new Point(1, size.Y), BoxBrush[7]);
 			}
 
-			DrawFilledBox(pos + new Point(1, 1), pos + size - new Point(1, 1), BoxBrush[4], Background, Foreground);
+			DrawFilledBox(pos + new Point(1, 1), pos + size - new Point(1, 1), BoxBrush[4]);
 		}
 
 		#region internal
