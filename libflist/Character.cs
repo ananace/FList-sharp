@@ -37,43 +37,56 @@ namespace libflist
 		/// </summary>
 		public IReadOnlyDictionary<Info.KinkInfo, Info.KinkChoice> Kinks { get { return _Kinks.Value; } }
 
-		internal Character(IFListClient client, string name) : this(client, name, -1)
+		public Character() : this (null, null)
 		{
 		}
-		internal Character(IFListClient client, string name, int id)
+		public Character(IFListClient client, string name) : this(client, name, -1)
+		{
+		}
+		public Character(IFListClient client, string name, int id)
 		{
 			Client = client;
 			Name = name;
 			ID = id;
 
-			_Description = new ExpiringLazy<string>(() =>
+			if (Client != null && Name != null)
 			{
-				var task = Client.GetDescription(Name);
-				task.Wait();
+				_Description = new ExpiringLazy<string>(() =>
+				{
+					var task = Client.GetDescription(Name);
+					task.Wait();
 
-				return task.Result;
-			}, TIMEOUT);
-			_ProfileInfo = new ExpiringLazy<Info.ProfileInfo>(() =>
+					return task.Result;
+				}, TIMEOUT);
+				_ProfileInfo = new ExpiringLazy<Info.ProfileInfo>(() =>
+				{
+					var task = Client.GetInfo(Name);
+					task.Wait();
+
+					return task.Result;
+				}, TIMEOUT);
+				_Images = new ExpiringLazy<List<Info.ImageInfo>>(() =>
+				{
+					var task = Client.GetImages(Name);
+					task.Wait();
+
+					return task.Result;
+				}, TIMEOUT);
+				_Kinks = new ExpiringLazy<Dictionary<Info.KinkInfo, Info.KinkChoice>>(() =>
+				{
+					var task = Client.GetKinks(Name);
+					task.Wait();
+
+					return task.Result;
+				}, TIMEOUT);
+			}
+			else
 			{
-				var task = Client.GetInfo(Name);
-				task.Wait();
-
-				return task.Result;
-			}, TIMEOUT);
-			_Images = new ExpiringLazy<List<Info.ImageInfo>>(() =>
-			{
-				var task = Client.GetImages(Name);
-				task.Wait();
-
-				return task.Result;
-			}, TIMEOUT);
-			_Kinks = new ExpiringLazy<Dictionary<Info.KinkInfo, Info.KinkChoice>>(() =>
-			{
-				var task = Client.GetKinks(Name);
-				task.Wait();
-
-				return task.Result;
-			}, TIMEOUT);
+				_Description = new ExpiringLazy<string>(() => null, TimeSpan.MaxValue);
+				_ProfileInfo = new ExpiringLazy<Info.ProfileInfo>(() => null, TimeSpan.MaxValue);
+				_Images = new ExpiringLazy<List<Info.ImageInfo>>(() => null, TimeSpan.MaxValue);
+				_Kinks = new ExpiringLazy<Dictionary<Info.KinkInfo, Info.KinkChoice>>(() => null, TimeSpan.MaxValue);
+			}
 		}
 	}
 

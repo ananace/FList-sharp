@@ -1,0 +1,13 @@
+﻿<UserControl x:Class="XAMLMessenger.Dialogs.CharacterDialog"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:XAMLMessenger.Dialogs"
+             mc:Ignorable="d" 
+             d:DesignHeight="70" d:DesignWidth="140" MinHeight="70" MinWidth="140">
+    <Grid>
+        <ComboBox x:Name="_CharacterBox" HorizontalAlignment="Center" HorizontalContentAlignment="Center" Margin="0,10,0,0" VerticalAlignment="Top" Width="120" SelectionChanged="_CharacterBox_SelectionChanged" />
+        <Button x:Name="_LoginButton" Content="Go Online" HorizontalAlignment="Center" Margin="0,37,0,0" VerticalAlignment="Top" Width="120" IsEnabled="False" Click="_LoginButton_Click"/>
+    </Grid>
+</UserControl>

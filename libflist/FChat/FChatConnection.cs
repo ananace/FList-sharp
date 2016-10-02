@@ -90,6 +90,7 @@ namespace libflist.FChat
 		}
 
 		public IEnumerable<Channel> ActiveChannels { get { return _Channels; } }
+        public bool IsConnected { get { return _Connection != null && _Connection.ReadyState != WebSocketState.Closed; } }
 
 		// Server events
 		public event EventHandler OnConnected;

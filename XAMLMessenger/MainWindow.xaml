@@ -1,0 +1,22 @@
+﻿<Window x:Class="XAMLMessenger.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:XAMLMessenger"
+        xmlns:controls="clr-namespace:XAMLMessenger.Controls"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="350" Width="525" Background="#FF1B446F">
+    <Grid>
+        <TabControl Margin="0,40,0,0" TabStripPlacement="Left" Background="{x:Null}" BorderBrush="{x:Null}" Name="_chatList">
+            <TabItem Background="{x:Null}" BorderBrush="{x:Null}" Foreground="{x:Null}">
+                <TabItem.Header>
+                    <Image Source="pack://siteoforigin:,,,/Resources/console.png" Width="16" Height="16"></Image>
+                </TabItem.Header>
+                <controls:MessageList x:Name="_consoleChat">
+                    
+                </controls:MessageList>
+            </TabItem>
+        </TabControl>
+    </Grid>
+</Window>
