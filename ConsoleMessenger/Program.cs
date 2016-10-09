@@ -6,13 +6,13 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using ConsoleMessenger.Types;
-using ConsoleMessenger.UI.Panels;
 using libflist.FChat;
 using libflist.FChat.Commands;
 using libflist;
 using Newtonsoft.Json;
 using ConsoleMessenger.UI;
 using ConsoleMessenger.UI.FChat;
+using System.Threading;
 
 namespace ConsoleMessenger
 {
@@ -60,14 +60,15 @@ namespace ConsoleMessenger
 
 	public static class ConsoleHelper
 	{
-		static System.Threading.Timer _Timer;
-		static Point _OldSize;
+        public static event EventHandler OnConsoleResized;
 
-		public static event EventHandler<Point> OnConsoleResized;
+		static System.Threading.Timer _Timer;
+        static int _OldWidth, _OldHeight;
 
 		public static void Start()
 		{
-			_OldSize = new Point(Console.WindowWidth, Console.WindowHeight);
+            _OldWidth = Console.WindowWidth;
+            _OldHeight = Console.WindowHeight;
 			_Timer = new System.Threading.Timer(HandleTimerCallback, null, 0, 250);
 		}
 		public static void Stop()
@@ -83,12 +84,14 @@ namespace ConsoleMessenger
 
 			try
 			{
-				var newSize = new Point(Console.WindowWidth, Console.WindowHeight);
+                var newWidth = Console.WindowWidth;
+                var newHeight = Console.WindowHeight;
 
-				if (newSize != _OldSize)
+				if (newWidth != _OldWidth || newHeight != _OldHeight)
 				{
-					_OldSize = newSize;
-					OnConsoleResized(null, newSize);
+                    _OldWidth = newWidth;
+                    _OldHeight = newHeight;
+					OnConsoleResized(null, EventArgs.Empty);
 				}
 			}
 			catch (IOException) { }
@@ -105,24 +108,21 @@ namespace ConsoleMessenger
 			public DateTime Timestamp { get; set; }
 		}
 
-		static Panel _Root;
-		static VerticalPanel _RootStack;
-		static TitledPanel _MainPanel;
-		static TitledPanel _StatusPanel;
-		static HorizontalPanel _InputPanel;
-		static ContentControl _ChannelInfo;
-		static UI.FChat.StatusBar _StatusBar;
-		static List<UI.FChat.ChannelBuffer> _ChannelBuffers = new List<UI.FChat.ChannelBuffer>();
-		static UI.FChat.ChannelBuffer _ConsoleBuffer;
-		static InputControl _InputBox;
+        public static object DrawLock = new object();
+
+		static List<ChannelBuffer> _ChannelBuffers = new List<ChannelBuffer>();
+		static ChannelBuffer _ConsoleBuffer = new ChannelBuffer() { ChatBuf = new ConsoleChatBuffer() };
+		static InputBox _InputBox = new InputBox();
+
 		static FChatConnection _Chat = new FChatConnection();
 
 		static int _CurBuffer = 0;
+        public static ChannelBuffer CurrentChannelBuffer => _ChannelBuffers[_CurBuffer];
 
 		static bool _Running = true;
-		static System.Threading.Timer _Redraw;
+        static Timer _Redraw = new Timer((_) => { Redraw(); }, null, 0, 1000);
 
-		public static FChatConnection Connection { get { return _Chat; } }
+        public static FChatConnection Connection => _Chat;
 		public static StoredTicket Ticket { get; set; }
 		public static int CurrentBuffer
 		{
@@ -130,88 +130,21 @@ namespace ConsoleMessenger
 			set
 			{
 				_CurBuffer = value;
-
-				var buf = _ChannelBuffers[value];
-				_MainPanel.Child = buf;
-				_ChannelInfo.Content = string.Format("[{0}]", (buf.Tag is Channel) ? (buf.Tag as Channel).Title : "(Console)");
 			}
 		}
-		public static int BufferCount { get { return _ChannelBuffers.Count; } }
+        public static int BufferCount => _ChannelBuffers.Count;
 
 		public static bool Running { get { return _Running; } set { _Running = value; } }
+        static string StatusBar { get
+            {
+                var status = $" {"[".Color(ConsoleColor.DarkCyan)}{DateTime.Now.ToShortTimeString()}{"]".Color(ConsoleColor.DarkCyan)} ";
 
-		static void BuildUI()
-		{
-			_Root = new Panel();
-			_RootStack = new VerticalPanel()
-			{
-				Sizing = SizingHint.FillAvailable
-			};
-			_MainPanel = new TitledPanel()
-			{
-				TitleColor = ConsoleColor.Blue,
-				ResizeChildren = true
-			};
-			_StatusPanel = new TitledPanel();
-			_InputPanel = new HorizontalPanel()
-			{
-				Background = ConsoleColor.Black,
-				Padding = new Rect(0, 0, 1, 0)
-			};
-			_StatusBar = new UI.FChat.StatusBar()
-			{
-				Chat = _Chat,
-				Margin = new Rect(1, 0, 1, 0)
-			};
-			_ConsoleBuffer = new UI.FChat.ChannelBuffer()
-			{
-				Background = ConsoleColor.Black,
-				Foreground = ConsoleColor.Gray
-			};
-			_ChannelBuffers.Add(_ConsoleBuffer);
-			Debug.Listeners.Add(_ConsoleBuffer.TraceListener);
+                if (_Chat.IsIdentified)
+                    status += $"{"[".Color(ConsoleColor.DarkCyan)}{Connection.LocalCharacter.Status.ToANSIString()} {Connection.LocalCharacter.ToANSIString()}{"]".Color(ConsoleColor.DarkCyan)}";
 
-			_MainPanel.TitleColor = ConsoleColor.Blue;
-			_StatusPanel.TitleColor = ConsoleColor.Blue;
-			_StatusPanel.Size = new Point(0, 2);
-
-			_ChannelInfo = new ContentControl()
-			{
-				Content = "[(Console)]",
-				Foreground = ConsoleColor.Gray,
-				Margin = new Rect(0, 0, 1, 0),
-				Sizing = SizingHint.ShrinkToFit
-			};
-			_InputBox = new InputControl()
-			{
-				Sizing = SizingHint.ShrinkToFit
-			};
-			_InputBox.OnTextEntered += (box, text) => TextEntry(text, box);
-
-			_InputPanel.Children.Add(_ChannelInfo);
-			_InputPanel.Children.Add(_InputBox);
-
-			_StatusPanel.TitleControl = _StatusBar;
-			_StatusPanel.Child = _InputPanel;
-
-			_MainPanel.Child = _ConsoleBuffer;
-
-			_RootStack.Children.Add(_MainPanel);
-			_RootStack.Children.Add(_StatusPanel);
-
-			_Root.Child = _RootStack;
-
-			_Redraw = new System.Threading.Timer((_) => Redraw(), null, System.Threading.Timeout.Infinite, System.Threading.Timeout.Infinite);
-
-			ConsoleHelper.OnConsoleResized += (_, __) =>
-			{
-				Redraw(true);
-			};
-			_Root.OnVisualInvalidated += (_, __) =>
-			{
-				_Redraw.Change(10, System.Threading.Timeout.Infinite);
-			};
-		}
+                return status;
+            }
+        }
 
 		static void InputLoop()
 		{
@@ -258,6 +191,7 @@ namespace ConsoleMessenger
 
 								_InputBox.Content = inp;
 								_InputBox.Cursor = inp.Length;
+                                _InputBox.Render();
 							}
 							break;
 
@@ -413,87 +347,68 @@ namespace ConsoleMessenger
 				if (buffer == _ConsoleBuffer)
 					throw new Exception("Can't chat in the console, did you mean to run a command?");
 
-				Chan = (buffer.Tag as Channel);
+                Chan = buffer.Channel;
 			}
 
 			if (buffer == null)
-				buffer = _ChannelBuffers.FirstOrDefault(b => b.Tag == Chan);
+				buffer = _ChannelBuffers.FirstOrDefault(b => b.Channel == Chan);
 
 			if (buffer == null)
 				throw new Exception("Message to unknown channel buffer recieved; " + Text);
 
-			if (inputChar == null)
-				Chan.SendMessage(Text);
+            buffer.ChatBuf.SendMessage(inputChar, Text);
 
-			if (Text.StartsWith("/me", StringComparison.OrdinalIgnoreCase))
-				buffer.PushMessage(string.Format("{2} {0} {1}",
-					inputChar == null ?
-						Char.Name.Color(Char.GetGenderColor()).BackgroundColor(ConsoleColor.DarkGray) :
-						Char.Name.Color(Char.GetGenderColor()),
-					Text.Length > 3 ? Text.Substring(4).Color(ConsoleColor.White) : "",
-					Char.GetStatusChar().ToString().Color(Char.GetStatusColor())
-					));
-			else
-				buffer.PushMessage(string.Format("{2} {0}: {1}",
-					inputChar == null ?
-						Char.Name.Color(Char.GetGenderColor()).BackgroundColor(ConsoleColor.DarkGray) :
-						Char.Name.Color(Char.GetGenderColor()),
-					Text,
-					Char.GetStatusChar().ToString().Color(Char.GetStatusColor())
-					));
+            buffer.Activity = true;
+            if (Text.ToLower().Contains(Connection.LocalCharacter.Name.ToLower()))
+                buffer.Hilight = true;
+
+            if (CurrentChannelBuffer == buffer)
+                CurrentChannelBuffer.Render();
+            Redraw();
 		}
 
 		public static void Redraw(bool full = false)
 		{
-			if (_Root == null)
-				return;
+            lock (DrawLock)
+            {
+                if (full)
+                {
+                    Console.BackgroundColor = ConsoleColor.Black;
+                    Console.ForegroundColor = ConsoleColor.White;
+                    Console.SetCursorPosition(0, 0);
 
-			if (full)
-			{
-				Console.BackgroundColor = ConsoleColor.Black;
-				Console.ForegroundColor = ConsoleColor.White;
-				Console.SetCursorPosition(0, 0);
+                    Console.Clear();
 
-				Console.Clear();
+                    _ChannelBuffers[_CurBuffer].Render();
 
-				var size = Graphics.AvailableSize;
+                    _InputBox.Render();
+                }
 
-				_Root.Size = size;
-				_MainPanel.Size = size - new Size(0, 2);
-				_StatusPanel.Size = new Size(size.Width, 2);
-				_InputPanel.Size = new Size(size.Width, 1);
+                Graphics.DrawLine(new Point(0, Console.WindowHeight - 2), new Point(Console.WindowWidth - 1, Console.WindowHeight - 2), ' ', ConsoleColor.DarkBlue);
+                Graphics.WriteANSIString(StatusBar, new Point(0, Console.WindowHeight - 2), ConsoleColor.DarkBlue, ConsoleColor.Gray);
 
-				_Root.InvalidateLayout();
-				_Root.InvalidateVisual();
-			}
-
-			_Root.Draw();
-
-			_InputBox.Focus();
+                _InputBox.Focus();
+            }
 		}
 
 		public static void Run()
 		{
-			BuildUI();
-
 			Console.Title = string.Format("FChat Messenger v{0}", Assembly.GetExecutingAssembly().GetName().Version);
+
+            Debug.Listeners.Clear();
+            Debug.Listeners.Add((_ConsoleBuffer.ChatBuf as ConsoleChatBuffer).TraceListener);
+            _ChannelBuffers.Add(_ConsoleBuffer);
+            _InputBox.OnTextEntered += (s, e) => { TextEntry(e); };
 
 			_Chat.Endpoint = FChatConnection.TestingServerEndpoint;
 			//_Chat.Endpoint = FChatConnection.LiveServerEndpoint;
 
-			_Chat.OnIdentified += (_, __) => _StatusBar.InvalidateVisual();
-
 			_Chat.OnErrorMessage += (_, e) => 
-				_ConsoleBuffer.PushMessage((e.Command as Server_ERR_ChatError).Error);
+				_ConsoleBuffer.ChatBuf.PushMessage(null, (e.Command as Server_ERR_ChatError).Error);
 
 			_Chat.OnChannelJoin += (_, e) =>
 			{
-				var chatBuf = new ChannelBuffer
-				{
-					Tag = e.Channel,
-					Background = ConsoleColor.Black,
-					Foreground = ConsoleColor.Gray
-				};
+                var chatBuf = new ChannelBuffer { Channel = e.Channel };
 
 				_ChannelBuffers.Add(chatBuf);
 				CurrentBuffer = _ChannelBuffers.Count - 1;
@@ -511,7 +426,7 @@ namespace ConsoleMessenger
 				int i = 0;
 				foreach (var c in _ChannelBuffers)
 				{
-					if (c.Tag == e.Channel)
+					if (c.Channel == e.Channel)
 					{
 						if (_CurBuffer == i)
 							_CurBuffer--;
@@ -529,9 +444,6 @@ namespace ConsoleMessenger
 			if (_Chat != null)
 				_Chat.Dispose();
 			_Chat = null;
-			if (_Root != null)
-				_Root.Dispose();
-			_Root = null;
 		}
 
 

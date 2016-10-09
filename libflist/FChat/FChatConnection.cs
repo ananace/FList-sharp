@@ -94,6 +94,7 @@ namespace libflist.FChat
 
         public IEnumerable<Channel> ActiveChannels => _Channels;
         public bool IsConnected { get { return _Connection != null && _Connection.ReadyState != WebSocketState.Closed; } }
+        public bool IsIdentified { get { return IsConnected && _Identified; } }
 
 		// Server events
 		public event EventHandler OnConnected;

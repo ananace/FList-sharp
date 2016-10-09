@@ -48,19 +48,17 @@
     <Compile Include="Commands\ListChats.cs" />
     <Compile Include="Commands\Command.cs" />
     <Compile Include="Types\CharacterExtensions.cs" />
-    <Compile Include="UI\ContentControl.cs" />
-    <Compile Include="UI\FChat\ChannelBuffer.cs" />
-    <Compile Include="UI\FChat\StatusBar.cs" />
-    <Compile Include="UI\InputControl.cs" />
-    <Compile Include="UI\Panel.cs" />
-    <Compile Include="UI\Panels\VerticalPanel.cs" />
-    <Compile Include="UI\Panels\TitledPanel.cs" />
-    <Compile Include="UI\Panels\HorizontalPanel.cs" />
-    <Compile Include="UI\Types.cs" />
+    <Compile Include="UI\ChannelBuffer.cs" />
+    <Compile Include="UI\CharacterExtensions.cs" />
+    <Compile Include="UI\Graphics.cs" />
+    <Compile Include="UI\InputBox.cs" />
+    <Compile Include="Types\Point.cs" />
+    <Compile Include="Types\Rect.cs" />
+    <Compile Include="Types\Size.cs" />
+    <Compile Include="Types\Thickness.cs" />
     <Compile Include="Commands\Help.cs" />
     <Compile Include="Commands\Info.cs" />
     <Compile Include="ChatBuffer.cs" />
-    <Compile Include="UI\TextArea.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\libflist\libflist.csproj">

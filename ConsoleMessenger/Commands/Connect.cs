@@ -18,8 +18,8 @@ namespace ConsoleMessenger.Commands
 
 		public void Call(string username, string password)
 		{
-			if (Caller is UI.InputControl)
-				(Caller as UI.InputControl).PopHistory(); // Don't store the connect command
+			if (Caller is UI.InputBox)
+				(Caller as UI.InputBox).PopHistory(); // Don't store the connect command
 
 			Debug.WriteLine(string.Format("Aquiring ticket for {0}...", username));
 			if (!Application.Connection.AquireTicket(username, password))

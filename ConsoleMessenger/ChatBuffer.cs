@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using libflist.FChat;
+using System.Linq;
+using System.Diagnostics;
+using ConsoleMessenger.UI;
 
 namespace ConsoleMessenger
 {
@@ -13,16 +16,24 @@ namespace ConsoleMessenger
 			public Character Sender { get; set; }
 		}
 
+        public event EventHandler<MessageData> OnMessage;
+
 		List<MessageData> _Messages = new List<MessageData>();
 		public IReadOnlyList<MessageData> Messages { get { return _Messages; } }
+        public int MaxMessages { get; set; } = 1000;
 
-		public void PushMessage(Character sender, string message)
+		public void PushMessage(Character sender, string message, DateTime? timestamp = null)
 		{
 			_Messages.Add(new MessageData {
-				Timestamp = DateTime.Now,
+				Timestamp = timestamp ?? DateTime.Now,
 				Sender = sender,
 				Message = message
 			});
+
+            while (_Messages.Count >= MaxMessages)
+                _Messages.RemoveAt(0);
+
+            OnMessage?.Invoke(this, _Messages.Last());
 		}
 
 		public virtual void SendMessage(Character sender, string message)
@@ -30,6 +41,43 @@ namespace ConsoleMessenger
 			PushMessage(sender, message);
 		}
 	}
+
+    public sealed class ConsoleChatBuffer : ChatBuffer
+    {
+		class DebugTracer : TraceListener
+		{
+			ConsoleChatBuffer _Buf;
+			public DebugTracer(ConsoleChatBuffer buf)
+			{
+				_Buf = buf;
+			}
+
+			string partial;
+
+			public override void Write(string message)
+			{
+				if (partial == null)
+					partial = message;
+				else
+					partial += message;
+
+				if (partial.Contains("\n"))
+				{
+					_Buf.SendMessage(null, partial.Substring(0, partial.IndexOf('\n')));
+					partial = partial.Remove(0, partial.IndexOf('\n') + 1);
+				}
+			}
+
+			public override void WriteLine(string message)
+			{
+				_Buf.SendMessage(null, message);
+			}
+		}
+
+        DebugTracer _Tracer;
+		public TraceListener TraceListener { get { if (_Tracer == null) _Tracer = new DebugTracer(this); return _Tracer; } }
+        
+    }
 
 	public sealed class ChannelChatBuffer : ChatBuffer
 	{
@@ -42,7 +90,8 @@ namespace ConsoleMessenger
 
 		public override void SendMessage(Character sender, string message)
 		{
-			Channel.SendMessage(message);
+            if (sender == null || sender == Application.Connection.LocalCharacter)
+			    Channel.SendMessage(message);
 			PushMessage(sender, message);
 		}
 	}

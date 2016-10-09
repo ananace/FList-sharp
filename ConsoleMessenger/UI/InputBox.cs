@@ -1,41 +1,39 @@
-﻿using System;
+﻿using ConsoleMessenger.Types;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace ConsoleMessenger.UI
 {
-	public class InputControl : ContentControl
+	public class InputBox
 	{
 		public event EventHandler<string> OnTextEntered;
-		public override event EventHandler OnContentChanged;
 
-		List<string> _History;
-		int _HistoryPtr;
-		string _HistoryCmd;
+		List<string> _History = new List<string>();
+		int _HistoryPtr = 0;
+		string _HistoryCmd = null;
 
-		public int HistoryLength { get; set; } = 5;
-		public void PopHistory()
+        public int HistoryLength { get; set; } = 5;
+		public string PopHistory()
 		{
-			_History.RemoveAt(_History.Count - 1);
+            string ret = _History.Last();
+            _History.RemoveAt(_History.Count - 1);
+            return ret;
 		}
 
 		public int Cursor { get; set; }
 
-		public override object Content
+        StringBuilder _Content = new StringBuilder();
+		public string Content
 		{
 			get
 			{
-				if (base.Content == null || !(base.Content is StringBuilder))
-					base.Content = new StringBuilder();
-
-				return (base.Content as StringBuilder).ToString(); }
+				return (_Content as StringBuilder).ToString(); }
 			set
 			{
-				if (base.Content == null || !(base.Content is StringBuilder))
-					base.Content = new StringBuilder();
-
 				var str = value.ToString();
-				var sb = base.Content as StringBuilder;
+				var sb = _Content as StringBuilder;
 
 				if (sb.ToString() == str) return;
 
@@ -44,28 +42,15 @@ namespace ConsoleMessenger.UI
 
 				if (Cursor > sb.Length)
 					Cursor = sb.Length;
-
-				if (OnContentChanged != null)
-					OnContentChanged(this, EventArgs.Empty);
-
-				InvalidateLayout();
 			}
 		}
 
-		public InputControl()
-		{
-			Background = ConsoleColor.Black;
-			base.Content = new StringBuilder();
-
-			_History = new List<string>();
-		}
-
-		public override void PushInput(ConsoleKeyInfo key)
+		public void PushInput(ConsoleKeyInfo key)
 		{
 			if (key.Modifiers.HasFlag(ConsoleModifiers.Alt) || key.Modifiers.HasFlag(ConsoleModifiers.Control))
 				return;
 
-			var buf = base.Content as StringBuilder;
+			var buf = _Content as StringBuilder;
 			var before = buf.ToString();
 
 			switch (key.Key)
@@ -76,7 +61,7 @@ namespace ConsoleMessenger.UI
 						break;
 
 					buf.Remove(--Cursor, 1);
-					InvalidateVisual();
+                    Console.Write("\b \b");
 				}
 				break;
 
@@ -86,7 +71,7 @@ namespace ConsoleMessenger.UI
 						break;
 
 					buf.Remove(Cursor, 1);
-					InvalidateVisual();
+                    Render(); // TODO: Do some speedup here?
 				}
 				break;
 
@@ -116,7 +101,9 @@ namespace ConsoleMessenger.UI
 					buf.Clear();
 
 					buf.Append(_History[_History.Count - _HistoryPtr - 1]);
+
 					Cursor = buf.Length;
+                    Render();
 				}
 				break;
 			case ConsoleKey.DownArrow:
@@ -133,6 +120,7 @@ namespace ConsoleMessenger.UI
 						buf.Append(_HistoryCmd);
 
 					Cursor = buf.Length;
+                    Render();
 				}
 				break;
 
@@ -150,11 +138,11 @@ namespace ConsoleMessenger.UI
 				{
 					var cmd = buf.ToString();
 
-					var displayed = ContentDrawable;
+					var displayed = Content;
 							
-					Clear();
 					buf.Clear();
 					Cursor = 0;
+                    Render();
 
 					_HistoryCmd = null;
 					_HistoryPtr = -1;
@@ -162,9 +150,8 @@ namespace ConsoleMessenger.UI
 					if (_History.Count > HistoryLength)
 						_History.RemoveAt(0);
 
-					if (OnTextEntered != null)
-						OnTextEntered(this, cmd);
-				}
+                        OnTextEntered?.Invoke(this, cmd);
+                    }
 				break;
 
 			default:
@@ -180,30 +167,23 @@ namespace ConsoleMessenger.UI
 				}
 				break;
 			}
-
-
-			if (buf.ToString() != before)
-			{
-				if (OnContentChanged != null)
-					OnContentChanged(this, EventArgs.Empty);
-
-				InvalidateLayout();
-			}
 		}
 
-		public override void Focus()
+		public void Focus()
 		{
-			base.Focus();
-
-			Console.SetCursorPosition(DisplayPosition.X + Cursor, DisplayPosition.Y);
+			Console.SetCursorPosition(Cursor, Console.WindowHeight - 1);
 		}
 		
-		public override void Render()
+		public void Render()
 		{
-			var toDraw = (base.Content as StringBuilder).ToString();
-			Console.Write(toDraw);
+            lock (Application.DrawLock)
+            {
+                Graphics.DrawLine(new Point(0, Console.WindowHeight - 1), new Point(Console.WindowWidth - 1, Console.WindowHeight - 1), ' ');
 
-			Console.SetCursorPosition(DisplayPosition.X + Cursor, DisplayPosition.Y);
+                Console.SetCursorPosition(Cursor, Console.WindowHeight - 1);
+                using (var c = new CursorChanger(new Point(0, Console.WindowHeight - 1)))
+                    Console.Write(_Content.ToString());
+            }
 		}
 	}
 }
