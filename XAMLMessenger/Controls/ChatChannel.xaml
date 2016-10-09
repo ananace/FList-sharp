@@ -28,7 +28,7 @@
                         </LinearGradientBrush>
                     </Label.Background>
                 </Label>
-                <Label HorizontalAlignment="Right" Foreground="White" Content="{Binding ElementName=_this, Path=Channel.Characters.Count}"  Width="{Binding ElementName=_userTitleGrid, Path=ActualWidth, Converter={StaticResource HalfConverter}}">
+                <Label x:Name="_userCount" HorizontalAlignment="Right" Foreground="White" Content="{Binding ElementName=_this, Path=Channel.Characters.Count}"  Width="{Binding ElementName=_userTitleGrid, Path=ActualWidth, Converter={StaticResource HalfConverter}}">
                     <Label.Background>
                         <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
                             <GradientStop Color="#FF143455" Offset="1"/>

@@ -21,8 +21,6 @@ namespace XAMLMessenger.Message.Nodes
                 Inlines = {
                     new InlineUIContainer(new Image {
                         Source = new CroppedBitmap(App.Current.StaticImageResource, _CharacterStatus(ch.Status)),
-                        Width = 24,
-                        Height = 24,
                         Margin = new Thickness(5, 0, 5, 0)
                     }),
                     new Run(ch.Name) {

@@ -37,12 +37,36 @@ namespace XAMLMessenger.Controls
         public ChatChannel(Channel chan)
         {
             _channel = chan;
+            if (_channel != null)
+            {
+                _channel.Connection.OnChannelUserJoin += (s, e) =>
+                {
+                    if (e.Channel == _channel)
+                    {
+                        _userList.Document.Blocks.Add(new Paragraph(new CharacterNode() { Text = e.Character.Name }.ToInline(_channel))
+                        {
+                            Tag = e.Character
+                        });
+                    }
+                };
+                _channel.Connection.OnChannelUserLeave += (s, e) =>
+                {
+                    if (e.Channel == _channel)
+                        _userList.Document.Blocks.Remove(_userList.Document.Blocks.First(b => b.Tag == e.Character));
+                };
+                _channel.Connection.OnChannelChatMessage += (s, e) =>
+                {
+                    if (e.Channel == _channel)
+                        AddMessage(e.Character, e.Message);
+                };
+            }
 
             InitializeComponent();
         }
 
         void baseMessage(Paragraph par, Character sender, string message)
         {
+            // TODO: Hilighting
             if (sender == App.Current.FChatClient.LocalCharacter)
                 par.Background = new SolidColorBrush
                 {
@@ -85,7 +109,11 @@ namespace XAMLMessenger.Controls
         {
             var par = new Paragraph();
             par.Foreground = Brushes.White;
-            par.Background = Brushes.DarkGreen;
+            par.Background = new SolidColorBrush
+            {
+                Color = Colors.DarkGreen,
+                Opacity = 0.1
+            };
 
             baseMessage(par, sender, $": {message}");
 

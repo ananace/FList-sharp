@@ -33,9 +33,11 @@ namespace XAMLMessenger.Message.Nodes
                     new InlineUIContainer(new Image
                     {
                         Source = new CroppedBitmap(App.Current.StaticImageResource, ImageRect),
-                        Width = 24,
-                        Height = 24
-                    }),
+                        Width = 16,
+                        Height = 16
+                    }) {
+                        BaselineAlignment = BaselineAlignment.Bottom
+                    },
                     new Run(SessionName)
                 }
             })

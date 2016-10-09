@@ -22,8 +22,14 @@ namespace XAMLMessenger.Message
             TagContentStack = new Stack<INode>();
             Parsed = new List<INode>();
 
-            for (int i = 0; i < Message.Length; ++i)
+            for (int i = 0; i < Message.Length;)
             {
+                if (Message[i] == ']')
+                    ++i;
+
+                if (i == Message.Length)
+                    break;
+
                 if (Message[i] != '[')
                 {
                     StringBuilder plainText = new StringBuilder();
@@ -50,7 +56,7 @@ namespace XAMLMessenger.Message
 
                     StringBuilder tagName = new StringBuilder();
                     while (i < Message.Length && char.IsLetter(Message[i]))
-                        tagName.Append(Message[i]);
+                        tagName.Append(Message[i++]);
 
                     if (i == Message.Length)
                         break;
@@ -60,12 +66,12 @@ namespace XAMLMessenger.Message
                         INode tag = null;
                         switch (tagName.ToString())
                         {
-                            case "b": tag = new TextEffectNode { FontWeight = FontWeights.Bold }; break;
-                            case "i": tag = new TextEffectNode { FontStyle = FontStyles.Italic }; break;
-                            case "u": tag = new TextEffectNode { TextDecorations = TextDecorations.Underline }; break;
-                            case "s": tag = new TextEffectNode { TextDecorations = TextDecorations.Strikethrough }; break;
-                            case "sup": tag = new TextEffectNode { BaselineAlignment = BaselineAlignment.Superscript }; break;
-                            case "sub": tag = new TextEffectNode { BaselineAlignment = BaselineAlignment.Subscript }; break;
+                            case "b": tag = new TextEffectNode { Name = "b", FontWeight = FontWeights.Bold }; break;
+                            case "i": tag = new TextEffectNode { Name = "i", FontStyle = FontStyles.Italic }; break;
+                            case "u": tag = new TextEffectNode { Name = "u", TextDecorations = TextDecorations.Underline }; break;
+                            case "s": tag = new TextEffectNode { Name = "s", TextDecorations = TextDecorations.Strikethrough }; break;
+                            case "sup": tag = new TextEffectNode { Name = "sup", BaselineAlignment = BaselineAlignment.Superscript }; break;
+                            case "sub": tag = new TextEffectNode { Name = "sub", BaselineAlignment = BaselineAlignment.Subscript }; break;
                             case "icon": tag = new IconNode(); break;
                             case "eicon": tag = new EIconNode(); break;
                             case "user": tag = new CharacterNode(); break;
@@ -73,14 +79,15 @@ namespace XAMLMessenger.Message
                             case "url": tag = new URLNode(); break;
                             case "session": tag = new SessionNode(); break;
                             case "channel": tag = new SessionNode() { Name = "channel" }; break;
+                            case "noparse": tag = new NoparseNode(); break;
 
                             default: tag = new TextNode(); break;
                         }
-
-                        if (TagContentStack.Peek() is IContentNode)
-                            (TagContentStack.Peek() as IContentNode).Content.Push(tag);
-                        else if (TagStack.Peek() is IContentNode)
-                            (TagStack.Peek() as IContentNode).Content.Push(tag);
+                        
+                        if (TagContentStack.Any() && TagContentStack.Peek() is IContentNode)
+                            (TagContentStack.Peek() as IContentNode).Content.Add(tag);
+                        else if (TagStack.Any() && TagStack.Peek() is IContentNode)
+                            (TagStack.Peek() as IContentNode).Content.Add(tag);
                         else
                             Parsed.Add(tag);
                         
@@ -151,7 +158,7 @@ namespace XAMLMessenger.Message
                 else if (top is IContentNode)
                 {
                     var text = new TextNode { Text = Text };
-                    (top as IContentNode).Content.Push(text);
+                    (top as IContentNode).Content.Add(text);
                     TagContentStack.Push(text);
                 }
                 else

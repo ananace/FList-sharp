@@ -20,7 +20,7 @@ namespace XAMLMessenger.Message.Nodes
             {
                 Width = 30,
                 Height = 30,
-                Source = new BitmapImage(new Uri("$https://static.f-list.net/images/avatar/{Uri.EscapeUriString(Text.ToLower())}.png"))
+                Source = new BitmapImage(new Uri($"https://static.f-list.net/images/avatar/{Uri.EscapeUriString(Text.ToLower())}.png"))
             }))
             {
                 NavigateUri = new Uri($"flist://character/{Uri.EscapeUriString(Text.ToLower())}"),

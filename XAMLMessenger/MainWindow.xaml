@@ -6,7 +6,10 @@
         xmlns:local="clr-namespace:XAMLMessenger"
         xmlns:controls="clr-namespace:XAMLMessenger.Controls"
         mc:Ignorable="d"
-        Title="MainWindow" Height="600" Width="1024" Background="#FF1B446F">
+        Title="MainWindow" Height="600" Width="1024" Background="#FF1B446F" Loaded="Window_Loaded">
+    <Window.Resources>
+        <BitmapImage x:Key="StaticImageResource" UriSource="pack://siteoforigin:,,,/Resources/combined.png"/>
+    </Window.Resources>
     <Grid>
         <TabControl Margin="0,40,0,0" TabStripPlacement="Left" Background="{x:Null}" BorderBrush="{x:Null}" Name="_chatList">
             <TabControl.Resources>
@@ -51,7 +54,11 @@
 
             <TabItem Background="{x:Null}" BorderBrush="{x:Null}" Foreground="{x:Null}">
                 <TabItem.Header>
-                    <Image Source="pack://siteoforigin:,,,/Resources/console.png" Width="32" Height="32"></Image>
+                    <Image Width="24" Height="24">
+                        <Image.Source>
+                            <CroppedBitmap Source="{StaticResource StaticImageResource}" SourceRect="120 0 24 24" />
+                        </Image.Source>
+                    </Image>
                 </TabItem.Header>
                 <controls:MessageList x:Name="_consoleChat">
 
@@ -59,7 +66,7 @@
             </TabItem>
             <TabItem>
                 <TabItem.Header>
-                    <Image Source="pack://siteoforigin:,,,/Resources/hash.png" Width="32" Height="32"></Image>
+                    <Image Source="{StaticResource StaticImageResource}" Width="32" Height="32"></Image>
                 </TabItem.Header>
                 <controls:ChatChannel/>
             </TabItem>

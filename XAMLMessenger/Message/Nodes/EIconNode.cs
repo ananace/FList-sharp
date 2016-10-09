@@ -16,7 +16,7 @@ namespace XAMLMessenger.Message.Nodes
             {
                 Width = 30,
                 Height = 30,
-                Source = new BitmapImage(new Uri("$https://static.f-list.net/images/icons/{Text}.png")),
+                Source = new BitmapImage(new Uri($"https://static.f-list.net/images/icons/{Text}.png")),
                 ToolTip = Text
             });
         }

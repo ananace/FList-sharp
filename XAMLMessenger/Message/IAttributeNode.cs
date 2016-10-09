@@ -10,4 +10,12 @@ namespace XAMLMessenger.Message
     {
         string Attribute { get; set; }
     }
+
+    static class AttributeNodeExtensions
+    {
+        public static string ToHeader(this IAttributeNode self)
+        {
+            return $"{self.Name}={self.Attribute}";
+        }
+    }
 }

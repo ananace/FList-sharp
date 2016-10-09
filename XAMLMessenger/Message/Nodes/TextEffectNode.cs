@@ -12,29 +12,43 @@ namespace XAMLMessenger.Message.Nodes
     class TextEffectNode : IContentNode
     {
         public string Name { get; set; }
-        public Stack<INode> Content { get; } = new Stack<INode>();
+        public ICollection<INode> Content { get; } = new List<INode>();
 
-        public string Color { get; set; } = "White";
-        public FontWeight FontWeight { get; set; } = FontWeights.Regular;
-        public FontStyle FontStyle { get; set; } = FontStyles.Normal;
-        public BaselineAlignment BaselineAlignment { get; set; } = BaselineAlignment.Baseline;
-        public TextDecorationCollection TextDecorations { get; set; } = System.Windows.TextDecorations.Baseline;
+        public string Color { get; set; } = null;
+        public FontWeight? FontWeight { get; set; } = null;
+        public FontStyle? FontStyle { get; set; } = null;
+        public BaselineAlignment? BaselineAlignment { get; set; } = null;
+        public TextDecorationCollection TextDecorations { get; set; } = null;
 
         public Inline ToInline(libflist.FChat.Channel _chan)
         {
-            var span = new Span
+            try
             {
-                Foreground = _GetBrush(Color),
-                FontWeight = FontWeight,
-                FontStyle = FontStyle,
-                BaselineAlignment = BaselineAlignment,
-                TextDecorations = TextDecorations
-            };
+                var span = new Span();
 
-            foreach (var node in Content.Select(c => c.ToInline(_chan)))
-                span.Inlines.Add(node);
+                if (!string.IsNullOrEmpty(Color))
+                    span.Foreground = _GetBrush(Color);
+                if (BaselineAlignment.HasValue)
+                {
+                    span.BaselineAlignment = BaselineAlignment.Value;
+                    span.FontSize -= 2;
+                }
+                if (FontWeight.HasValue)
+                    span.FontWeight = FontWeight.Value;
+                if (FontStyle.HasValue)
+                    span.FontStyle = FontStyle.Value;
+                if (TextDecorations != null)
+                    span.TextDecorations = TextDecorations;
 
-            return span;
+                foreach (var node in Content.Select(c => c.ToInline(_chan)))
+                    span.Inlines.Add(node);
+
+                return span;
+            }
+            catch(Exception ex)
+            {
+                return new Run($"{(this as IContentNode).ToNodeString()}") { ToolTip = ex.ToString() };
+            }
         }
 
         Brush _GetBrush(string name)

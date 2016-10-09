@@ -57,6 +57,7 @@ namespace XAMLMessenger
 		{
 			InitializeComponent();
 
+#if false
             App.Current.FChatClient.OnSYSMessage += (s, e) =>
             {
                 _consoleChat.AddMessage((e.Command as libflist.FChat.Commands.Server_SYS_ChatSYSMessage).Message);
@@ -87,6 +88,16 @@ namespace XAMLMessenger
             {
                 GetOrCreateChannel(e.Channel).AddLFRPMessage(e.Character, e.Message);
             };
+#endif
         }
-	}
+
+        private void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+
+            _consoleChat.AddMessage("[session]Cuntboy[/session] [url=https://google.com][icon]ananace[/icon] or [i][sub]google[/sub][/i][/url]");
+            _consoleChat.AddMessage("[session]Cuntboy[/session] [url=https://google.com][icon]ananace[/icon] or [i][sub]google[/sub][/i][/url]");
+            _consoleChat.AddMessage("[session]Cuntboy[/session] [url=https://google.com][icon]ananace[/icon] or [i][sub]google[/sub][/i][/url]");
+            _consoleChat.AddMessage("[session]Cuntboy[/session] [icon]ananace[/icon][url=https://google.com] or [i][sub]google[/sub][/i][/url]");
+        }
+    }
 }

@@ -31,8 +31,25 @@ namespace XAMLMessenger.Controls
         public void AddMessage(string message)
         {
             var par = new Paragraph();
-            par.Background = Brushes.DarkGray;
-            par.Foreground = Brushes.DarkGray;
+
+            par.KeepWithNext = true;
+            par.KeepTogether = true;
+            par.LineHeight = 1;
+
+            par.BorderBrush = new LinearGradientBrush(Colors.Black, Colors.White, 90.0)
+            {
+                Opacity = 0.1
+            };
+            par.BorderThickness = new Thickness(0, 1, 0, 1);
+
+            par.FontSize = 11;
+            par.FontStyle = FontStyles.Italic;
+            par.Background = new SolidColorBrush
+            {
+                Color = Colors.Black,
+                Opacity = 0.25
+            };
+            par.Foreground = Brushes.LightGray;
 
             par.Inlines.Add(new Message.Nodes.DateNode().ToInline(null));
             par.Inlines.AddRange(new Parser().ParseMessage(message).Select(n => n.ToInline(null)));

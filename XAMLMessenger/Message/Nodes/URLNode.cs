@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Controls;
 using System.Windows.Documents;
+using System.Windows.Media.Imaging;
 
 namespace XAMLMessenger.Message.Nodes
 {
@@ -11,7 +13,7 @@ namespace XAMLMessenger.Message.Nodes
     {
         public string Name { get; } = "url";
         public string Attribute { get; set; }
-        public Stack<INode> Content { get; } = new Stack<INode>();
+        public ICollection<INode> Content { get; } = new List<INode>();
 
         public string Uri { get
             {
@@ -20,16 +22,32 @@ namespace XAMLMessenger.Message.Nodes
 
         public Inline ToInline(libflist.FChat.Channel _chan)
         {
-            var link = new Hyperlink()
+            try
             {
-                NavigateUri = new Uri(Uri),
-                ToolTip = Uri
-            };
+                var link = new Hyperlink()
+                {
+                    NavigateUri = new Uri(Uri),
+                    ToolTip = Uri
+                };
 
-            foreach (var node in Content.Select(n => n.ToInline(_chan)))
-                link.Inlines.Add(node);
+                link.Inlines.Add(new InlineUIContainer(new Image
+                {
+                    Source = new CroppedBitmap(App.Current.StaticImageResource, new System.Windows.Int32Rect(72, 96, 24, 24)),
+                    Width = 16,
+                    Height = 16,
+                })
+                {
+                    BaselineAlignment = System.Windows.BaselineAlignment.TextBottom
+                });
+                foreach (var node in Content.Select(n => n.ToInline(_chan)))
+                    link.Inlines.Add(node);
 
-            return link;
+                return link;
+            }
+            catch(Exception ex)
+            {
+                return new Run($"{(this as IContentNode).ToNodeString()}") { ToolTip = ex.ToString() };
+            }
         }
     }
 }

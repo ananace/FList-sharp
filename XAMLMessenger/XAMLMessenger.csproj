@@ -96,12 +96,14 @@
     <Compile Include="Dialogs\LoginDialog.xaml.cs">
       <DependentUpon>LoginDialog.xaml</DependentUpon>
     </Compile>
+    <Compile Include="FListUriParser.cs" />
     <Compile Include="Message\IAttributeNode.cs" />
     <Compile Include="Message\ITextNode.cs" />
     <Compile Include="Message\IContentNode.cs" />
     <Compile Include="Message\INode.cs" />
     <Compile Include="Message\Nodes\DateNode.cs" />
     <Compile Include="Message\Nodes\EIconNode.cs" />
+    <Compile Include="Message\Nodes\NoparseNode.cs" />
     <Compile Include="Message\Nodes\SessionNode.cs" />
     <Compile Include="Message\Nodes\CharacterNode.cs" />
     <Compile Include="Message\Nodes\IconNode.cs" />
@@ -157,7 +159,9 @@
     <None Include="Resources\hash.png" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\combined.png" />
+    <Content Include="Resources\combined.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

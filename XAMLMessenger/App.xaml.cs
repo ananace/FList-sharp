@@ -24,10 +24,12 @@ namespace XAMLMessenger
         {
             _flist = new FListClientV1();
             _fchat = new FChatConnection(_flist);
+
+            UriParser.Register(new FListUriParser(), "flist", 1);
         }
 
         public static new App Current { get { return Application.Current as App; } }
-        public BitmapImage StaticImageResource { get { return this.Resources["StaticImageResource"] as BitmapImage; } }
+        public BitmapImage StaticImageResource { get { return MainWindow.Resources["StaticImageResource"] as BitmapImage; } }
 
         public IFListClient FListClient => _flist;
         public FChatConnection FChatClient => _fchat;
