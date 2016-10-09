@@ -8,6 +8,7 @@ using System.Windows;
 
 using libflist;
 using libflist.FChat;
+using System.Windows.Media.Imaging;
 
 namespace XAMLMessenger
 {
@@ -26,6 +27,7 @@ namespace XAMLMessenger
         }
 
         public static new App Current { get { return Application.Current as App; } }
+        public BitmapImage StaticImageResource { get { return this.Resources["StaticImageResource"] as BitmapImage; } }
 
         public IFListClient FListClient => _flist;
         public FChatConnection FChatClient => _fchat;

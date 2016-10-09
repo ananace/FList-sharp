@@ -37,6 +37,7 @@ namespace libflist.FChat
 		public string StatusMessage { get; internal set; }
 		
 		public TypingStatus IsTyping { get; internal set; }
+        public bool IsChatOp { get { return Connection.ChatOPs.Contains(this); } }
 
 		internal Character(FChatConnection Connection, libflist.Character Character) : base(Character.Client, Character.Name)
 		{

@@ -80,19 +80,20 @@ namespace libflist.FChat
 			// Chat OP related
 			_Handlers["ADL"] += (_, c) => {
 				var adl = c as Server_ADL_ChatListOPs;
-				// TODO: Implement OP list
+                _ChatOPs.Clear();
+                _ChatOPs.AddRange(adl.OPs.Select(n => GetCharacter(n)));
 				Debug.WriteLine($"Recieved OP list with {adl.OPs.Length} entries.");
 			};
 			_Handlers["AOP"] += (_, c) => {
 				var aop = c as Server_AOP_ChatAddOP;
 				var character = GetCharacter(aop.Character);
-				// TODO: Implement OP list
+                _ChatOPs.Add(character);
 				OnOPAdded?.Invoke(this, new CharacterEntryEventArgs(character, aop));
 			};
 			_Handlers["DOP"] += (_, c) => {
 				var dop = c as Server_DOP_ChatRemoveOP;
 				var character = GetCharacter(dop.Character);
-				// TODO: Implement OP list
+                _ChatOPs.Remove(character);
 				OnOPRemoved?.Invoke(this, new CharacterEntryEventArgs(character, dop));
 			};
 

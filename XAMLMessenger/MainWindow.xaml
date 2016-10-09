@@ -6,16 +6,62 @@
         xmlns:local="clr-namespace:XAMLMessenger"
         xmlns:controls="clr-namespace:XAMLMessenger.Controls"
         mc:Ignorable="d"
-        Title="MainWindow" Height="350" Width="525" Background="#FF1B446F">
+        Title="MainWindow" Height="600" Width="1024" Background="#FF1B446F">
     <Grid>
         <TabControl Margin="0,40,0,0" TabStripPlacement="Left" Background="{x:Null}" BorderBrush="{x:Null}" Name="_chatList">
+            <TabControl.Resources>
+                <Style TargetType="TabItem">
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="TabItem">
+                                <Grid Name="Panel" Margin="-1,0,-3,0">
+                                    <ContentPresenter x:Name="ContentSite"
+                                        VerticalAlignment="Center"
+                                        HorizontalAlignment="Center"
+                                        ContentSource="Header"
+                                        Margin="8,2"/>
+                                </Grid>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsSelected" Value="True">
+                                        <Setter TargetName="Panel" Property="Background" >
+                                            <Setter.Value>
+                                                <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                                                    <GradientStop Color="Red" Offset="0"/>
+                                                    <GradientStop Color="#FF6A0000" Offset="1"/>
+                                                </LinearGradientBrush>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </Trigger>
+                                    <Trigger Property="IsSelected" Value="False">
+                                        <Setter TargetName="Panel" Property="Background" >
+                                            <Setter.Value>
+                                                <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                                                    <GradientStop Color="#00000000" Offset="0"/>
+                                                    <GradientStop Color="#19000000" Offset="1"/>
+                                                </LinearGradientBrush>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </TabControl.Resources>
+
             <TabItem Background="{x:Null}" BorderBrush="{x:Null}" Foreground="{x:Null}">
                 <TabItem.Header>
-                    <Image Source="pack://siteoforigin:,,,/Resources/console.png" Width="16" Height="16"></Image>
+                    <Image Source="pack://siteoforigin:,,,/Resources/console.png" Width="32" Height="32"></Image>
                 </TabItem.Header>
                 <controls:MessageList x:Name="_consoleChat">
-                    
+
                 </controls:MessageList>
+            </TabItem>
+            <TabItem>
+                <TabItem.Header>
+                    <Image Source="pack://siteoforigin:,,,/Resources/hash.png" Width="32" Height="32"></Image>
+                </TabItem.Header>
+                <controls:ChatChannel/>
             </TabItem>
         </TabControl>
     </Grid>

@@ -4,12 +4,43 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:XAMLMessenger.Controls"
-             mc:Ignorable="d" 
-             d:DesignHeight="300" d:DesignWidth="485.118">
-    <StackPanel Orientation="Horizontal">
-        <local:MessageList x:Name="_messageList"></local:MessageList>
-        <ListView x:Name="_userList">
-            
-        </ListView>
-    </StackPanel>
+             mc:Ignorable="d"
+             x:Name="_this"
+             d:DesignHeight="600" d:DesignWidth="800" ScrollViewer.VerticalScrollBarVisibility="Disabled">
+    <UserControl.Resources>
+        <local:HalfConverter x:Key="HalfConverter" />
+    </UserControl.Resources>
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="1" />
+            <ColumnDefinition Width="220" />
+        </Grid.ColumnDefinitions>
+        <local:MessageList x:Name="_messageList" Grid.Column="0" />
+        <GridSplitter Grid.Column="1" />
+        <Grid Grid.Column="2" >
+            <Grid VerticalAlignment="Top" Height="24" Name="_userTitleGrid">
+                <Label HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" Content="Users" Width="{Binding ElementName=_userTitleGrid, Path=ActualWidth, Converter={StaticResource HalfConverter}}">
+                    <Label.Background>
+                        <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                            <GradientStop Color="#FF6C0000" Offset="1"/>
+                            <GradientStop Color="#FFD60000"/>
+                        </LinearGradientBrush>
+                    </Label.Background>
+                </Label>
+                <Label HorizontalAlignment="Right" Foreground="White" Content="{Binding ElementName=_this, Path=Channel.Characters.Count}"  Width="{Binding ElementName=_userTitleGrid, Path=ActualWidth, Converter={StaticResource HalfConverter}}">
+                    <Label.Background>
+                        <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                            <GradientStop Color="#FF143455" Offset="1"/>
+                            <GradientStop Color="#FF1B446F"/>
+                        </LinearGradientBrush>
+                    </Label.Background>
+                </Label>
+            </Grid>
+            <FlowDocumentScrollViewer x:Name="_userList" Background="{x:Null}" BorderBrush="{x:Null}" Margin="0,24,0,0" BorderThickness="0" VerticalScrollBarVisibility="Visible">
+                <FlowDocument>
+                </FlowDocument>
+            </FlowDocumentScrollViewer>
+        </Grid>
+    </Grid>
 </UserControl>

@@ -42,6 +42,7 @@ namespace libflist.FChat
 		List<KnownChannel> _PrivateChannels;
 
 		List<Channel> _Channels;
+        List<Character> _ChatOPs;
 
 		Timer _VariableTimer;
 
@@ -58,8 +59,8 @@ namespace libflist.FChat
 		public bool AutoReconnect { get; set; }
 		public bool AutoUpdate { get; set; }
 
-		public IReadOnlyDictionary<string, EventHandler<Command>> MessageHandlers { get { return _Handlers; } }
-		public ServerVariables Variables { get { return _Variables; } }
+        public IReadOnlyDictionary<string, EventHandler<Command>> MessageHandlers => _Handlers;
+        public ServerVariables Variables => _Variables;
 
 		public IEnumerable<KnownChannel> AllKnownChannels { get { return _OfficialChannels.Concat(_PrivateChannels); } }
 		public IReadOnlyCollection<KnownChannel> OfficialChannels
@@ -89,7 +90,9 @@ namespace libflist.FChat
 			}
 		}
 
-		public IEnumerable<Channel> ActiveChannels { get { return _Channels; } }
+        public IReadOnlyList<Character> ChatOPs => _ChatOPs;
+
+        public IEnumerable<Channel> ActiveChannels => _Channels;
         public bool IsConnected { get { return _Connection != null && _Connection.ReadyState != WebSocketState.Closed; } }
 
 		// Server events
@@ -171,6 +174,7 @@ namespace libflist.FChat
 
 			_OfficialChannels = new List<KnownChannel>();
 			_PrivateChannels = new List<KnownChannel>();
+            _ChatOPs = new List<Character>();
 
 			_Channels = new List<Channel>();
 			_Variables = new ServerVariables();

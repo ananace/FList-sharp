@@ -7,7 +7,7 @@
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="300">
     <FlowDocumentScrollViewer VerticalScrollBarVisibility="Auto">
-        <FlowDocument TextAlignment="Left" Name="_document">
+        <FlowDocument TextAlignment="Left" Name="_document" Background="#25000000">
 
         </FlowDocument>
     </FlowDocumentScrollViewer>

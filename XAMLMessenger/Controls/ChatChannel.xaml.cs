@@ -15,6 +15,9 @@ using System.Windows.Shapes;
 
 using libflist.FChat;
 using libflist.Info;
+using System.Globalization;
+using XAMLMessenger.Message.Nodes;
+using XAMLMessenger.Message;
 
 namespace XAMLMessenger.Controls
 {
@@ -27,6 +30,10 @@ namespace XAMLMessenger.Controls
         public IReadOnlyCollection<libflist.Character> Users => _channel.Characters;
         public Channel Channel => _channel;
 
+        public ChatChannel() : this(null)
+        {
+        }
+
         public ChatChannel(Channel chan)
         {
             _channel = chan;
@@ -36,24 +43,19 @@ namespace XAMLMessenger.Controls
 
         void baseMessage(Paragraph par, Character sender, string message)
         {
-            par.Inlines.Add(new Run()
-            {
-                Text = DateTime.Now.ToShortTimeString(),
-                Foreground = Brushes.White,
-                FontStyle = FontStyles.Italic 
+            if (sender == App.Current.FChatClient.LocalCharacter)
+                par.Background = new SolidColorBrush
+                {
+                    Color = Colors.Black,
+                    Opacity = 0.1
+                };
+
+            par.Inlines.AddRange(new Inline[]{
+                new DateNode().ToInline(_channel),
+                new CharacterNode { Text = sender.Name }.ToInline(_channel)
             });
-            par.Inlines.Add(new Run()
-            {
-                Text = "¤",
-                Foreground = GetBrush(sender.Status),
-                FontStyle = FontStyles.Normal
-            });
-            par.Inlines.Add(new Run()
-            {
-                Text = sender.Name,
-                Foreground = GetBrush(sender.Gender),
-            });
-            par.Inlines.AddRange(_messageList.ParseMessage(message));
+
+            par.Inlines.AddRange(new Parser().ParseMessage(message).Select(n => n.ToInline(_channel)));
         }
 
         public void AddAction(Character sender, string action)
@@ -77,7 +79,7 @@ namespace XAMLMessenger.Controls
         }
         public void AddSYSMessage(string message)
         {
-            _messageList.AddMessage(message);
+            _messageList.AddMessage($"System: {message}");
         }
         public void AddLFRPMessage(Character sender, string message)
         {
@@ -112,6 +114,21 @@ namespace XAMLMessenger.Controls
             }
 
             return Brushes.DarkGray;
+        }
+    }
+
+    public class HalfConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType,
+              object parameter, CultureInfo culture)
+        {
+            return (double)value / 2;
+        }
+
+        public object ConvertBack(object value, Type targetType,
+            object parameter, CultureInfo culture)
+        {
+            return (double)value * 2;
         }
     }
 }
