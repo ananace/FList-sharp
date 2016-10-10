@@ -151,7 +151,20 @@ namespace ConsoleMessenger
                 var status = $" {"[".Color(ConsoleColor.DarkCyan)}{DateTime.Now.ToShortTimeString()}{"]".Color(ConsoleColor.DarkCyan)} ";
 
                 if (_Chat.IsIdentified)
-                    status += $"{"[".Color(ConsoleColor.DarkCyan)}{Connection.LocalCharacter.Status.ToANSIString()} {Connection.LocalCharacter.ToANSIString()}{"]".Color(ConsoleColor.DarkCyan)}";
+                    status += $"{"[".Color(ConsoleColor.DarkCyan)}{Connection.LocalCharacter.Status.ToANSIString()} {Connection.LocalCharacter.ToANSIString()}{"]".Color(ConsoleColor.DarkCyan)} ";
+
+				status += $"{"[".Color(ConsoleColor.DarkCyan)}{_CurBuffer}:{CurrentChannelBuffer.Channel?.Title ?? "Console"}{"]".Color(ConsoleColor.DarkCyan)} ";
+
+				var act = _ChannelBuffers.Where(c => c.Activity).ToList();
+				if (act.Any())
+				{
+					status += $"{"[".Color(ConsoleColor.DarkCyan)}Act: ";
+					status += string.Join(",", act.Select(c => {
+						string id = _ChannelBuffers.IndexOf(c).ToString();
+						return id.Color(c.Hilight ? ConsoleColor.Red : ConsoleColor.White);
+					}));
+		            status += $"{"]".Color(ConsoleColor.DarkCyan)}";
+				}
 
                 return status;
             }
