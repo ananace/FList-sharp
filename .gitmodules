@@ -1,3 +1,0 @@
-[submodule "libCBUI"]
-	path = libCBUI
-	url = git://github.com/ace13/CBUI.git
