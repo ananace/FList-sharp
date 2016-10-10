@@ -46,10 +46,12 @@ namespace ConsoleMessenger.UI.FChat
 
                 Graphics.DrawLine(new Point(0, 0), new Point(ConsoleHelper.Size.Width - 1, 0), ' ', ConsoleColor.DarkBlue);
                 Graphics.WriteANSIString(TitleBar, new Point(0, 0), ConsoleColor.DarkBlue, ConsoleColor.White);
+                Graphics.DrawFilledBox(new Point(0, 1), new Point(ConsoleHelper.Size.Width - 1, ConsoleHelper.Size.Height - 3), ' ');
 
-                //List<Rendered> toDraw = new List<Rendered>();
                 int height = ConsoleHelper.Size.Height - 4;
                 int totalHeight = 0;
+
+                // TODO Scrolling
 
                 using (var c = new CursorChanger(new Point(0, 1)))
                 {

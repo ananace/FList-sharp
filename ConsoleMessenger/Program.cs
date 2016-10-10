@@ -83,7 +83,7 @@ namespace ConsoleMessenger
 		public static void Start()
 		{
 			_OldSize = Size;
-			_Timer = new System.Threading.Timer(HandleTimerCallback, null, 0, 250);
+			_Timer = new Timer(HandleTimerCallback, null, 0, 250);
 		}
 		public static void Stop()
 		{
@@ -140,7 +140,11 @@ namespace ConsoleMessenger
 			get { return _CurBuffer; }
 			set
 			{
-				_CurBuffer = value;
+				if (value != _CurBuffer && value >= 0 && value < _ChannelBuffers.Count)
+				{
+					_CurBuffer = value;
+					CurrentChannelBuffer.Render();
+				}
 			}
 		}
         public static int BufferCount => _ChannelBuffers.Count;
@@ -163,10 +167,10 @@ namespace ConsoleMessenger
 						string id = _ChannelBuffers.IndexOf(c).ToString();
 						return id.Color(c.Hilight ? ConsoleColor.Red : ConsoleColor.White);
 					}));
-		            status += $"{"]".Color(ConsoleColor.DarkCyan)}";
+					status += $"{"]".Color(ConsoleColor.DarkCyan)} ";
 				}
 
-                return status;
+				return status;
             }
         }
 
@@ -180,75 +184,139 @@ namespace ConsoleMessenger
 				try
 				{
 					var key = Console.ReadKey(true);
-					_InputBox.PushInput(key);
 
-					switch (key.Key)
+					if (key.Modifiers.HasFlag(ConsoleModifiers.Alt))
 					{
-						case ConsoleKey.Tab:
-							{
-								var inp = _InputBox.Content as string;
-								var completion = TabComplete(inp);
-								if (completion == null || !completion.Found.Any())
-									break;
-
-								var completions = completion.Found;
-
-								var firstSpace = completion.TruePrefix.IndexOf(' ');
-								var needsQuotes = firstSpace > -1 && firstSpace < completion.TruePrefix.Length - 1;
-
-								if (inp.EndsWith("\"", StringComparison.OrdinalIgnoreCase))
-									inp = inp.Substring(0, inp.Length - 1);
-								inp = inp.Substring(0, inp.Length - completion.Prefix.Length);
-								if (inp.EndsWith("\"", StringComparison.OrdinalIgnoreCase))
-									inp = inp.Substring(0, inp.Length - 1);
-
-								if (completions.Length == 1)
-								{
-									inp += (needsQuotes ? "\"" : "") + completions.First() + (needsQuotes ? "\"" : "");
-								}
-								else
-								{
-									inp += (needsQuotes ? "\"" : "") + completion.TruePrefix;
-
-									// TODO: Show available tab-completions
-								}
-
-								_InputBox.Content = inp;
-								_InputBox.Cursor = inp.Length;
-                                _InputBox.Render();
-							}
-							break;
-
-						case ConsoleKey.Clear: Redraw(true); break;
-
-						default:
-							switch (key.KeyChar)
-							{
-								case '1':
-								case '2':
-								case '3':
-								case '4':
-								case '5':
-								case '6':
-								case '7':
-								case '8':
-								case '9':
+						switch (key.Key)
+						{
+							case ConsoleKey.D0:
+							case ConsoleKey.D1:
+							case ConsoleKey.D2:
+							case ConsoleKey.D3:
+							case ConsoleKey.D4:
+							case ConsoleKey.D5:
+							case ConsoleKey.D6:
+							case ConsoleKey.D7:
+							case ConsoleKey.D8:
+							case ConsoleKey.D9:
+							case ConsoleKey.Q:
+							case ConsoleKey.W:
+							case ConsoleKey.E:
+							case ConsoleKey.R:
+							case ConsoleKey.T:
+							case ConsoleKey.Y:
+							case ConsoleKey.U:
+							case ConsoleKey.I:
+							case ConsoleKey.O:
+							case ConsoleKey.P:
+								{ // Switch buffer
+									int buf = -1;
+									if (key.Key > ConsoleKey.D9)
 									{
-										int buffer = key.KeyChar - '1';
-
-										if (buffer <= BufferCount && key.Modifiers.HasFlag(ConsoleModifiers.Alt))
-											CurrentBuffer = buffer;
+										IReadOnlyDictionary<char, int> _CharMap = new Dictionary<char, int>{
+											{ 'q', 10 },
+											{ 'w', 11 },
+											{ 'e', 12 },
+											{ 'r', 13 },
+											{ 't', 14 },
+											{ 'y', 15 },
+											{ 'u', 16 },
+											{ 'i', 17 },
+											{ 'o', 18 },
+											{ 'p', 19 }
+										};
+										buf = _CharMap[key.KeyChar];
 									}
-									break;
+									else
+									{
+										buf = (key.Key - ConsoleKey.D1);
+										if (buf < 0)
+											buf = 9;
+									}
 
-								case '\x04':
-									throw new EndOfStreamException();
+									CurrentBuffer = buf;
+								}
+								break;
 
-								case '\f':
-									Redraw(true);
-									break;
-							}
-							break;
+							case ConsoleKey.A:
+								{ // Go to activity
+									var buf = _ChannelBuffers.Where(c => c.Activity || c.Hilight).OrderByDescending(c => (c.Hilight ? 2 : 0) + (c.Activity ? 1 : 0)).FirstOrDefault();
+
+									if (buf != null)
+										CurrentBuffer = _ChannelBuffers.IndexOf(buf);
+								}
+								break;
+
+							case ConsoleKey.H:
+							case ConsoleKey.L:
+								{ // Next / Prev
+									var dir = key.Key == ConsoleKey.H ? -1 : 1;
+
+									var target = CurrentBuffer + dir;
+									if (target < 0)
+										target = _ChannelBuffers.Count - 1;
+									else if (target >= _ChannelBuffers.Count)
+										target = 0;
+									CurrentBuffer = target;
+								}
+								break;
+						}
+					}
+					else
+					{
+						_InputBox.PushInput(key);
+
+						switch (key.Key)
+						{
+							case ConsoleKey.Tab:
+								{
+									var inp = _InputBox.Content as string;
+									var completion = TabComplete(inp);
+									if (completion == null || !completion.Found.Any())
+										break;
+
+									var completions = completion.Found;
+
+									var firstSpace = completion.TruePrefix.IndexOf(' ');
+									var needsQuotes = firstSpace > -1 && firstSpace < completion.TruePrefix.Length - 1;
+
+									if (inp.EndsWith("\"", StringComparison.OrdinalIgnoreCase))
+										inp = inp.Substring(0, inp.Length - 1);
+									inp = inp.Substring(0, inp.Length - completion.Prefix.Length);
+									if (inp.EndsWith("\"", StringComparison.OrdinalIgnoreCase))
+										inp = inp.Substring(0, inp.Length - 1);
+
+									if (completions.Length == 1)
+									{
+										inp += (needsQuotes ? "\"" : "") + completions.First() + (needsQuotes ? "\"" : "");
+									}
+									else
+									{
+										inp += (needsQuotes ? "\"" : "") + completion.TruePrefix;
+
+										// TODO: Show available tab-completions
+									}
+
+									_InputBox.Content = inp;
+									_InputBox.Cursor = inp.Length;
+									_InputBox.Render();
+								}
+								break;
+
+							case ConsoleKey.Clear: Redraw(true); break;
+
+							default:
+								switch (key.KeyChar)
+								{
+									case '\x04':
+										throw new EndOfStreamException();
+
+									case '\f':
+										Redraw(true);
+										break;
+								}
+								break;
+						}
 					}
 				}
 				catch (EndOfStreamException)
@@ -388,7 +456,7 @@ namespace ConsoleMessenger
 
             if (CurrentChannelBuffer == buffer)
                 CurrentChannelBuffer.Render();
-            Redraw();
+			// Redraw();
 		}
 
 		public static void Redraw(bool full = false)
