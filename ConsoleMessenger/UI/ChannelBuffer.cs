@@ -44,11 +44,11 @@ namespace ConsoleMessenger.UI.FChat
                 Activity = false;
                 Hilight = false;
 
-                Graphics.DrawLine(new Point(0, 0), new Point(Console.WindowWidth - 1, 0), ' ', ConsoleColor.DarkBlue);
+                Graphics.DrawLine(new Point(0, 0), new Point(ConsoleHelper.Size.Width - 1, 0), ' ', ConsoleColor.DarkBlue);
                 Graphics.WriteANSIString(TitleBar, new Point(0, 0), ConsoleColor.DarkBlue, ConsoleColor.White);
 
                 //List<Rendered> toDraw = new List<Rendered>();
-                int height = Console.WindowHeight - 4;
+                int height = ConsoleHelper.Size.Height - 4;
                 int totalHeight = 0;
 
                 using (var c = new CursorChanger(new Point(0, 1)))
@@ -64,13 +64,13 @@ namespace ConsoleMessenger.UI.FChat
                             if (p.Sender != null)
                                 len += p.Sender.Name.Length;
 
-                            if (totalHeight + len / Console.WindowWidth > height)
+                            if (totalHeight + len / ConsoleHelper.Size.Width > height)
                             {
                                 totalHeight = height;
                                 return false;
                             }
 
-                            totalHeight += len / Console.WindowWidth;
+                            totalHeight += len / ConsoleHelper.Size.Width;
                             return true;
                         }).Reverse())
                     {
@@ -83,25 +83,29 @@ namespace ConsoleMessenger.UI.FChat
                         if (action)
                             Console.Write("* ");
 
-                        if (msg.Sender != null)
-                        {
-                            if (Channel != null)
-                            {
-                                if (msg.Sender.IsChatOp)
-                                    Graphics.WriteANSIString("▼".Color(ConsoleColor.Yellow));
-                                else if (Channel.Owner == msg.Sender)
-                                    Graphics.WriteANSIString("►".Color(ConsoleColor.Cyan));
-                                else if (msg.Sender.IsOPInChannel(Channel))
-                                    Graphics.WriteANSIString("►".Color(ConsoleColor.Red));
-                            }
-                            Graphics.WriteANSIString(msg.Sender.ToANSIString());
-                            Console.CursorLeft++;
-                        }
+						if (msg.Sender != null)
+						{
+							if (Channel != null)
+							{
+								if (msg.Sender.IsChatOp)
+									Graphics.WriteANSIString("▼".Color(ConsoleColor.Yellow));
+								else if (Channel.Owner == msg.Sender)
+									Graphics.WriteANSIString("►".Color(ConsoleColor.Cyan));
+								else if (msg.Sender.IsOPInChannel(Channel))
+									Graphics.WriteANSIString("►".Color(ConsoleColor.Red));
+							}
+							Graphics.WriteANSIString(msg.Sender.ToANSIString());
+						}
+						else
+							Graphics.WriteANSIString("System");
 
-                        if (action)
-                            Graphics.WriteANSIString(msg.Message.Substring(4), foreground: ConsoleColor.White);
-                        else
-                            Graphics.WriteANSIString(msg.Message, foreground: ConsoleColor.Gray);
+						if (action)
+						{
+							Console.CursorLeft++;
+							Graphics.WriteANSIString(msg.Message.Substring(4), foreground: ConsoleColor.White);
+						}
+						else
+							Graphics.WriteANSIString(": " + msg.Message, foreground: ConsoleColor.Gray);
 
                         Console.CursorLeft = 0;
                         Console.CursorTop++;

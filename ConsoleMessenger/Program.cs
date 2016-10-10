@@ -58,17 +58,31 @@ namespace ConsoleMessenger
 		}
 	}
 
+	public static class OSExtension
+	{
+		public static bool IsLinux(this OperatingSystem os)
+		{
+			return os.Platform == PlatformID.MacOSX || os.Platform == PlatformID.Unix || (int)os.Platform == 128;
+		}
+	}
+
 	public static class ConsoleHelper
 	{
         public static event EventHandler OnConsoleResized;
 
-		static System.Threading.Timer _Timer;
-        static int _OldWidth, _OldHeight;
+		static Timer _Timer;
+        static Size _OldSize;
+
+		public static Size Size { get
+			{
+				if (Environment.OSVersion.IsLinux())
+					return new Size(Console.BufferWidth, Console.BufferHeight);
+				return new Size(Console.WindowWidth, Console.WindowHeight);
+			} }
 
 		public static void Start()
 		{
-            _OldWidth = Console.WindowWidth;
-            _OldHeight = Console.WindowHeight;
+			_OldSize = Size;
 			_Timer = new System.Threading.Timer(HandleTimerCallback, null, 0, 250);
 		}
 		public static void Stop()
@@ -84,13 +98,10 @@ namespace ConsoleMessenger
 
 			try
 			{
-                var newWidth = Console.WindowWidth;
-                var newHeight = Console.WindowHeight;
-
-				if (newWidth != _OldWidth || newHeight != _OldHeight)
+				var newSize = Size;
+				if (newSize != _OldSize)
 				{
-                    _OldWidth = newWidth;
-                    _OldHeight = newHeight;
+					_OldSize = newSize;
 					OnConsoleResized(null, EventArgs.Empty);
 				}
 			}
@@ -120,7 +131,7 @@ namespace ConsoleMessenger
         public static ChannelBuffer CurrentChannelBuffer => _ChannelBuffers[_CurBuffer];
 
 		static bool _Running = true;
-        static Timer _Redraw = new Timer((_) => { Redraw(); }, null, 0, 1000);
+        static Timer _Redraw = new Timer((_) => { Redraw(); }, null, 1000, 1000);
 
         public static FChatConnection Connection => _Chat;
 		public static StoredTicket Ticket { get; set; }
@@ -384,8 +395,9 @@ namespace ConsoleMessenger
                     _InputBox.Render();
                 }
 
-                Graphics.DrawLine(new Point(0, Console.WindowHeight - 2), new Point(Console.WindowWidth - 1, Console.WindowHeight - 2), ' ', ConsoleColor.DarkBlue);
-                Graphics.WriteANSIString(StatusBar, new Point(0, Console.WindowHeight - 2), ConsoleColor.DarkBlue, ConsoleColor.Gray);
+				var size = ConsoleHelper.Size;
+                Graphics.DrawLine(new Point(0, size.Height - 2), new Point(size.Width - 1, size.Height - 2), ' ', ConsoleColor.DarkBlue);
+                Graphics.WriteANSIString(StatusBar, new Point(0, size.Height - 2), ConsoleColor.DarkBlue, ConsoleColor.Gray);
 
                 _InputBox.Focus();
             }

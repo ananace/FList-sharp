@@ -105,19 +105,12 @@ namespace ConsoleMessenger.UI
 
 	public static class Graphics
 	{
-		static bool IsLinux
-		{
-			get {
-				int p = (int)Environment.OSVersion.Platform;
-				return (p == 4 || p == 6 || p == 128);
-			}
-		}
 
 		public static Size AvailableSize
 		{
 			get
 			{
-				return new Size(Console.WindowWidth - 1, Console.WindowHeight);
+				return ConsoleHelper.Size - new Size(1, 1);
 			}
 		}
 
@@ -125,11 +118,11 @@ namespace ConsoleMessenger.UI
 		{
 			var data = String;
 
-            using (var cursor = new CursorChanger(p))
+			CursorChanger cursor = null;
+			if (p.HasValue)
+				cursor = new CursorChanger(p);
+
             using (var color = new ColorChanger(background, foreground))
-                if (IsLinux)
-                    Console.Write(String);
-                else
                 {
                     var oldBack = Console.BackgroundColor;
                     var oldFore = Console.ForegroundColor;
@@ -191,6 +184,9 @@ namespace ConsoleMessenger.UI
                         }
                     } while (!string.IsNullOrEmpty(data));
                 }
+
+			if (cursor != null)
+				cursor.Dispose();
 		}
 
 		public static void DrawChar(Point p, char c, ConsoleColor Background = ConsoleColor.Black, ConsoleColor Foreground = ConsoleColor.White)

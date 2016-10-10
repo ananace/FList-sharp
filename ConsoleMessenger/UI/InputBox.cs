@@ -51,7 +51,6 @@ namespace ConsoleMessenger.UI
 				return;
 
 			var buf = _Content as StringBuilder;
-			var before = buf.ToString();
 
 			switch (key.Key)
 			{
@@ -171,18 +170,19 @@ namespace ConsoleMessenger.UI
 
 		public void Focus()
 		{
-			Console.SetCursorPosition(Cursor, Console.WindowHeight - 1);
+			Console.SetCursorPosition(Cursor, ConsoleHelper.Size.Height - 1);
 		}
 		
 		public void Render()
 		{
             lock (Application.DrawLock)
             {
-                Graphics.DrawLine(new Point(0, Console.WindowHeight - 1), new Point(Console.WindowWidth - 1, Console.WindowHeight - 1), ' ');
+                Graphics.DrawLine(new Point(0, ConsoleHelper.Size.Height - 1), new Point(ConsoleHelper.Size.Width - 1, ConsoleHelper.Size.Height - 1), ' ');
 
-                Console.SetCursorPosition(Cursor, Console.WindowHeight - 1);
-                using (var c = new CursorChanger(new Point(0, Console.WindowHeight - 1)))
-                    Console.Write(_Content.ToString());
+                Console.SetCursorPosition(Cursor, ConsoleHelper.Size.Height - 1);
+                using (var cur = new CursorChanger(new Point(0, ConsoleHelper.Size.Height - 1)))
+				using (var col = new ColorChanger(foreground: ConsoleColor.Gray))
+                    Console.Write(_Content);
             }
 		}
 	}
