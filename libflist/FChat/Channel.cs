@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using libflist.Events;
 using libflist.FChat.Commands;
 
 namespace libflist.FChat
@@ -26,6 +27,33 @@ namespace libflist.FChat
 
 		ChannelStatus _Status;
 		FChatConnection _Connection;
+
+		// Channel user entry events
+		public event EventHandler<ChannelUserEntryEventArgs> OnUserJoin;
+		public event EventHandler<ChannelUserEntryEventArgs> OnUserLeave;
+
+		// Channel admin events
+		public event EventHandler<ChannelAdminActionEventArgs> OnUserKicked;
+		public event EventHandler<ChannelAdminActionEventArgs> OnUserBanned;
+		public event EventHandler<ChannelAdminActionEventArgs> OnUserUnbanned;
+		public event EventHandler<ChannelAdminActionEventArgs> OnUserTimedout;
+
+		// Channel status events
+		public event EventHandler<ChannelEntryEventArgs<string>> OnDescriptionChange;
+		public event EventHandler<ChannelEntryEventArgs<ChannelMode>> OnModeChange;
+		public event EventHandler<ChannelEntryEventArgs<Character>> OnOwnerChange;
+		public event EventHandler<ChannelEntryEventArgs<ChannelStatus>> OnStatusChange;
+		// public event EventHandler<ChannelEntryEventArgs<string>> OnTitleChange;
+
+		// Channel OP events
+		public event EventHandler<ChannelUserEntryEventArgs> OnOPAdded;
+		public event EventHandler<ChannelUserEntryEventArgs> OnOPRemoved;
+
+		// Channel message events
+		public event EventHandler<ChannelUserMessageEventArgs> OnChatMessage;
+		public event EventHandler<ChannelUserMessageEventArgs> OnLFRPMessage;
+		public event EventHandler<ChannelUserMessageEventArgs> OnRollMessage;
+		public event EventHandler<ChannelEntryEventArgs<string>> OnSYSMessage;
 
 		public bool IsDisposed { get; private set; }
 		public FChatConnection Connection => _Connection;
@@ -67,9 +95,9 @@ namespace libflist.FChat
 
 		internal Channel(FChatConnection Connection, string ID, string Title)
 		{
-			this._Connection = Connection;
-			this._ID = ID;
-			this._Title = Title;
+			_Connection = Connection;
+			_ID = ID;
+			_Title = Title;
 
 			_Banlist = new List<Character>();
 			_Characters = new List<Character>();
@@ -79,8 +107,8 @@ namespace libflist.FChat
 
 		public void Dispose()
 		{
-			ID = null;
-			Title = null;
+			_ID = null;
+			_Title = null;
 			_OwnerName = null;
 			_Banlist.Clear();
 			_Banlist = null;
@@ -88,7 +116,7 @@ namespace libflist.FChat
 			_OPs = null;
 			_Characters.Clear();
 			_Characters = null;
-			Connection = null;
+			_Connection = null;
 
 			Joined = false;
 			IsDisposed = true;
@@ -98,7 +126,7 @@ namespace libflist.FChat
 		{
 			return string.IsNullOrEmpty(Name) 
 				? null
-				: Connection.GetOrCreateCharacter(Name);
+				: Connection.GetCharacter(Name);
 		}
 
 		public void SendLFRP(string message)
@@ -155,9 +183,11 @@ namespace libflist.FChat
 
 						if (!string.IsNullOrEmpty(jch.Title))
 						{
-							Title = jch.Title;
+							_Title = jch.Title;
 							Joined = true;
 						}
+						else
+							OnUserJoin?.Invoke(this, new ChannelUserEntryEventArgs(this, character, jch));
 					}
 					return;
 
@@ -170,6 +200,8 @@ namespace libflist.FChat
 
 						if (character.Name == Connection.LocalCharacter.Name)
 							Dispose();
+						else
+							OnUserLeave?.Invoke(this, new ChannelUserEntryEventArgs(this, character, lch));
 					}
 					return;
 
@@ -199,6 +231,7 @@ namespace libflist.FChat
 					{
 						var cds = cmd as Server_CDS_ChannelChangeDescription;
 
+						OnDescriptionChange?.Invoke(this, new ChannelEntryEventArgs<string>(this, cds.Description, cds));
 						Description = cds.Description;
 					}
 					return;
@@ -207,6 +240,7 @@ namespace libflist.FChat
 					{
 						var rmo = cmd as Server_RMO_ChannelSetMode;
 
+						OnModeChange?.Invoke(this, new ChannelEntryEventArgs<ChannelMode>(this, rmo.Mode, rmo));
 						ChatMode = rmo.Mode;
 					}
 					return;
@@ -215,6 +249,7 @@ namespace libflist.FChat
 					{
 						var cso = cmd as Server_CSO_ChannelSetOwner;
 
+						OnOwnerChange?.Invoke(this, new ChannelEntryEventArgs<Character>(this, GetCharacter(cso.Character), cso));
 						_OwnerName = cso.Character;
 					}
 					return;
@@ -223,6 +258,7 @@ namespace libflist.FChat
 					{
 						var rst = cmd as Server_RST_ChannelSetStatus;
 
+						OnStatusChange?.Invoke(this, new ChannelEntryEventArgs<ChannelStatus>(this, rst.Status, rst));
 						_Status = rst.Status;
 					}
 					return;
@@ -233,6 +269,8 @@ namespace libflist.FChat
 
 						var character = GetCharacter(coa.Character);
 						_OPs.Add(character);
+
+						OnOPAdded?.Invoke(this, new ChannelUserEntryEventArgs(this, character, coa));
 					}
 					return;
 
@@ -242,6 +280,8 @@ namespace libflist.FChat
 
 						var character = GetCharacter(cor.Character);
 						_OPs.Remove(character);
+
+						OnOPRemoved?.Invoke(this, new ChannelUserEntryEventArgs(this, character, cor));
 					}
 					return;
 
@@ -252,8 +292,7 @@ namespace libflist.FChat
 						var character = GetCharacter(cku.Character);
 						_Characters.Remove(character);
 
-						if (_OPs.Contains(character))
-							_OPs.Remove(character);
+						OnUserKicked?.Invoke(this, new ChannelAdminActionEventArgs(this, character, GetCharacter(cku.OP), cku));
 					}
 					return;
 
@@ -264,10 +303,9 @@ namespace libflist.FChat
 						var character = GetCharacter(cbu.Character);
 						_Characters.Remove(character);
 
-						if (_OPs.Contains(character))
-							_OPs.Remove(character);
-
 						_Banlist.Add(character);
+
+						OnUserBanned?.Invoke(this, new ChannelAdminActionEventArgs(this, character, GetCharacter(cbu.OP), cbu));
 					}
 					return;
 
@@ -278,6 +316,8 @@ namespace libflist.FChat
 						var character = GetCharacter(cub.Character);
 
 						_Banlist.Remove(character);
+
+						OnUserUnbanned?.Invoke(this, new ChannelAdminActionEventArgs(this, character, GetCharacter(cub.OP), cub));
 					}
 					return;
 
@@ -288,8 +328,7 @@ namespace libflist.FChat
 						var character = GetCharacter(ctu.Character);
 						_Characters.Remove(character);
 
-						if (_OPs.Contains(character))
-							_OPs.Remove(character);
+						OnUserTimedout?.Invoke(this, new ChannelAdminActionEventArgs(this, character, GetCharacter(ctu.OP), ctu));
 					}
 					return;
 			}
