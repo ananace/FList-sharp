@@ -162,26 +162,30 @@ namespace libflist.FChat
 			_Handlers["JCH"] += (_, c) => {
 				var jch = c as Server_JCH_ChannelJoin;
 
+				var chan = GetChannel(jch.Channel);
+				chan.PushCommand(jch);
+
 				if (jch.Character.Identity != LocalCharacter.Name)
-					OnChannelUserJoin?.Invoke(this, new ChannelUserEntryEventArgs(GetOrCreateChannel(jch.Channel), GetCharacter(jch.Character.Identity), jch));
+					OnChannelUserJoin?.Invoke(this, new ChannelUserEntryEventArgs(chan, GetCharacter(jch.Character.Identity), jch));
 			};
 			_Handlers["LCH"] += (_, c) => {
 				var lch = c as Server_LCH_ChannelLeave;
 
+				var chan = GetChannel(lch.Channel);
+				chan.PushCommand(lch);
+
 				if (lch.Character == LocalCharacter.Name)
-					OnChannelLeave?.Invoke(this, new ChannelEntryEventArgs(GetChannel(lch.Channel), lch));
+					OnChannelLeave?.Invoke(this, new ChannelEntryEventArgs(chan, lch));
 				else
-					OnChannelUserLeave?.Invoke(this, new ChannelUserEntryEventArgs(GetChannel(lch.Channel), GetCharacter(lch.Character), lch));
+					OnChannelUserLeave?.Invoke(this, new ChannelUserEntryEventArgs(chan, GetCharacter(lch.Character), lch));
 			};
 			_Handlers["ICH"] += (_, c) => {
 				var ich = c as Server_ICH_ChannelInitialData;
 
-				OnChannelJoin?.Invoke(this, new ChannelEntryEventArgs(GetOrCreateChannel(ich.Channel), ich));
-			};
-			_Handlers["CDS"] += (_, c) => {
-				var cds = c as Server_CDS_ChannelChangeDescription;
+				var chan = GetOrCreateChannel(ich.Channel);
+				chan.PushCommand(ich);
 
-				OnChannelDescriptionChange?.Invoke(this, new ChannelEntryEventArgs<string>(GetChannel(cds.Channel), cds.Description, cds));
+				OnChannelJoin?.Invoke(this, new ChannelEntryEventArgs(chan, ich));
 			};
 
 
@@ -189,22 +193,34 @@ namespace libflist.FChat
 			_Handlers["CKU"] += (_, c) => {
 				var cku = c as Server_CKU_ChannelKickCharacter;
 
-				OnChannelUserKicked?.Invoke(this, new ChannelAdminActionEventArgs(GetChannel(cku.Channel), GetCharacter(cku.Character), GetCharacter(cku.OP), cku));
+				var chan = GetChannel(cku.Channel);
+				chan.PushCommand(cku);
+
+				OnChannelUserKicked?.Invoke(this, new ChannelAdminActionEventArgs(chan, GetCharacter(cku.Character), GetCharacter(cku.OP), cku));
 			};
 			_Handlers["CBU"] += (_, c) => {
 				var cbu = c as Server_CBU_ChannelBanCharacter;
 
-				OnChannelUserBanned?.Invoke(this, new ChannelAdminActionEventArgs(GetChannel(cbu.Channel), GetCharacter(cbu.Character), GetCharacter(cbu.OP), cbu));
+				var chan = GetChannel(cbu.Channel);
+				chan.PushCommand(cbu);
+
+				OnChannelUserBanned?.Invoke(this, new ChannelAdminActionEventArgs(chan, GetCharacter(cbu.Character), GetCharacter(cbu.OP), cbu));
 			};
 			_Handlers["CUB"] += (_, c) => {
 				var cub = c as Server_CUB_ChannelUnbanCharacter;
 
-				OnChannelUserUnbanned?.Invoke(this, new ChannelAdminActionEventArgs(GetChannel(cub.Channel), GetCharacter(cub.Character), GetCharacter(cub.OP), cub));
+				var chan = GetChannel(cub.Channel);
+				chan.PushCommand(cub);
+
+				OnChannelUserUnbanned?.Invoke(this, new ChannelAdminActionEventArgs(chan, GetCharacter(cub.Character), GetCharacter(cub.OP), cub));
 			};
 			_Handlers["CTU"] += (_, c) => {
 				var ctu = c as Server_CTU_ChannelTimeoutCharacter;
 
-				OnChannelUserTimedout?.Invoke(this, new ChannelAdminActionEventArgs(GetChannel(ctu.Channel), GetCharacter(ctu.Character), GetCharacter(ctu.OP), ctu));
+				var chan = GetChannel(ctu.Channel);
+				chan.PushCommand(ctu);
+
+				OnChannelUserTimedout?.Invoke(this, new ChannelAdminActionEventArgs(chan, GetCharacter(ctu.Character), GetCharacter(ctu.OP), ctu));
 			};
 
 
@@ -212,22 +228,34 @@ namespace libflist.FChat
 			_Handlers["CDS"] += (_, c) => {
 				var cds = c as Server_CDS_ChannelChangeDescription;
 
-				OnChannelDescriptionChange?.Invoke(this, new ChannelEntryEventArgs<string>(GetChannel(cds.Channel), cds.Description, cds));
+				var chan = GetChannel(cds.Channel);
+				chan.PushCommand(cds);
+
+				OnChannelDescriptionChange?.Invoke(this, new ChannelEntryEventArgs<string>(chan, cds.Description, cds));
 			};
 			_Handlers["RMO"] += (_, c) => {
 				var rmo = c as Server_RMO_ChannelSetMode;
 
-				OnChannelModeChange?.Invoke(this, new ChannelEntryEventArgs<ChannelMode>(GetChannel(rmo.Channel), rmo.Mode, rmo));
+				var chan = GetChannel(rmo.Channel);
+				chan.PushCommand(rmo);
+
+				OnChannelModeChange?.Invoke(this, new ChannelEntryEventArgs<ChannelMode>(chan, rmo.Mode, rmo));
 			};
 			_Handlers["CSO"] += (_, c) => {
 				var cso = c as Server_CSO_ChannelSetOwner;
 
-				OnChannelOwnerChange?.Invoke(this, new ChannelEntryEventArgs<Character>(GetChannel(cso.Channel), GetCharacter(cso.Character), cso));
+				var chan = GetChannel(cso.Channel);
+				chan.PushCommand(cso);
+
+				OnChannelOwnerChange?.Invoke(this, new ChannelEntryEventArgs<Character>(chan, GetCharacter(cso.Character), cso));
 			};
 			_Handlers["RST"] += (_, c) => {
 				var rst = c as Server_RST_ChannelSetStatus;
 
-				OnChannelStatusChange?.Invoke(this, new ChannelEntryEventArgs<ChannelStatus>(GetChannel(rst.Channel), rst.Status, rst));
+				var chan = GetChannel(rst.Channel);
+				chan.PushCommand(rst);
+
+				OnChannelStatusChange?.Invoke(this, new ChannelEntryEventArgs<ChannelStatus>(chan, rst.Status, rst));
 			};
 
 
@@ -235,12 +263,18 @@ namespace libflist.FChat
 			_Handlers["COA"] += (_, c) => {
 				var coa = c as Server_COA_ChannelMakeOP;
 
-				OnChannelOPAdded?.Invoke(this, new ChannelUserEntryEventArgs(GetChannel(coa.Channel), GetCharacter(coa.Character), coa));
+				var chan = GetChannel(coa.Channel);
+				chan.PushCommand(coa);
+
+				OnChannelOPAdded?.Invoke(this, new ChannelUserEntryEventArgs(chan, GetCharacter(coa.Character), coa));
 			};
 			_Handlers["COR"] += (_, c) => {
 				var cor = c as Server_COR_ChannelRemoveOP;
 
-				OnChannelOPRemoved?.Invoke(this, new ChannelUserEntryEventArgs(GetChannel(cor.Channel), GetCharacter(cor.Character), cor));
+				var chan = GetChannel(cor.Channel);
+				chan.PushCommand(cor);
+
+				OnChannelOPRemoved?.Invoke(this, new ChannelUserEntryEventArgs(chan, GetCharacter(cor.Character), cor));
 			};
 
 
@@ -248,17 +282,26 @@ namespace libflist.FChat
 			_Handlers["MSG"] += (_, c) => {
 				var msg = c as Server_MSG_ChannelChatMessage;
 
-				OnChannelChatMessage?.Invoke(this, new ChannelUserMessageEventArgs(GetChannel(msg.Channel), GetCharacter(msg.Character), msg.Message, msg));
+				var chan = GetChannel(msg.Channel);
+				chan.PushCommand(msg);
+
+				OnChannelChatMessage?.Invoke(this, new ChannelUserMessageEventArgs(chan, GetCharacter(msg.Character), msg.Message, msg));
 			};
 			_Handlers["LRP"] += (_, c) => {
 				var lrp = c as Server_LRP_ChannelLFRPMessage;
 
-				OnChannelLFRPMessage?.Invoke(this, new ChannelUserMessageEventArgs(GetChannel(lrp.Channel), GetCharacter(lrp.Character), lrp.AD, lrp));
+				var chan = GetChannel(lrp.Channel);
+				chan.PushCommand(lrp);
+
+				OnChannelLFRPMessage?.Invoke(this, new ChannelUserMessageEventArgs(chan, GetCharacter(lrp.Character), lrp.AD, lrp));
 			};
 			_Handlers["RLL"] += (_, c) => {
 				var rll = c as Server_RLL_ChannelRollMessage;
 
-				OnChannelRollMessage?.Invoke(this, new ChannelUserMessageEventArgs(GetChannel(rll.Channel), GetCharacter(rll.Character), rll.Message, rll));
+				var chan = GetChannel(rll.Channel);
+				chan.PushCommand(rll);
+
+				OnChannelRollMessage?.Invoke(this, new ChannelUserMessageEventArgs(chan, GetCharacter(rll.Character), rll.Message, rll));
 			};
 
 

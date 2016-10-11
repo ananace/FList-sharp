@@ -25,29 +25,51 @@ namespace libflist.FChat
 		string _OwnerName;
 
 		ChannelStatus _Status;
+		FChatConnection _Connection;
 
 		public bool IsDisposed { get; private set; }
-		public FChatConnection Connection { get; private set; }
+		public FChatConnection Connection => _Connection;
 
-		public string Title { get; private set; }
-		public string ID { get; private set; }
-		public string Description { get; private set; }
+		string _ID;
+		string _Title;
+		string _Description;
+
+		public string Title => _Title;
+		public string ID => _ID;
+		public string Description
+		{
+			get
+			{
+				return _Description;
+			}
+		 	set
+			{
+				_Connection.RequestCommand<Server_CDS_ChannelChangeDescription>(new Client_CDS_ChannelSetDescription { Channel = _ID, Description = value });
+			}
+		}
 
 		public bool Joined { get; private set; }
 		public bool Official { get { return Title == ID; } }
 		public ChannelMode ChatMode { get; private set; }
 		public ChannelStatus PrivacyStatus { get { return Title == ID ? ChannelStatus.Public : _Status; } }
 
-		public Character Owner { get { return GetCharacter(_OwnerName); } }
+		public Character Owner
+		{
+			get { return GetCharacter(_OwnerName); }
+			set
+			{
+				_Connection.RequestCommand<Server_CSO_ChannelSetOwner>(new Client_CSO_ChannelSetOwner { Channel = _ID, Character = value.Name });
+			}
+		}
 		public IReadOnlyCollection<Character> OPs { get { return _OPs; } }
 		public IReadOnlyCollection<Character> Characters { get { return _Characters; } }
 		public IReadOnlyCollection<Character> Banlist { get { return _Banlist; } }
 
 		internal Channel(FChatConnection Connection, string ID, string Title)
 		{
-			this.Connection = Connection;
-			this.ID = ID;
-			this.Title = Title;
+			this._Connection = Connection;
+			this._ID = ID;
+			this._Title = Title;
 
 			_Banlist = new List<Character>();
 			_Characters = new List<Character>();

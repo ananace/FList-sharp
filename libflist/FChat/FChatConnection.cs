@@ -399,65 +399,26 @@ namespace libflist.FChat
 					return chan;
 
 				chan = new Channel(this, ID, ID);
-				_Channels.Add(chan);
 			}
 			return chan;
 		}
 		public Channel GetOrJoinChannel(string ID)
 		{
-			lock (_Channels)
-			{
-				var chan = _Channels.FirstOrDefault(c => c.ID.Equals(ID, StringComparison.CurrentCultureIgnoreCase));
-				if (chan != null && chan.Joined)
-					return chan;
-
-				var reply = RequestCommand<Server_JCH_ChannelJoin>(new Client_JCH_ChannelJoin { Channel = ID });
-
-				if (chan == null)
-				{
-					chan = new Channel(this, ID, reply.Title);
-					_Channels.Add(chan);
-				}
+			var chan = GetChannel(ID);
+			if (chan?.Joined ?? false)
 				return chan;
-			}
-		}
-		public Channel GetOrJoinChannelDelayed(string ID)
-		{
-			Channel chan;
-			lock (_Channels)
-			{ 
-				chan = _Channels.FirstOrDefault(c => c.ID.Equals(ID, StringComparison.CurrentCultureIgnoreCase));
 			
-				if (chan != null && chan.Joined)
-					return chan;
-
-				SendCommand(new Client_JCH_ChannelJoin { Channel = ID });
-
-				if (chan == null)
-				{
-					chan = new Channel(this, ID, ID);
-					_Channels.Add(chan);
-				}
-				return chan;
-			}
+			RequestCommand<Server_JCH_ChannelJoin>(new Client_JCH_ChannelJoin { Channel = ID });
+			return GetChannel(ID);
 		}
-		public Channel JoinChannel(string ID)
+		public async Task<Channel> GetOrJoinChannelDelayed(string ID)
 		{
-			lock (_Channels)
-			{
-				var chan = _Channels.FirstOrDefault(c => c.ID.Equals(ID, StringComparison.CurrentCultureIgnoreCase));
-				if (chan != null && chan.Joined)
-					return chan;
-
-				var reply = RequestCommand<Server_JCH_ChannelJoin>(new Client_JCH_ChannelJoin { Channel = ID });
-
-				if (chan == null)
-				{
-					chan = new Channel(this, ID, reply.Title);
-					_Channels.Add(chan);
-				}
+			Channel chan = GetChannel(ID);
+			if (chan?.Joined ?? false)
 				return chan;
-			}
+			
+			await RequestCommandAsync<Server_JCH_ChannelJoin>(new Client_JCH_ChannelJoin { Channel = ID });
+			return GetChannel(ID);
 		}
 		public Character GetCharacter(string Name)
 		{
