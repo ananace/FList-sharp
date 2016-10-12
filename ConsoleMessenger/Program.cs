@@ -122,7 +122,7 @@ namespace ConsoleMessenger
         public static object DrawLock = new object();
 
 		static List<ChannelBuffer> _ChannelBuffers = new List<ChannelBuffer>();
-		static ChannelBuffer _ConsoleBuffer = new ChannelBuffer() { ChatBuf = new ConsoleChatBuffer() };
+		static ChannelBuffer _ConsoleBuffer = new ChannelBuffer() { ChatBuf = new ConsoleChatBuffer(), Title = "Console" };
 		static InputBox _InputBox = new InputBox();
 
 		static FChatConnection _Chat = new FChatConnection();
@@ -157,7 +157,7 @@ namespace ConsoleMessenger
                 if (_Chat.IsIdentified)
                     status += $"{"[".Color(ConsoleColor.DarkCyan)}{Connection.LocalCharacter.Status.ToANSIString()} {Connection.LocalCharacter.ToANSIString()}{"]".Color(ConsoleColor.DarkCyan)} ";
 
-				status += $"{"[".Color(ConsoleColor.DarkCyan)}{_CurBuffer}:{CurrentChannelBuffer.Channel?.Title ?? "Console"}{"]".Color(ConsoleColor.DarkCyan)} ";
+				status += $"{"[".Color(ConsoleColor.DarkCyan)}{_CurBuffer}:{CurrentChannelBuffer.Title ?? "??"}{"]".Color(ConsoleColor.DarkCyan)} ";
 
 				var act = _ChannelBuffers.Where(c => c.Activity).ToList();
 				if (act.Any())
@@ -501,19 +501,25 @@ namespace ConsoleMessenger
 
 			_Chat.OnChannelJoin += (_, e) =>
 			{
-                var chatBuf = new ChannelBuffer { Channel = e.Channel };
+				ChannelBuffer chatBuf = _ChannelBuffers.FirstOrDefault(c => c.Channel == e.Channel);
+				if (chatBuf == null)
+				{
+					chatBuf = new ChannelBuffer { Channel = e.Channel, Title = e.Channel.Title };
+					_ChannelBuffers.Add(chatBuf);
 
-				_ChannelBuffers.Add(chatBuf);
-				CurrentBuffer = _ChannelBuffers.Count - 1;
+				}
+				CurrentBuffer = _ChannelBuffers.IndexOf(chatBuf);
 			};
 			_Chat.OnChannelChatMessage += (_, e) => WriteMessage(e.Message, e.Channel, e.Character);
-			_Chat.OnChannelRollMessage += (_, e) => {
+			_Chat.OnChannelRollMessage += (_, e) =>
+			{
 				var roll = e.Command as Server_RLL_ChannelRollMessage;
 				WriteMessage(roll.Message, e.Channel, e.Character);
 			};
-			_Chat.OnCharacterChatMessage += (_, e) => {
+			_Chat.OnCharacterChatMessage += (_, e) =>
+			{
 				WriteMessage(e.Message, null, e.Character);
-			}; 
+			};
 			_Chat.OnChannelLeave += (_, e) =>
 			{
 				int i = 0;

@@ -54,7 +54,11 @@ namespace libflist.FChat
 				var sys = c as Server_SYS_ChatSYSMessage;
 
 				if (!string.IsNullOrEmpty(sys.Channel))
-					OnChannelSYSMessage?.Invoke(this, new ChannelEntryEventArgs<string>(GetChannel(sys.Channel), sys.Message, sys));
+				{
+					var chan = GetChannel(sys.Channel);
+					chan.PushCommand(sys);
+					OnChannelSYSMessage?.Invoke(this, new ChannelEntryEventArgs<string>(chan, sys.Message, sys));
+				}
 				else
 					OnSYSMessage?.Invoke(this, new CommandEventArgs(sys));
 			};

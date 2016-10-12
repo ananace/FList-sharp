@@ -331,6 +331,30 @@ namespace libflist.FChat
 						OnUserTimedout?.Invoke(this, new ChannelAdminActionEventArgs(this, character, GetCharacter(ctu.OP), ctu));
 					}
 					return;
+
+				case "MSG":
+					{
+						var msg = cmd as Server_MSG_ChannelChatMessage;
+						OnChatMessage?.Invoke(this, new ChannelUserMessageEventArgs(this, GetCharacter(msg.Character), msg.Message, msg));
+					} return;
+
+				case "LRP":
+					{
+						var lrp = cmd as Server_LRP_ChannelLFRPMessage;
+						OnLFRPMessage?.Invoke(this, new ChannelUserMessageEventArgs(this, GetCharacter(lrp.Character), lrp.AD, lrp));
+					} return;
+
+				case "RLL":
+					{
+						var rll = cmd as Server_RLL_ChannelRollMessage;
+						OnRollMessage?.Invoke(this, new ChannelUserMessageEventArgs(this, GetCharacter(rll.Character), rll.Message, rll));
+					} return;
+
+				case "SYS":
+					{
+						var sys = cmd as Server_SYS_ChatSYSMessage;
+						OnSYSMessage?.Invoke(this, new ChannelEntryEventArgs<string>(this, sys.Message, sys));
+					} return;
 			}
 		}
 	}

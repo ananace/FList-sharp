@@ -23,6 +23,7 @@ namespace ConsoleMessenger.UI.FChat
             }
         }
         public Channel Channel { get; set; }
+		public string Title { get; set; }
 
         public bool Activity { get; set; }
         public bool Hilight { get; set; }
@@ -31,9 +32,7 @@ namespace ConsoleMessenger.UI.FChat
         {
             get
             {
-                if (Channel != null)
-                    return $" {Channel.Title}";
-                return "";
+                return Title;
             }
         }
 
