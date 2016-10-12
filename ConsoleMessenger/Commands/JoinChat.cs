@@ -18,10 +18,7 @@ namespace ConsoleMessenger.Commands
 
 		public void Call(string name)
 		{
-			Application.Connection.SendCommand(new Client_JCH_ChannelJoin
-			{
-				Channel = name
-			});
+			Application.JoinChannel(name);
 		}
 	}
 }

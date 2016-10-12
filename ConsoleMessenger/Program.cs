@@ -484,6 +484,14 @@ namespace ConsoleMessenger
             }
 		}
 
+		public static void JoinChannel(string ADH)
+		{
+			var chatBuf = new ChannelBuffer { Title = ADH };
+			_ChannelBuffers.Add(chatBuf);
+
+			_Chat.SendCommand(new Client_JCH_ChannelJoin { Channel = ADH });
+		}
+
 		public static void Run()
 		{
 			Console.Title = string.Format("FChat Messenger v{0}", Assembly.GetExecutingAssembly().GetName().Version);
@@ -506,8 +514,9 @@ namespace ConsoleMessenger
 				{
 					chatBuf = new ChannelBuffer { Channel = e.Channel, Title = e.Channel.Title };
 					_ChannelBuffers.Add(chatBuf);
-
 				}
+				else
+					chatBuf.Title = e.Channel.Title;
 				CurrentBuffer = _ChannelBuffers.IndexOf(chatBuf);
 			};
 			_Chat.OnChannelChatMessage += (_, e) => WriteMessage(e.Message, e.Channel, e.Character);

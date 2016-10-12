@@ -9,7 +9,7 @@ namespace ConsoleMessenger.Commands
 	{
 		public override bool TabComplete(string input, out string[] possibilities)
 		{
-			if (input.StartsWith("ADH-"))
+			if (input.StartsWith("ADH-", StringComparison.CurrentCulture))
 				possibilities = Application.Connection.PrivateChannels
 					.Where(p => p.ID.StartsWith(input, StringComparison.OrdinalIgnoreCase))
 					.Select(p => p.ID)
@@ -26,13 +26,10 @@ namespace ConsoleMessenger.Commands
 		{
 			var channel = Application.Connection.PrivateChannels.FirstOrDefault(c => c.Title == name || c.ID == name);
 
-			if (channel == null && !name.StartsWith("ADH-"))
+			if (channel == null && !name.StartsWith("ADH-", StringComparison.CurrentCulture))
 				throw new ArgumentException(string.Format("Unknown channel {0}", name), nameof(name));
 
-			Application.Connection.SendCommand(new Client_JCH_ChannelJoin
-			{
-				Channel = (channel != null ? channel.ID : name)
-			});
+			Application.JoinChannel(channel != null ? channel.ID : name);
 		}
 	}
 }
