@@ -8,7 +8,6 @@ using System.Text;
 using ConsoleMessenger.Types;
 using libflist.FChat;
 using libflist.FChat.Commands;
-using libflist;
 using Newtonsoft.Json;
 using ConsoleMessenger.UI;
 using ConsoleMessenger.UI.FChat;
@@ -114,7 +113,7 @@ namespace ConsoleMessenger
 	{
 		public class StoredTicket
 		{
-			public AuthTicket Ticket { get; set; }
+			public libflist.AuthTicket Ticket { get; set; }
 			public string Account { get; set; }
 			public DateTime Timestamp { get; set; }
 		}
@@ -425,38 +424,36 @@ namespace ConsoleMessenger
 			WriteMessage(Text);
 		}
 
-		public static void WriteMessage(string Text, Channel inputChan = null, libflist.FChat.Character inputChar = null)
+		public static void WriteMessage(string Text, ChannelBuffer buffer = null, Channel channel = null, Character sender = null)
 		{
-			var Char = inputChar;
-			if (Char == null)
-				Char = Connection.LocalCharacter;
-
-			var Chan = inputChan;
-			ChannelBuffer buffer = null;
-			if (Chan == null)
+			if (buffer == null)
 			{
-				buffer = _ChannelBuffers[CurrentBuffer];
-				if (buffer == _ConsoleBuffer)
-					throw new Exception("Can't chat in the console, did you mean to run a command?");
-
-                Chan = buffer.Channel;
+				if (channel == null && sender != null)
+				{
+					buffer = _ChannelBuffers.FirstOrDefault(c => c.Character == sender);
+					if (buffer == null)
+					{
+						buffer = new ChannelBuffer { ChatBuf = new CharacterChatBuffer(sender), Title = sender.Name };
+						_ChannelBuffers.Add(buffer);
+					}
+				}
+				else if (channel != null)
+				{
+					buffer = _ChannelBuffers.FirstOrDefault(c => c.Channel == channel);
+					if (buffer == null)
+						throw new Exception($"Message to unknown channel buffer '{channel}' recieved; {Text}");
+				}
+				else
+					buffer = _ChannelBuffers[0];
 			}
 
-			if (buffer == null)
-				buffer = _ChannelBuffers.FirstOrDefault(b => b.Channel == Chan);
-
-			if (buffer == null)
-				throw new Exception("Message to unknown channel buffer recieved; " + Text);
-
-            buffer.ChatBuf.SendMessage(inputChar, Text);
+            buffer.ChatBuf.SendMessage(sender ?? _Chat.LocalCharacter, Text);
 
             buffer.Activity = true;
-            if (Text.ToLower().Contains(Connection.LocalCharacter.Name.ToLower()))
-                buffer.Hilight = true;
-
+			buffer.Hilight |= buffer.Character != null || Text.ToLower().Contains(Connection.LocalCharacter.Name.ToLower());
+				
             if (CurrentChannelBuffer == buffer)
                 CurrentChannelBuffer.Render();
-			// Redraw();
 		}
 
 		public static void Redraw(bool full = false)
@@ -486,8 +483,8 @@ namespace ConsoleMessenger
 
 		public static void JoinChannel(string ADH)
 		{
-			var chatBuf = new ChannelBuffer { Title = ADH };
-			_ChannelBuffers.Add(chatBuf);
+			// var chatBuf = new ChannelBuffer { Title = ADH };
+			// _ChannelBuffers.Add(chatBuf);
 
 			_Chat.SendCommand(new Client_JCH_ChannelJoin { Channel = ADH });
 		}
@@ -512,22 +509,22 @@ namespace ConsoleMessenger
 				ChannelBuffer chatBuf = _ChannelBuffers.FirstOrDefault(c => c.Channel == e.Channel);
 				if (chatBuf == null)
 				{
-					chatBuf = new ChannelBuffer { Channel = e.Channel, Title = e.Channel.Title };
+					chatBuf = new ChannelBuffer { ChatBuf = new ChannelChatBuffer(e.Channel), Title = e.Channel.Title };
 					_ChannelBuffers.Add(chatBuf);
 				}
 				else
 					chatBuf.Title = e.Channel.Title;
 				CurrentBuffer = _ChannelBuffers.IndexOf(chatBuf);
 			};
-			_Chat.OnChannelChatMessage += (_, e) => WriteMessage(e.Message, e.Channel, e.Character);
+			_Chat.OnChannelChatMessage += (_, e) => WriteMessage(e.Message, null, e.Channel, e.Character);
 			_Chat.OnChannelRollMessage += (_, e) =>
 			{
 				var roll = e.Command as Server_RLL_ChannelRollMessage;
-				WriteMessage(roll.Message, e.Channel, e.Character);
+				WriteMessage(roll.Message, null, e.Channel, e.Character);
 			};
 			_Chat.OnCharacterChatMessage += (_, e) =>
 			{
-				WriteMessage(e.Message, null, e.Character);
+				WriteMessage(e.Message, null, null, e.Character);
 			};
 			_Chat.OnChannelLeave += (_, e) =>
 			{

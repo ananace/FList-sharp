@@ -181,8 +181,9 @@ namespace ConsoleMessenger.UI
 
                 Console.SetCursorPosition(Cursor, ConsoleHelper.Size.Height - 1);
                 using (var cur = new CursorChanger(new Point(0, ConsoleHelper.Size.Height - 1)))
-				using (var col = new ColorChanger(foreground: ConsoleColor.Gray))
+				using (var col = new ColorChanger(foreground: ConsoleColor.White))
                     Console.Write(_Content);
+				Console.ForegroundColor = ConsoleColor.Gray;
             }
 		}
 	}

@@ -22,7 +22,9 @@ namespace ConsoleMessenger.UI.FChat
                 };
             }
         }
-        public Channel Channel { get; set; }
+		public Channel Channel => (_ChatBuf as ChannelChatBuffer)?.Channel;
+		public Character Character => (_ChatBuf as CharacterChatBuffer)?.Character;
+
 		public string Title { get; set; }
 
         public bool Activity { get; set; }
