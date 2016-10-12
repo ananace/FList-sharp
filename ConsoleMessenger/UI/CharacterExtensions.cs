@@ -27,14 +27,15 @@ namespace ConsoleMessenger.UI
         {
             switch (status)
             {
-                case CharacterStatus.Away: return ConsoleColor.DarkGray;
-                case CharacterStatus.Busy: return ConsoleColor.DarkYellow;
+                case CharacterStatus.Away: return ConsoleColor.DarkBlue;
+                case CharacterStatus.Busy: return ConsoleColor.DarkCyan;
                 case CharacterStatus.DND: return ConsoleColor.DarkRed;
-                case CharacterStatus.Idle: return ConsoleColor.DarkCyan;
+                case CharacterStatus.Idle: return ConsoleColor.DarkYellow;
                 case CharacterStatus.Looking: return ConsoleColor.DarkGreen;
                 case CharacterStatus.Offline: return ConsoleColor.Gray;
                 case CharacterStatus.Online: return ConsoleColor.Black;
-                case CharacterStatus.Rewarded: return ConsoleColor.Yellow;
+
+                case CharacterStatus.Rewarded: return ConsoleColor.White;
             }
             return ConsoleColor.White;
         }
@@ -45,11 +46,11 @@ namespace ConsoleMessenger.UI
             {
                 case Genders.Cuntboy: return ConsoleColor.Green;
                 case Genders.Female: return ConsoleColor.Red;
-                case Genders.Herm: return ConsoleColor.Magenta;
+                case Genders.Herm: return ConsoleColor.DarkMagenta;
                 case Genders.Male: return ConsoleColor.Blue;
                 case Genders.MaleHerm: return ConsoleColor.DarkBlue;
                 case Genders.None: return ConsoleColor.Yellow;
-                case Genders.Shemale: return ConsoleColor.DarkMagenta;
+                case Genders.Shemale: return ConsoleColor.Magenta;
                 case Genders.Transgender: return ConsoleColor.DarkYellow;
             }
             return ConsoleColor.White;
