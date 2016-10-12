@@ -3,10 +3,18 @@ using System.Collections.Generic;
 using libflist.FChat;
 using System.Linq;
 using System.Diagnostics;
-using ConsoleMessenger.UI;
 
 namespace ConsoleMessenger
 {
+	public enum MessageType
+	{
+		Chat,
+		LFRP,
+		Roll,
+
+		Preview
+	}
+
 	public class ChatBuffer
 	{
 		public class MessageData
@@ -14,6 +22,7 @@ namespace ConsoleMessenger
 			public DateTime Timestamp { get; set; }
 			public string Message { get; set; }
 			public Character Sender { get; set; }
+			public MessageType Type { get; set; }
 		}
 
         public event EventHandler<MessageData> OnMessage;
@@ -22,12 +31,18 @@ namespace ConsoleMessenger
 		public IReadOnlyList<MessageData> Messages { get { return _Messages; } }
         public int MaxMessages { get; set; } = 1000;
 
-		public void PushMessage(Character sender, string message, DateTime? timestamp = null)
+		public void Clear()
+		{
+			_Messages.Clear();
+		}
+
+		public void PushMessage(Character sender, string message, MessageType type = MessageType.Chat, DateTime? timestamp = null)
 		{
 			_Messages.Add(new MessageData {
 				Timestamp = timestamp ?? DateTime.Now,
 				Sender = sender,
-				Message = message
+				Message = message,
+				Type = type
 			});
 
             while (_Messages.Count >= MaxMessages)
@@ -36,7 +51,7 @@ namespace ConsoleMessenger
             OnMessage?.Invoke(this, _Messages.Last());
 		}
 
-		public virtual void SendMessage(Character sender, string message)
+		public virtual void SendMessage(Character sender, string message, MessageType type = MessageType.Chat)
 		{
 			PushMessage(sender, message);
 		}
@@ -88,11 +103,20 @@ namespace ConsoleMessenger
 			Channel = channel;
 		}
 
-		public override void SendMessage(Character sender, string message)
+		public override void SendMessage(Character sender, string message, MessageType type = MessageType.Chat)
 		{
-            if (sender == null || sender == Application.Connection.LocalCharacter)
-			    Channel.SendMessage(message);
-			PushMessage(sender, message);
+			if (sender == null || sender == Application.Connection.LocalCharacter)
+				switch (type)
+				{
+					case MessageType.Chat:
+						Channel.SendMessage(message); break;
+					case MessageType.LFRP:
+						Channel.SendLFRP(message); break;
+					case MessageType.Roll:
+						Channel.SendRoll(message); break;
+				}
+
+			PushMessage(sender, message, type);
 		}
 	}
 
@@ -105,10 +129,11 @@ namespace ConsoleMessenger
 			Character = character;
 		}
 
-		public override void SendMessage(Character sender, string message)
+		public override void SendMessage(Character sender, string message, MessageType type = MessageType.Chat)
 		{
-			Character.SendMessage(message);
-			PushMessage(sender, message);
+			if (type == MessageType.Chat)
+				Character.SendMessage(message);
+			PushMessage(sender, message, type);
 		}
 	}
 }

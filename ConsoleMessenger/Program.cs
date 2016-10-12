@@ -128,6 +128,7 @@ namespace ConsoleMessenger
 
 		static int _CurBuffer = 0;
         public static ChannelBuffer CurrentChannelBuffer => _ChannelBuffers[_CurBuffer];
+		public static IReadOnlyCollection<ChannelBuffer> Buffers => _ChannelBuffers;
 
 		static bool _Running = true;
         static Timer _Redraw = new Timer((_) => { Redraw(); }, null, 1000, 1000);
@@ -523,16 +524,16 @@ namespace ConsoleMessenger
 					chatBuf.Title = e.Channel.Title;
 				CurrentBuffer = _ChannelBuffers.IndexOf(chatBuf);
 			};
-			_Chat.OnChannelChatMessage += (_, e) => WriteMessage(e.Message, null, e.Channel, e.Character);
+
+			_Chat.OnChannelChatMessage += (_, e) =>
+				WriteMessage(e.Message, null, e.Channel, e.Character);
+			_Chat.OnChannelLFRPMessage += (_, e) =>
+				WriteMessage(e.Message, null, e.Channel, e.Character);
 			_Chat.OnChannelRollMessage += (_, e) =>
-			{
-				var roll = e.Command as Server_RLL_ChannelRollMessage;
-				WriteMessage(roll.Message, null, e.Channel, e.Character);
-			};
+				WriteMessage(e.Message, null, e.Channel, e.Character);
 			_Chat.OnCharacterChatMessage += (_, e) =>
-			{
 				WriteMessage(e.Message, null, null, e.Character);
-			};
+
 			_Chat.OnChannelLeave += (_, e) =>
 			{
 				int i = 0;

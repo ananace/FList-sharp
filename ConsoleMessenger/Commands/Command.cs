@@ -17,7 +17,8 @@ namespace ConsoleMessenger
 
 		object _Caller;
 		protected object Caller { get { return _Caller; } }
-		public string Name { get { return GetType().GetCustomAttribute<CommandAttribute>().Name; } }
+		public string Name { get { return GetType().GetCustomAttributes<CommandAttribute>().First().Name; } }
+		public string CalledName { get; set; }
 
 		public virtual bool TabComplete(string input, out string[] possibilities)
 		{
@@ -140,9 +141,14 @@ namespace ConsoleMessenger
 
 		public static Command Create(string name)
 		{
-			return _CommandTypes.ContainsKey(name.ToLower()) 
+			var cmd = _CommandTypes.ContainsKey(name.ToLower()) 
 				? Assembly.GetExecutingAssembly().CreateInstance(_CommandTypes[name.ToLower()].FullName) as Command 
 				: null;
+
+			if (cmd != null)
+				cmd.CalledName = name;
+
+			return cmd;
 		}
 	}
 
