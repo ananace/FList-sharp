@@ -156,7 +156,7 @@ namespace ConsoleMessenger
                 if (_Chat.IsIdentified)
                     status += $"{"[".Color(ConsoleColor.DarkCyan)}{Connection.LocalCharacter.Status.ToANSIString()} {Connection.LocalCharacter.ToANSIString()}{"]".Color(ConsoleColor.DarkCyan)} ";
 
-				status += $"{"[".Color(ConsoleColor.DarkCyan)}{_CurBuffer}:{CurrentChannelBuffer.Title ?? "??"}{"]".Color(ConsoleColor.DarkCyan)} ";
+				status += $"{"[".Color(ConsoleColor.DarkCyan)}{_CurBuffer + 1}:{CurrentChannelBuffer.Title ?? "??"}{"]".Color(ConsoleColor.DarkCyan)} ";
 
 				var act = _ChannelBuffers.Where(c => c.Activity).ToList();
 				if (act.Any())
@@ -491,6 +491,7 @@ namespace ConsoleMessenger
 
 		public static void Run()
 		{
+			Console.Clear();
 			Console.Title = string.Format("FChat Messenger v{0}", Assembly.GetExecutingAssembly().GetName().Version);
 
             Debug.Listeners.Clear();
@@ -501,8 +502,12 @@ namespace ConsoleMessenger
 			_Chat.Endpoint = FChatConnection.TestingServerEndpoint;
 			//_Chat.Endpoint = FChatConnection.LiveServerEndpoint;
 
+			_Chat.OnSYSMessage += (_, e) =>
+				_ConsoleBuffer.ChatBuf.PushMessage(null, (e.Command as Server_SYS_ChatSYSMessage).Message);
 			_Chat.OnErrorMessage += (_, e) => 
 				_ConsoleBuffer.ChatBuf.PushMessage(null, (e.Command as Server_ERR_ChatError).Error);
+			_Chat.OnError += (_, e) =>
+				_ConsoleBuffer.ChatBuf.PushMessage(null, $"{e.Message}:\n${e.InnerException}");
 
 			_Chat.OnChannelJoin += (_, e) =>
 			{

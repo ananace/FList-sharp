@@ -103,7 +103,7 @@ namespace libflist.FChat
 		public event EventHandler OnServerVariableUpdate;
 
 		// Message events
-		public event EventHandler<ErrorEventArgs> OnError;
+		public event EventHandler<Events.ErrorEventArgs> OnError;
 		public event EventHandler<CommandEventArgs> OnErrorMessage;
 		public event EventHandler<CommandEventArgs> OnRawMessage;
 		public event EventHandler<CommandEventArgs> OnSYSMessage;
@@ -473,9 +473,9 @@ namespace libflist.FChat
 			_Connection_HandleMessage(reply);
 		}
 
-		void _Connection_OnError(object sender, ErrorEventArgs e)
+		void _Connection_OnError(object sender, WebSocketSharp.ErrorEventArgs e)
 		{
-			OnError?.Invoke(this, e);
+			OnError?.Invoke(this, new Events.ErrorEventArgs { InnerException = e.Exception, Message = e.Message });
 		}
 
 		void _Connection_OnClose(object sender, CloseEventArgs e)

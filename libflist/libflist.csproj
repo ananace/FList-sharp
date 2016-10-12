@@ -83,6 +83,7 @@
     <Compile Include="AuthTicket.cs" />
     <Compile Include="FListClientV1.cs" />
     <Compile Include="Util\ExpiringLazy.cs" />
+    <Compile Include="FChat\Events\ErrorEventArgs.cs" />
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
