@@ -399,6 +399,7 @@ namespace libflist.FChat
 					return chan;
 
 				chan = new Channel(this, ID, ID);
+				_Channels.Add(chan);
 			}
 			return chan;
 		}

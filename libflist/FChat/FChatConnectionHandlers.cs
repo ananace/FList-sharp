@@ -166,7 +166,7 @@ namespace libflist.FChat
 			_Handlers["JCH"] += (_, c) => {
 				var jch = c as Server_JCH_ChannelJoin;
 
-				var chan = GetChannel(jch.Channel);
+				var chan = GetOrCreateChannel(jch.Channel);
 				chan.PushCommand(jch);
 
 				if (jch.Character.Identity != LocalCharacter.Name)

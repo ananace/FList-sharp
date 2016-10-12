@@ -502,6 +502,8 @@ namespace ConsoleMessenger
 			_Chat.Endpoint = FChatConnection.TestingServerEndpoint;
 			//_Chat.Endpoint = FChatConnection.LiveServerEndpoint;
 
+			_Chat.OnRawMessage += (_, e) =>
+				_ConsoleBuffer.ChatBuf.PushMessage(null, $"<< {e.Command.Token}");
 			_Chat.OnSYSMessage += (_, e) =>
 				_ConsoleBuffer.ChatBuf.PushMessage(null, (e.Command as Server_SYS_ChatSYSMessage).Message);
 			_Chat.OnErrorMessage += (_, e) => 
