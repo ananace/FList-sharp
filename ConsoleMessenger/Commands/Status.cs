@@ -24,12 +24,12 @@ namespace ConsoleMessenger.Commands
 
 		public void Call(CharacterStatus status, string message)
 		{
-			Application.Connection.SendCommand(new Client_STA_ChatSetStatus { Message = message, Status = status });
+			Application.SendCommand(new Client_STA_ChatSetStatus { Message = message, Status = status });
 		}
 
 		public void Call(CharacterStatus status)
 		{
-			Application.Connection.SendCommand(new Client_STA_ChatSetStatus { Status = status });
+			Application.SendCommand(new Client_STA_ChatSetStatus { Status = status });
 		}
 	}
 }

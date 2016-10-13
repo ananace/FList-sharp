@@ -40,15 +40,21 @@ namespace libflist.FChat
 			_OtherVars[name] = value;
 		}
 
-		public int ConnectedUsers { get { return (int)(_OtherVars["__connected"] ?? 0); } }
+		public DateTime BootTime { get { return (DateTime)(_OtherVars["__boot_time"] ?? DateTime.Now); } }
+		public int ChannelCount { get { return (int)(_OtherVars["__channels"] ?? 0); } }
+		public int OnlineUsers { get { return (int)(_OtherVars["__users"] ?? 0); } }
+		public int PeakUsers { get { return (int)(_OtherVars["__peak"] ?? 0); } }
+		public int Connections { get { return (int)(_OtherVars["__connections"] ?? 0); } }
 
 		public int ChatMaxBytes { get { return (int)(_OtherVars["chat_max"] ?? 0); } }
 		public float ChatTimeout { get { return (int)(_OtherVars["msg_flood"] ?? 0); } }
 		public int PrivateMaxBytes { get { return (int)(_OtherVars["priv_max"] ?? 0); } }
 		public int LFRPMax { get { return (int)(_OtherVars["lfrp_max"] ?? 0); } }
 		public int LFRPTimeout { get { return (int)(_OtherVars["lfrp_flood"] ?? 0); } }
-		public IEnumerable<string> IconBlacklist { get { return _OtherVars["permissions"] as IEnumerable<string>; } }
+		public IEnumerable<string> IconBlacklist { get { return _OtherVars["icon_blacklist"] as IEnumerable<string>; } }
 		public UserPermission Permissions { get { return (UserPermission)(_OtherVars["permissions"] ?? 0); } }
+
+		public TimeSpan Uptime { get { return (DateTime.Now - BootTime); } }
 
 		#region IReadOnlyDictionary implementation
 

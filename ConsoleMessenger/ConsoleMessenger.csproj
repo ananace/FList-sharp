@@ -30,7 +30,6 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Commands\JoinPrivate.cs" />
     <Compile Include="Commands\JoinChat.cs" />
     <Compile Include="Commands\Me.cs" />
     <Compile Include="Commands\Login.cs" />
@@ -39,7 +38,6 @@
     <Compile Include="Interface.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Commands\ListChats.cs" />
     <Compile Include="Commands\Command.cs" />
     <Compile Include="Types\CharacterExtensions.cs" />
     <Compile Include="UI\ChannelBuffer.cs" />
@@ -53,6 +51,11 @@
     <Compile Include="Commands\Help.cs" />
     <Compile Include="Commands\Info.cs" />
     <Compile Include="ChatBuffer.cs" />
+    <Compile Include="Commands\Channels.cs" />
+    <Compile Include="Commands\Clear.cs" />
+    <Compile Include="Commands\ClearAll.cs" />
+    <Compile Include="Commands\PrivateRooms.cs" />
+    <Compile Include="Commands\Status.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\libflist\libflist.csproj">

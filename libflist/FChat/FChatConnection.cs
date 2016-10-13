@@ -44,8 +44,6 @@ namespace libflist.FChat
 		List<Channel> _Channels;
         List<Character> _ChatOPs;
 
-		Timer _VariableTimer;
-
 		readonly Dictionary<string, EventHandler<Command>> _Handlers;
 
 		readonly ServerVariables _Variables;
@@ -100,7 +98,7 @@ namespace libflist.FChat
 		public event EventHandler OnConnected;
 		public event EventHandler OnDisconnected;
 		public event EventHandler OnIdentified;
-		public event EventHandler OnServerVariableUpdate;
+		public event EventHandler<ServerVariableEventArgs> OnServerVariableUpdate;
 
 		// Message events
 		public event EventHandler<Events.ErrorEventArgs> OnError;
@@ -179,9 +177,6 @@ namespace libflist.FChat
 
 			_Channels = new List<Channel>();
 			_Variables = new ServerVariables();
-			_VariableTimer = new Timer((_) => {
-				OnServerVariableUpdate?.Invoke(this, EventArgs.Empty);
-			});
 
 			_Handlers = new Dictionary<string, EventHandler<Command>>();
 			foreach (var token in CommandParser.ImplementedReplies)

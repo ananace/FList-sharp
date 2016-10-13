@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
 
 namespace ConsoleMessenger.Commands
 {
@@ -32,9 +33,7 @@ namespace ConsoleMessenger.Commands
 			if (cmd == null)
 				Debug.WriteLine($"No such command as '{command}'.");
 			else
-			{
 				Debug.WriteLine($"{cmd.Name}: {cmd.Description}");
-			}
 		}
 	}
 }

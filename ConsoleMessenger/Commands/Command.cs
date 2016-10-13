@@ -112,7 +112,7 @@ namespace ConsoleMessenger
 			if (!_CommandTypes.ContainsKey(name))
 				return null;
 
-			return _CommandTypes[name].GetCustomAttributes<CommandAttribute>().First();
+			return _CommandTypes[name].GetCustomAttributes<CommandAttribute>().First(n => n.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
 		}
 
 		static Command()

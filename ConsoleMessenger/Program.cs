@@ -425,7 +425,7 @@ namespace ConsoleMessenger
 			WriteMessage(Text);
 		}
 
-		public static void WriteMessage(string Text, ChannelBuffer buffer = null, Channel channel = null, Character sender = null)
+		public static void WriteMessage(string Text, ChannelBuffer buffer = null, Channel channel = null, Character sender = null, MessageType type = MessageType.Chat)
 		{
 			if (buffer == null)
 			{
@@ -445,10 +445,10 @@ namespace ConsoleMessenger
 						throw new Exception($"Message to unknown channel buffer '{channel}' recieved; {Text}");
 				}
 				else
-					buffer = _ChannelBuffers[0];
+					buffer = _ConsoleBuffer;
 			}
 
-            buffer.ChatBuf.SendMessage(sender ?? _Chat.LocalCharacter, Text);
+            buffer.ChatBuf.SendMessage(sender ?? _Chat.LocalCharacter, Text, type);
 
             buffer.Activity = true;
 			buffer.Hilight |= buffer.Character != null || Text.ToLower().Contains(Connection.LocalCharacter.Name.ToLower());
@@ -487,7 +487,13 @@ namespace ConsoleMessenger
 			// var chatBuf = new ChannelBuffer { Title = ADH };
 			// _ChannelBuffers.Add(chatBuf);
 
-			_Chat.SendCommand(new Client_JCH_ChannelJoin { Channel = ADH });
+			SendCommand(new Client_JCH_ChannelJoin { Channel = ADH });
+		}
+
+		public static void SendCommand(libflist.FChat.Command command)
+		{
+			_ConsoleBuffer.ChatBuf.PushMessage(null, $">> {command.Serialize()}");
+			SendCommand(command);
 		}
 
 		public static void Run()
@@ -504,7 +510,7 @@ namespace ConsoleMessenger
 			//_Chat.Endpoint = FChatConnection.LiveServerEndpoint;
 
 			_Chat.OnRawMessage += (_, e) =>
-				_ConsoleBuffer.ChatBuf.PushMessage(null, $"<< {e.Command.Token} {e.Command.Serialize()}");
+				_ConsoleBuffer.ChatBuf.PushMessage(null, $"<< {e.Command.Serialize()}");
 			_Chat.OnSYSMessage += (_, e) =>
 				_ConsoleBuffer.ChatBuf.PushMessage(null, (e.Command as Server_SYS_ChatSYSMessage).Message);
 			_Chat.OnErrorMessage += (_, e) => 

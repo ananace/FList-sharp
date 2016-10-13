@@ -84,6 +84,7 @@
     <Compile Include="FListClientV1.cs" />
     <Compile Include="Util\ExpiringLazy.cs" />
     <Compile Include="FChat\Events\ErrorEventArgs.cs" />
+    <Compile Include="FChat\Events\ServerVariableEventArgs.cs" />
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>

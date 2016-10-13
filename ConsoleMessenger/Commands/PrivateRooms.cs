@@ -8,7 +8,7 @@ namespace ConsoleMessenger.Commands
 		public void Call()
 		{
 			// TODO: Only update if data is stale.
-			Application.Connection.SendCommand(new Client_ORS_ChatListPrivateChannels());
+			Application.SendCommand(new Client_ORS_ChatListPrivateChannels());
 		}
 	}
 }
