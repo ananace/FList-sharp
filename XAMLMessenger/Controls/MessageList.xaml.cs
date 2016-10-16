@@ -27,6 +27,24 @@ namespace XAMLMessenger.Controls
         {
             InitializeComponent();
         }
+		
+		void routeHyperlinks(Inline inl)
+		{
+			if (inl is Hyperlink)
+				(inl as Hyperlink).RequestNavigate += (s, e) => App.Current.OnRequestNavigate(s, e);
+
+			if (inl is Span)
+				foreach (var sub in (inl as Span).Inlines)
+					routeHyperlinks(sub);
+		}
+
+		public void AddMessageParagraph(Paragraph inp)
+		{
+			foreach (var inl in inp.Inlines)
+				routeHyperlinks(inl);
+
+			_document.Blocks.Add(inp);
+		}
 
         public void AddMessage(string message)
         {
@@ -54,7 +72,7 @@ namespace XAMLMessenger.Controls
             par.Inlines.Add(new Message.Nodes.DateNode().ToInline(null));
             par.Inlines.AddRange(new Parser().ParseMessage(message).Select(n => n.ToInline(null)));
 
-            _document.Blocks.Add(par);
+			AddMessageParagraph(par);
         }
     }
 }

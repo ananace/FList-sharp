@@ -23,6 +23,8 @@ namespace XAMLMessenger.Message.Nodes
                 Source = new BitmapImage(new Uri($"https://static.f-list.net/images/avatar/{Uri.EscapeUriString(Text.ToLower())}.png"))
             }))
             {
+				TextDecorations = null,
+
                 NavigateUri = new Uri($"flist://character/{Uri.EscapeUriString(Text.ToLower())}"),
                 ToolTip = Text
             };

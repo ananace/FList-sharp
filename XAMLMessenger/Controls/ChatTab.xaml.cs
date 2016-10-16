@@ -1,4 +1,5 @@
-﻿using System;
+﻿using libflist.FChat;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -20,8 +21,19 @@ namespace XAMLMessenger.Controls
 	/// </summary>
 	public partial class ChatTab : UserControl
 	{
+		Channel _channel;
+
+		public Channel Channel => _channel;
+
 		public ChatTab()
 		{
+			InitializeComponent();
+		}
+
+		public ChatTab(Channel chan)
+		{
+			_channel = chan;
+
 			InitializeComponent();
 		}
 	}

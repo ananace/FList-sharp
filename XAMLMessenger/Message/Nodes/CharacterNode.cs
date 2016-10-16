@@ -20,7 +20,7 @@ namespace XAMLMessenger.Message.Nodes
             {
                 Inlines = {
                     new InlineUIContainer(new Image {
-                        Source = new CroppedBitmap(App.Current.StaticImageResource, _CharacterStatus(ch.Status)),
+                        Source = new CroppedBitmap(App.Current.CombinedImageResource, _CharacterStatus(ch.Status)),
                         Margin = new Thickness(5, 0, 5, 0)
                     }),
                     new Run(ch.Name) {
@@ -31,13 +31,16 @@ namespace XAMLMessenger.Message.Nodes
             if (sym.HasValue)
                 span.Inlines.InsertBefore(span.Inlines.LastInline, new InlineUIContainer(new Image
                 {
-                    Source = new CroppedBitmap(App.Current.StaticImageResource, sym.Value),
+                    Source = new CroppedBitmap(App.Current.CombinedImageResource, sym.Value),
                     Width = 24,
                     Height = 24,
                 }));
 
             return new Hyperlink(span)
-            {  
+            {
+				Foreground = Brushes.White,
+				TextDecorations = null,
+
                 NavigateUri = new Uri($"flist://character/{Uri.EscapeUriString(ch.Name.ToLower())}"),
                 ToolTip = ch.Name
             };

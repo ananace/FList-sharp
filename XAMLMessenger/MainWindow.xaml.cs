@@ -22,7 +22,7 @@ namespace XAMLMessenger
 	/// </summary>
 	public partial class MainWindow : Window
 	{
-        ChatChannel GetOrCreateChannel(libflist.FChat.Channel channel)
+        ChatChannel GetOrCreateChannel(Channel channel)
         {
             foreach (var tab in _chatList.Items)
             {
@@ -34,7 +34,7 @@ namespace XAMLMessenger
 
             var item = new TabItem()
             {
-                Header = new BitmapImage(new Uri($"pack://siteoforigin:,,,/Resources/{(channel.Official ? "hash" : "key")}.png")),
+                Header = new ChatTab(channel),
                 Content = new ChatChannel(channel),
                 Tag = channel
             };
@@ -42,7 +42,7 @@ namespace XAMLMessenger
 
             return item.Content as ChatChannel;
         }
-        TabItem GetTabByChannel(libflist.FChat.Channel channel)
+        TabItem GetTabByChannel(Channel channel)
         {
             foreach (var tab in _chatList.Items)
             {
@@ -91,10 +91,49 @@ namespace XAMLMessenger
             {
                 GetOrCreateChannel(e.Channel).AddLFRPMessage(e.Character, e.Message);
             };
-#endif
-        }
 
-        private void Window_Loaded(object sender, RoutedEventArgs e)
+			Connection.OnOfficialListUpdate += (s, e) =>
+			{
+				_PublicChannels.Items.Clear();
+				foreach (var chan in Connection.OfficialChannels)
+					_PublicChannels.Items.Add(new ListBoxItem
+					{
+						Content = chan.Title,
+						Tag = chan
+					});
+			};
+			Connection.OnPrivateListUpdate += (s, e) =>
+			{
+				_PrivateRooms.Items.Clear();
+				foreach (var chan in Connection.PrivateChannels)
+					_PrivateRooms.Items.Add(new ListBoxItem
+					{
+						Content = chan.Title,
+						Tag = chan
+					});
+
+			};
+#endif
+
+			App.Current.RequestNavigate += (s, e) =>
+			{
+				if (e.Uri.Scheme != "flist")
+					return;
+
+				switch (e.Uri.Host)
+				{
+					case "session":
+						{
+							var chan = Connection.GetOrJoinChannel(e.Uri.Segments.Last());
+							var tab = GetOrCreateChannel(chan);
+
+							_chatList.SelectedItem = tab;
+						} break;
+				}
+			};
+		}
+
+		private void Window_Loaded(object sender, RoutedEventArgs e)
         {
 
             _consoleChat.AddMessage("[session]Cuntboy[/session] [url=https://google.com][icon]ananace[/icon] or [i][sub]google[/sub][/i][/url]");

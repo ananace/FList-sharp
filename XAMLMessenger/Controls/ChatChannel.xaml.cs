@@ -90,7 +90,7 @@ namespace XAMLMessenger.Controls
 
             baseMessage(par, sender, action);
 
-            _messageList.Document.Blocks.Add(par);
+			_messageList.AddMessageParagraph(par);
         }
         public void AddMessage(Character sender, string message)
         {
@@ -99,7 +99,7 @@ namespace XAMLMessenger.Controls
 
             baseMessage(par, sender, $": {message}");
 
-            _messageList.Document.Blocks.Add(par);
+			_messageList.AddMessageParagraph(par);
         }
         public void AddSYSMessage(string message)
         {
@@ -117,31 +117,7 @@ namespace XAMLMessenger.Controls
 
             baseMessage(par, sender, $": {message}");
 
-            _messageList.Document.Blocks.Add(par);
-        }
-        
-        static Brush GetBrush(Genders gender)
-        {
-            switch (gender)
-            {
-                case Genders.Cuntboy:
-                    return Brushes.Green;
-            }
-
-            return Brushes.White;
-        }
-
-        static Brush GetBrush(CharacterStatus status)
-        {
-            switch (status)
-            {
-                case CharacterStatus.Online:
-                    return Brushes.Gray;
-                case CharacterStatus.Looking:
-                    return Brushes.Green;
-            }
-
-            return Brushes.DarkGray;
+			_messageList.AddMessageParagraph(par);
         }
     }
 

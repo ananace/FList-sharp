@@ -33,7 +33,7 @@ namespace XAMLMessenger.Message.Nodes
 				{
 					new InlineUIContainer(new Image
 					{
-						Source = new CroppedBitmap(App.Current.FindResource("CombinedImageResource") as BitmapImage, ImageRect),
+						Source = new CroppedBitmap(App.Current.CombinedImageResource, ImageRect),
 						Width = 16,
 						Height = 16
 					}) {

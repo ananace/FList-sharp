@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
+using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
 namespace XAMLMessenger.Message.Nodes
@@ -24,23 +26,45 @@ namespace XAMLMessenger.Message.Nodes
         {
             try
             {
-                var link = new Hyperlink()
+                Span link = new Hyperlink()
                 {
+					Foreground = Brushes.White,
+					TextDecorations = null,
+
                     NavigateUri = new Uri(Uri),
                     ToolTip = Uri
                 };
 
                 link.Inlines.Add(new InlineUIContainer(new Image
                 {
-                    Source = new CroppedBitmap(App.Current.StaticImageResource, new System.Windows.Int32Rect(72, 96, 24, 24)),
+                    Source = new CroppedBitmap(App.Current.CombinedImageResource, new System.Windows.Int32Rect(72, 96, 24, 24)),
                     Width = 16,
                     Height = 16,
                 })
                 {
-                    BaselineAlignment = System.Windows.BaselineAlignment.TextBottom
+                    BaselineAlignment = BaselineAlignment.TextBottom,
                 });
-                foreach (var node in Content.Select(n => n.ToInline(_chan)))
-                    link.Inlines.Add(node);
+				foreach (var node in Content.Select(n => n.ToInline(_chan)))
+				{
+					node.TextDecorations = TextDecorations.Underline;
+					link.Inlines.Add(node);
+				}
+
+				if (Content.Any())
+				{
+					link = new Span
+					{
+						Inlines =
+						{
+							link,
+							new Run($" [{new Uri(Uri).Host}]")
+							{
+								BaselineAlignment = BaselineAlignment.Subscript,
+								FontSize = 8
+							}
+						}
+					};
+				}
 
                 return link;
             }
