@@ -6,70 +6,166 @@
         xmlns:local="clr-namespace:XAMLMessenger"
         xmlns:controls="clr-namespace:XAMLMessenger.Controls"
         mc:Ignorable="d"
+		Name="_MainWindow"
         Title="MainWindow" Height="600" Width="1024" Background="#FF1B446F" Loaded="Window_Loaded">
-    <Window.Resources>
-        <BitmapImage x:Key="StaticImageResource" UriSource="pack://siteoforigin:,,,/Resources/combined.png"/>
-    </Window.Resources>
-    <Grid>
-        <TabControl Margin="0,40,0,0" TabStripPlacement="Left" Background="{x:Null}" BorderBrush="{x:Null}" Name="_chatList">
-            <TabControl.Resources>
-                <Style TargetType="TabItem">
-                    <Setter Property="Template">
-                        <Setter.Value>
-                            <ControlTemplate TargetType="TabItem">
-                                <Grid Name="Panel" Margin="-1,0,-3,0">
-                                    <ContentPresenter x:Name="ContentSite"
-                                        VerticalAlignment="Center"
-                                        HorizontalAlignment="Center"
-                                        ContentSource="Header"
-                                        Margin="8,2"/>
-                                </Grid>
-                                <ControlTemplate.Triggers>
-                                    <Trigger Property="IsSelected" Value="True">
-                                        <Setter TargetName="Panel" Property="Background" >
-                                            <Setter.Value>
-                                                <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
-                                                    <GradientStop Color="Red" Offset="0"/>
-                                                    <GradientStop Color="#FF6A0000" Offset="1"/>
-                                                </LinearGradientBrush>
-                                            </Setter.Value>
-                                        </Setter>
-                                    </Trigger>
-                                    <Trigger Property="IsSelected" Value="False">
-                                        <Setter TargetName="Panel" Property="Background" >
-                                            <Setter.Value>
-                                                <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
-                                                    <GradientStop Color="#00000000" Offset="0"/>
-                                                    <GradientStop Color="#19000000" Offset="1"/>
-                                                </LinearGradientBrush>
-                                            </Setter.Value>
-                                        </Setter>
-                                    </Trigger>
-                                </ControlTemplate.Triggers>
-                            </ControlTemplate>
-                        </Setter.Value>
-                    </Setter>
-                </Style>
-            </TabControl.Resources>
+	<Window.Resources>
+		<Style TargetType="TabItem">
+			<Setter Property="Template">
+				<Setter.Value>
+					<ControlTemplate TargetType="TabItem">
+						<Grid Name="Panel">
+							<ContentPresenter x:Name="ContentSite"
+									VerticalAlignment="Center"
+									HorizontalAlignment="Center"
+									ContentSource="Header"
+									Margin="2"/>
+						</Grid>
+						<ControlTemplate.Triggers>
+							<Trigger Property="IsSelected" Value="True">
+								<Setter TargetName="Panel" Property="Background" >
+									<Setter.Value>
+										<LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+											<GradientStop Color="Red" Offset="0"/>
+											<GradientStop Color="#FFA20000" Offset="0.5"/>
+											<GradientStop Color="#FF6A0000" Offset="1"/>
+										</LinearGradientBrush>
+									</Setter.Value>
+								</Setter>
+							</Trigger>
+							<Trigger Property="IsSelected" Value="False">
+								<Setter TargetName="Panel" Property="Background" >
+									<Setter.Value>
+										<LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+											<GradientStop Color="#00000000" Offset="0"/>
+											<GradientStop Color="#19000000" Offset="1"/>
+										</LinearGradientBrush>
+									</Setter.Value>
+								</Setter>
+							</Trigger>
+						</ControlTemplate.Triggers>
+					</ControlTemplate>
+				</Setter.Value>
+			</Setter>
+		</Style>
+	</Window.Resources>
+	<Grid>
+		<TabControl Background="{x:Null}" BorderBrush="{x:Null}">
+			<TabItem>
+				<TabItem.Header>
+					<Image Width="16" Height="16">
+						<Image.Source>
+							<CroppedBitmap Source="{DynamicResource CombinedImageResource}" SourceRect="48 0 24 24" />
+						</Image.Source>
+					</Image>
+				</TabItem.Header>
+				<Grid>
+					<Grid.RowDefinitions>
+						<RowDefinition Height="48"/>
+						<RowDefinition Height="0"/>
+						<RowDefinition Height="*"/>
+					</Grid.RowDefinitions>
+					<Grid Grid.Row="0">
+						<Grid>
+							<Grid.ColumnDefinitions>
+								<ColumnDefinition Width="160"/>
+								<ColumnDefinition Width="0" />
+								<ColumnDefinition Width="*" />
+							</Grid.ColumnDefinitions>
+							<TextBlock x:Name="_ChatHeader" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" FontWeight="Bold" Grid.Column="0" Margin="5,2">
+								<Span>Chat name goes here</Span>
+							</TextBlock>
+							<TextBlock x:Name="_ChatDescription" Grid.Column="2" Foreground="White" Margin="5,2" ScrollViewer.VerticalScrollBarVisibility="Auto">Online</TextBlock>
+						</Grid>
+					</Grid>
+					<TabControl TabStripPlacement="Left" Background="{x:Null}" BorderBrush="{x:Null}" Name="_chatList" Grid.Row="2">
+						<TabControl.Resources>
+						</TabControl.Resources>
 
-            <TabItem Background="{x:Null}" BorderBrush="{x:Null}" Foreground="{x:Null}">
-                <TabItem.Header>
-                    <Image Width="24" Height="24">
-                        <Image.Source>
-                            <CroppedBitmap Source="{StaticResource StaticImageResource}" SourceRect="120 0 24 24" />
-                        </Image.Source>
-                    </Image>
-                </TabItem.Header>
-                <controls:MessageList x:Name="_consoleChat">
+						<TabItem Background="{x:Null}" BorderBrush="{x:Null}" Foreground="{x:Null}" Width="60" Height="36">
+							<TabItem.Header>
+								<Image Width="24" Height="24" Margin="20,0,4,0" HorizontalAlignment="Right">
+									<Image.Source>
+										<CroppedBitmap Source="{DynamicResource CombinedImageResource}" SourceRect="72 24 24 24" />
+									</Image.Source>
+								</Image>
+							</TabItem.Header>
+							<controls:MessageList x:Name="_consoleChat">
 
-                </controls:MessageList>
-            </TabItem>
-            <TabItem>
-                <TabItem.Header>
-                    <Image Source="{StaticResource StaticImageResource}" Width="32" Height="32"></Image>
-                </TabItem.Header>
-                <controls:ChatChannel/>
-            </TabItem>
-        </TabControl>
-    </Grid>
+							</controls:MessageList>
+						</TabItem>
+						<TabItem>
+							<TabItem.Header>
+								<controls:ChatTab/>
+							</TabItem.Header>
+							<controls:ChatChannel/>
+						</TabItem>
+					</TabControl>
+				</Grid>
+			</TabItem>
+			<TabItem>
+				<TabItem.Header>
+					<Image Width="16" Height="16">
+						<Image.Source>
+							<CroppedBitmap Source="{DynamicResource CombinedImageResource}" SourceRect="72 0 24 24" />
+						</Image.Source>
+					</Image>
+				</TabItem.Header>
+				<Grid>
+				</Grid>
+			</TabItem>
+			<TabItem>
+				<TabItem.Resources>
+					<Style TargetType="ListBox">
+						<Setter Property="Background" Value="{x:Null}"/>
+						<Setter Property="BorderBrush" Value="{x:Null}"/>
+						<Setter Property="BorderThickness" Value="0"/>
+						<Setter Property="Foreground" Value="White"/>
+					</Style>
+					<Style TargetType="ListBoxItem">
+						<Setter Property="Background">
+							<Setter.Value>
+								<LinearGradientBrush EndPoint="0,1" Opacity="0.25">
+									<GradientStop Color="#FF1B446F"/>
+									<GradientStop Color="#FF102A46" Offset="1"/>
+								</LinearGradientBrush>
+							</Setter.Value>
+						</Setter>
+						<Style.Triggers>
+							<Trigger Property="IsSelected" Value="True">
+								<Setter Property="Background" >
+									<Setter.Value>
+										<LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+											<GradientStop Color="Red" Offset="0"/>
+											<GradientStop Color="#FFA20000" Offset="0.5"/>
+											<GradientStop Color="#FF6A0000" Offset="1"/>
+										</LinearGradientBrush>
+									</Setter.Value>
+								</Setter>
+							</Trigger>
+						</Style.Triggers>
+					</Style>
+				</TabItem.Resources>
+				<TabItem.Header>
+					<Image Width="16" Height="16">
+						<Image.Source>
+							<CroppedBitmap Source="{DynamicResource CombinedImageResource}" SourceRect="96 0 24 24" />
+						</Image.Source>
+					</Image>
+				</TabItem.Header>
+				<Grid>
+					<Grid Margin="0,42,0,0">
+						<Grid.ColumnDefinitions>
+							<ColumnDefinition Width="*"/>
+							<ColumnDefinition Width="0"/>
+							<ColumnDefinition Width="*"/>
+						</Grid.ColumnDefinitions>
+						<ListBox x:Name="_PublicChannels" SelectionMode="Multiple" Grid.Column="0">
+						</ListBox>
+						<ListBox x:Name="_PrivateRooms" SelectionMode="Multiple" Grid.Column="2">
+						</ListBox>
+					</Grid>
+				</Grid>
+			</TabItem>
+		</TabControl>
+	</Grid>
 </Window>

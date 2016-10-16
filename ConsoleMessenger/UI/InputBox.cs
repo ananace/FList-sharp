@@ -142,6 +142,7 @@ namespace ConsoleMessenger.UI
 					buf.Clear();
 					Cursor = 0;
                     Render();
+					Focus();
 
 					_HistoryCmd = null;
 					_HistoryPtr = -1;

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using libflist.FChat;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -52,6 +53,8 @@ namespace XAMLMessenger
             }
             return null;
         }
+
+		public FChatConnection Connection => App.Current.FChatClient;
 
 		public MainWindow()
 		{

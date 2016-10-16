@@ -2,6 +2,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
+using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
 namespace XAMLMessenger.Message.Nodes
@@ -20,28 +21,32 @@ namespace XAMLMessenger.Message.Nodes
         Int32Rect ImageRect { get
             {
                 if (IsOfficial)
-                    return new Int32Rect(72, 24, 24, 24);
+                    return new Int32Rect(96, 0, 24, 24);
                 return new Int32Rect(0, 24, 24, 24);
             } }
 
         public Inline ToInline(libflist.FChat.Channel _chan)
         {
-            return new Hyperlink(new Span
-            {
-                Inlines =
-                {
-                    new InlineUIContainer(new Image
-                    {
-                        Source = new CroppedBitmap(App.Current.StaticImageResource, ImageRect),
-                        Width = 16,
-                        Height = 16
-                    }) {
-                        BaselineAlignment = BaselineAlignment.Bottom
-                    },
-                    new Run(SessionName)
-                }
-            })
-            {
+			return new Hyperlink(new Span
+			{
+				Inlines =
+				{
+					new InlineUIContainer(new Image
+					{
+						Source = new CroppedBitmap(App.Current.FindResource("CombinedImageResource") as BitmapImage, ImageRect),
+						Width = 16,
+						Height = 16
+					}) {
+						BaselineAlignment = BaselineAlignment.Bottom
+					},
+					new Run(SessionName)
+				}
+			})
+			{
+				Foreground = Brushes.White,
+				FontWeight = FontWeights.Bold,
+				TextDecorations = null,
+
                 NavigateUri = new Uri($"flist://session/{Uri.EscapeUriString(SessionADH.ToLower())}"),
                 ToolTip = SessionName
             };

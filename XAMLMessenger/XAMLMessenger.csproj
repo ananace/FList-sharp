@@ -60,6 +60,10 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Controls\ChatTab.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Controls\MessageList.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -86,6 +90,9 @@
     </Compile>
     <Compile Include="Controls\ChatChannel.xaml.cs">
       <DependentUpon>ChatChannel.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\ChatTab.xaml.cs">
+      <DependentUpon>ChatTab.xaml</DependentUpon>
     </Compile>
     <Compile Include="Controls\MessageList.xaml.cs">
       <DependentUpon>MessageList.xaml</DependentUpon>
