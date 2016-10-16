@@ -56,6 +56,7 @@
     <Compile Include="Commands\ClearAll.cs" />
     <Compile Include="Commands\PrivateRooms.cs" />
     <Compile Include="Commands\Status.cs" />
+    <Compile Include="Commands\Who.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\libflist\libflist.csproj">

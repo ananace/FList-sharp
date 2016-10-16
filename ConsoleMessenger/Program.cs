@@ -329,10 +329,10 @@ namespace ConsoleMessenger
 					{
 						var agg = ex.InnerException as AggregateException;
 						foreach (Exception inner in agg.InnerExceptions)
-							Debug.WriteLine(inner.Message);
+							Debug.WriteLine("!!  {0}: {1}\n{2}\n", inner.GetType().Name, inner.Message, inner.StackTrace);
 					}
 					else
-						Debug.WriteLine(ex.InnerException.Message);
+						Debug.WriteLine(ex.InnerException.ToString());
 				}
 				catch (AggregateException ex)
 				{
@@ -342,7 +342,7 @@ namespace ConsoleMessenger
 				}
 				catch (Exception ex)
 				{
-					Debug.WriteLine(ex.Message);
+					Debug.WriteLine(ex.ToString());
 				}
 			}
 		}
@@ -493,7 +493,7 @@ namespace ConsoleMessenger
 		public static void SendCommand(libflist.FChat.Command command)
 		{
 			_ConsoleBuffer.ChatBuf.PushMessage(null, $">> {command.Serialize()}");
-			SendCommand(command);
+			_Chat.SendCommand(command);
 		}
 
 		public static void Run()

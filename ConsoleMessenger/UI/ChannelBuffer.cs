@@ -64,10 +64,10 @@ namespace ConsoleMessenger.UI.FChat
                             int len = p.Message.ANSILength()
                                 + (p.Timestamp.Date == DateTime.Now ? 7 : 12)
                                 + 2;
-                            if (p.Sender != null)
+                            if (p.Sender?.Name != null)
                                 len += p.Sender.Name.Length;
 
-                            if (totalHeight + len / ConsoleHelper.Size.Width > height)
+                            if (totalHeight + len / ConsoleHelper.Size.Width >= height)
                             {
                                 totalHeight = height;
                                 return false;
@@ -78,15 +78,15 @@ namespace ConsoleMessenger.UI.FChat
                         }).Reverse())
                     {
                         if (msg.Timestamp.Date == DateTime.Now.Date)
-                            Graphics.WriteANSIString($"[{msg.Timestamp.ToShortTimeString()}] ".Color(ConsoleColor.Gray));
+                            Graphics.WriteANSIString($"[{msg.Timestamp.ToString("HH:mm")}] ".Color(ConsoleColor.Gray));
                         else
-                            Graphics.WriteANSIString($"[{msg.Timestamp.ToShortDateString()}] ".Color(ConsoleColor.Gray));
+							Graphics.WriteANSIString($"[{msg.Timestamp.ToString("yyyy-MM-dd")}] ".Color(ConsoleColor.Gray));
 
-                        bool action = msg.Message.StartsWith("/me ", StringComparison.CurrentCultureIgnoreCase);
+                        bool action = msg.Message.StartsWith("/me", StringComparison.CurrentCultureIgnoreCase);
                         if (action)
                             Console.Write("* ");
 
-						if (msg.Sender != null)
+						if (msg.Sender?.Name != null)
 						{
 							if (Channel != null)
 							{
@@ -113,8 +113,15 @@ namespace ConsoleMessenger.UI.FChat
 
 						if (action)
 						{
-							Console.CursorLeft++;
-							Graphics.WriteANSIString(msg.Message.Substring(4), foreground: ConsoleColor.White);
+							if (msg.Message.StartsWith("/me's", StringComparison.CurrentCultureIgnoreCase))
+							{
+								Graphics.WriteANSIString(msg.Message.Substring(3), foreground: ConsoleColor.White);
+							}
+							else
+							{
+								Console.CursorLeft++;
+								Graphics.WriteANSIString(msg.Message.Substring(4), foreground: ConsoleColor.White);
+							}
 						}
 						else
 							Graphics.WriteANSIString(": " + msg.Message, foreground: ConsoleColor.Gray);

@@ -189,7 +189,8 @@ namespace libflist.FChat
 		{
 			try
 			{
-				if (_Connection != null)
+				if (_Connection?.ReadyState == WebSocketState.Open ||
+				    _Connection?.ReadyState == WebSocketState.Connecting)
 					_Connection.Close();
 			}
 			catch(Exception)
@@ -323,7 +324,8 @@ namespace libflist.FChat
 			{
 				try
 				{
-					_Connection.Close();
+					if (_Connection.ReadyState != WebSocketState.Closed)
+						_Connection.Close();
 				}
 				catch (Exception)
 				{}
