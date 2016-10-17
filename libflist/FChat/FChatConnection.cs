@@ -43,6 +43,8 @@ namespace libflist.FChat
 
 		List<Channel> _Channels;
         List<Character> _ChatOPs;
+		List<Character> _Friends;
+		List<Character> _Bookmarks;
 
 		readonly Dictionary<string, EventHandler<Command>> _Handlers;
 
@@ -59,6 +61,9 @@ namespace libflist.FChat
 
         public IReadOnlyDictionary<string, EventHandler<Command>> MessageHandlers => _Handlers;
         public ServerVariables Variables => _Variables;
+
+		public IReadOnlyCollection<Character> Friends => _Friends;
+		public IReadOnlyCollection<Character> Bookmarks => _Bookmarks;
 
 		public IEnumerable<KnownChannel> AllKnownChannels { get { return _OfficialChannels.Concat(_PrivateChannels); } }
 		public IReadOnlyCollection<KnownChannel> OfficialChannels
@@ -174,6 +179,8 @@ namespace libflist.FChat
 			_OfficialChannels = new List<KnownChannel>();
 			_PrivateChannels = new List<KnownChannel>();
             _ChatOPs = new List<Character>();
+			_Friends = new List<Character>();
+			_Bookmarks = new List<Character>();
 
 			_Channels = new List<Channel>();
 			_Variables = new ServerVariables();

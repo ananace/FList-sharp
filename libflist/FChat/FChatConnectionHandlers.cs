@@ -123,7 +123,10 @@ namespace libflist.FChat
 			// Character list related
 			_Handlers["FRL"] += (_, c) => {
 				var frl = c as Server_FRL_ChatListFriends;
-				// TODO: Implement friends and bookmarks list
+
+				_Friends.AddRange(frl.FriendsAndBookmarks.Select(ch => GetOrCreateCharacter(ch)));
+                _Bookmarks.AddRange(frl.FriendsAndBookmarks.Select(ch => GetOrCreateCharacter(ch)));
+
 				Debug.WriteLine($"Recieved {frl.FriendsAndBookmarks.Length} friends and bookmarks");
 
 				OnFriendsListUpdate?.Invoke(this, EventArgs.Empty);

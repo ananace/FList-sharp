@@ -11,6 +11,17 @@ namespace ConsoleMessenger.UI
             return ch.Name.Color(ch.Gender.ToColor());
         }
 
+		public static string ToSortable(this Character ch, Channel chan)
+		{
+			int value = 9;
+			if (ch.IsFriend || ch.IsBookmark)
+			    value = 1;
+			if (ch.IsChatOp || ch.IsOPInChannel(chan))
+				value = 0;
+
+			return $"{value}{ch.Name}";
+		}
+
         public static string ToANSIString(this CharacterStatus status)
         {
             string icon;
