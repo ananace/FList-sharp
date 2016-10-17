@@ -492,7 +492,6 @@ namespace ConsoleMessenger
 
 		public static void SendCommand(libflist.FChat.Command command)
 		{
-			_ConsoleBuffer.ChatBuf.PushMessage(null, $">> {command.Serialize()}");
 			_Chat.SendCommand(command);
 		}
 
@@ -511,6 +510,9 @@ namespace ConsoleMessenger
 
 			_Chat.OnRawMessage += (_, e) =>
 				_ConsoleBuffer.ChatBuf.PushMessage(null, $"<< {e.Command.Serialize()}");
+			_Chat.OnSendMessage += (_, e) =>
+				_ConsoleBuffer.ChatBuf.PushMessage(null, $">> {e.Command.Serialize()}");
+
 			_Chat.OnSYSMessage += (_, e) =>
 				_ConsoleBuffer.ChatBuf.PushMessage(null, (e.Command as Server_SYS_ChatSYSMessage).Message);
 			_Chat.OnErrorMessage += (_, e) => 
@@ -568,13 +570,18 @@ namespace ConsoleMessenger
 
 		public static void Main(string[] args)
 		{
-			Ticket = LoadTicket();
+			try
+			{
+				Ticket = LoadTicket();
 
-			ConsoleHelper.Start();
-			Run();
-			ConsoleHelper.Stop();
-
-			SaveTicket(Ticket);
+				ConsoleHelper.Start();
+				Run();
+				ConsoleHelper.Stop();
+			}
+			finally
+			{
+				SaveTicket(Ticket);
+			}
 		}
 
 		public static StoredTicket LoadTicket()

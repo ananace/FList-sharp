@@ -14,12 +14,12 @@ namespace ConsoleMessenger.Commands
 			if (buf is ConsoleChatBuffer)
 				Debug.WriteLine("No users in console");
 			else if (buf is CharacterChatBuffer)
-				Debug.WriteLine((buf as CharacterChatBuffer).Character.Name);
+				buf.PushMessage(null, (buf as CharacterChatBuffer).Character.Name, MessageType.Preview);
 			else
 			{
 				var chan = (buf as ChannelChatBuffer).Channel;
-				Debug.WriteLine($"{chan.Characters.Count} characters in {chan.Title}:");
-				Debug.WriteLine(chan.Characters.OrderBy(c => c.ToSortable(chan)).Select(c => c.ToANSIString()).ToString(", "));
+				buf.PushMessage(null, $"{chan.Characters.Count} characters in {chan.Title}:", MessageType.Preview);
+				buf.PushMessage(null, chan.Characters.OrderBy(c => c.ToSortable(chan)).Select(c => c.ToANSIString(chan, true)).ToString(", "), MessageType.Preview);
 			}
 		}
 	}

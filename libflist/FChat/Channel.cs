@@ -61,6 +61,7 @@ namespace libflist.FChat
 		string _ID;
 		string _Title;
 		string _Description;
+		ChannelMode _ChannelMode;
 
 		public string Title => _Title;
 		public string ID => _ID;
@@ -78,7 +79,14 @@ namespace libflist.FChat
 
 		public bool Joined { get; private set; }
 		public bool Official { get { return Title == ID; } }
-		public ChannelMode ChatMode { get; private set; }
+		public ChannelMode ChannelMode
+		{
+			get { return _ChannelMode; }
+			set
+			{
+				_Connection.RequestCommand<Server_RMO_ChannelSetMode>(new Client_RMO_ChannelSetMode { Channel = _ID, Mode = value });
+			}
+		}
 		public ChannelStatus PrivacyStatus { get { return Title == ID ? ChannelStatus.Public : _Status; } }
 
 		public Character Owner
@@ -131,7 +139,7 @@ namespace libflist.FChat
 
 		public void SendLFRP(string message)
 		{
-			if (ChatMode == ChannelMode.Chat)
+			if (_ChannelMode == ChannelMode.Chat)
 				throw new Exception("Can't send LFRPs in a Chat-only channel.");
 
 			SendCommand(new Client_LRP_ChannelLFRPMessage
@@ -143,7 +151,7 @@ namespace libflist.FChat
 
 		public void SendMessage(string message)
 		{
-			if (ChatMode == ChannelMode.Ads)
+			if (_ChannelMode == ChannelMode.Ads)
 				throw new Exception("Can't send messages in an LFRP-only channel.");
 
 			SendCommand(new Client_MSG_ChannelChatMessage
@@ -179,7 +187,9 @@ namespace libflist.FChat
 						var jch = cmd as Server_JCH_ChannelJoin;
 
 						var character = Connection.GetOrCreateCharacter(jch.Character.Identity);
-						_Characters.Add(character);
+
+						if (!_Characters.Contains(character))
+							_Characters.Add(character);
 
 						if (!string.IsNullOrEmpty(jch.Title))
 						{
@@ -209,11 +219,15 @@ namespace libflist.FChat
 					{
 						var ich = cmd as Server_ICH_ChannelInitialData;
 
-						ChatMode = ich.Mode;
+						_ChannelMode = ich.Mode;
 						Joined = true;
 
 						foreach (var user in ich.Users)
-							_Characters.Add(GetCharacter(user.Identity));
+						{
+							var ch = GetCharacter(user.Identity);
+							if (!_Characters.Contains(ch))
+								_Characters.Add(ch);
+						}
 					}
 					return;
 
@@ -232,7 +246,7 @@ namespace libflist.FChat
 						var cds = cmd as Server_CDS_ChannelChangeDescription;
 
 						OnDescriptionChange?.Invoke(this, new ChannelEntryEventArgs<string>(this, cds.Description, cds));
-						Description = cds.Description;
+						_Description = cds.Description;
 					}
 					return;
 
@@ -241,7 +255,7 @@ namespace libflist.FChat
 						var rmo = cmd as Server_RMO_ChannelSetMode;
 
 						OnModeChange?.Invoke(this, new ChannelEntryEventArgs<ChannelMode>(this, rmo.Mode, rmo));
-						ChatMode = rmo.Mode;
+						_ChannelMode = rmo.Mode;
 					}
 					return;
 

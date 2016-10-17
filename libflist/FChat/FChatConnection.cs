@@ -110,6 +110,7 @@ namespace libflist.FChat
 		public event EventHandler<CommandEventArgs> OnErrorMessage;
 		public event EventHandler<CommandEventArgs> OnRawMessage;
 		public event EventHandler<CommandEventArgs> OnSYSMessage;
+		public event EventHandler<CommandEventArgs> OnSendMessage;
 
 		// Channel list events
 		public event EventHandler OnOfficialListUpdate;
@@ -216,7 +217,10 @@ namespace libflist.FChat
 				throw new ArgumentException("Command source is invalid.", nameof(command));
 
 			lock (_Connection)
+			{
 				_Connection.Send(command.Serialize());
+				OnSendMessage?.Invoke(this, new CommandEventArgs(command));
+			}
 		}
 		public async Task<bool> SendCommandAsync(Command command)
 		{
@@ -230,6 +234,7 @@ namespace libflist.FChat
 				result = r;
 				ev.Set();
 			});
+			OnSendMessage?.Invoke(this, new CommandEventArgs(command));
 
 			await ev.WaitAsync();
 

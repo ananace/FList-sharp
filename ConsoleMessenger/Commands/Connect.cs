@@ -36,9 +36,9 @@ namespace ConsoleMessenger.Commands
 			Debug.WriteLine(string.Format("Aquired ticket for {0}. Available characters are:", username));
 			Debug.WriteLine(Application.Connection.FListClient.Ticket.Characters.ToString(", "));
 
-			Debug.Write("Connecting to FChat network...");
-			Application.Connection.Connect();
-			Debug.WriteLine(" Done.");
+			Debug.WriteLine("Connecting to FChat network...");
+			Application.Connection.Connect(); // TODO: ConnectAsync
+			Debug.WriteLine("Connected.");
 		}
 	}
 }
