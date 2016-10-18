@@ -22,10 +22,10 @@ namespace ConsoleMessenger.UI.FChat
                 };
             }
         }
-		public Channel Channel => (_ChatBuf as ChannelChatBuffer)?.Channel;
-		public Character Character => (_ChatBuf as CharacterChatBuffer)?.Character;
+        public Channel Channel => (_ChatBuf as ChannelChatBuffer)?.Channel;
+        public Character Character => (_ChatBuf as CharacterChatBuffer)?.Character;
 
-		public string Title { get; set; }
+        public string Title { get; set; }
 
         public bool Activity { get; set; }
         public bool Hilight { get; set; }
@@ -67,64 +67,58 @@ namespace ConsoleMessenger.UI.FChat
                             if (p.Sender?.Name != null)
                                 len += p.Sender.Name.Length;
 
-                            if (totalHeight + len / ConsoleHelper.Size.Width >= height)
-                            {
-                                totalHeight = height;
-                                return false;
-                            }
-
                             totalHeight += len / ConsoleHelper.Size.Width;
                             return true;
-                        }).Reverse())
+                        }).Skip(totalHeight >= height ? 1 : 0).Reverse())
                     {
                         if (msg.Timestamp.Date == DateTime.Now.Date)
                             Graphics.WriteANSIString($"[{msg.Timestamp.ToString("HH:mm")}] ".Color(ConsoleColor.Gray));
                         else
-							Graphics.WriteANSIString($"[{msg.Timestamp.ToString("yyyy-MM-dd")}] ".Color(ConsoleColor.Gray));
+                            Graphics.WriteANSIString($"[{msg.Timestamp.ToString("yyyy-MM-dd")}] ".Color(ConsoleColor.Gray));
 
                         bool action = msg.Message.StartsWith("/me", StringComparison.CurrentCultureIgnoreCase);
                         if (action)
                             Console.Write("* ");
 
-						if (msg.Sender?.Name != null)
-						{
-							if (Channel != null)
-							{
-								if (msg.Sender.IsChatOp)
-									Graphics.WriteANSIString("▼".Color(ConsoleColor.Yellow));
+                        if (msg.Sender?.Name != null)
+                        {
+                            if (Channel != null)
+                            {
+                                if (msg.Sender.IsChatOp)
+                                    Graphics.WriteANSIString("▼".Color(ConsoleColor.Yellow));
 
-								if (Channel.Official)
-								{
-									if (Channel.Owner == msg.Sender || msg.Sender.IsOPInChannel(Channel))
-										Graphics.WriteANSIString("▼".Color(ConsoleColor.Red));
-								}
-								else
-								{
-									if (Channel.Owner == msg.Sender)
-										Graphics.WriteANSIString("►".Color(ConsoleColor.Cyan));
-									else if (msg.Sender.IsOPInChannel(Channel))
-										Graphics.WriteANSIString("►".Color(ConsoleColor.Red));
-								}
-							}
-							Graphics.WriteANSIString(msg.Sender.ToANSIString());
-						}
-						else
-							Graphics.WriteANSIString("System".Color(ConsoleColor.DarkGray));
+                                if (Channel.Official)
+                                {
+                                    if (Channel.Owner == msg.Sender || msg.Sender.IsOPInChannel(Channel))
+                                        Graphics.WriteANSIString("▼".Color(ConsoleColor.Red));
+                                }
+                                else
+                                {
+                                    if (Channel.Owner == msg.Sender)
+                                        Graphics.WriteANSIString("►".Color(ConsoleColor.Cyan));
+                                    else if (msg.Sender.IsOPInChannel(Channel))
+                                        Graphics.WriteANSIString("►".Color(ConsoleColor.Red));
+                                }
+                            }
+                            Graphics.WriteANSIString(msg.Sender.ToANSIString());
+                        }
+                        else
+                            Graphics.WriteANSIString("System".Color(ConsoleColor.DarkGray));
 
-						if (action)
-						{
-							if (msg.Message.StartsWith("/me's", StringComparison.CurrentCultureIgnoreCase))
-							{
-								Graphics.WriteANSIString(msg.Message.Substring(3), foreground: ConsoleColor.White);
-							}
-							else
-							{
-								Console.CursorLeft++;
-								Graphics.WriteANSIString(msg.Message.Substring(4), foreground: ConsoleColor.White);
-							}
-						}
-						else
-							Graphics.WriteANSIString(": " + msg.Message, foreground: ConsoleColor.Gray);
+                        if (action)
+                        {
+                            if (msg.Message.StartsWith("/me's", StringComparison.CurrentCultureIgnoreCase))
+                            {
+                                Graphics.WriteANSIString(msg.Message.Substring(3), foreground: ConsoleColor.White);
+                            }
+                            else
+                            {
+                                Console.CursorLeft++;
+                                Graphics.WriteANSIString(msg.Message.Substring(4), foreground: ConsoleColor.White);
+                            }
+                        }
+                        else
+                            Graphics.WriteANSIString(": " + msg.Message, foreground: ConsoleColor.Gray);
 
                         Console.CursorLeft = 0;
                         Console.CursorTop++;

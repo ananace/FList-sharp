@@ -143,6 +143,7 @@ namespace ConsoleMessenger
 				if (value != _CurBuffer && value >= 0 && value < _ChannelBuffers.Count)
 				{
 					_CurBuffer = value;
+					Redraw();
 					CurrentChannelBuffer.Render();
 				}
 			}
@@ -164,7 +165,7 @@ namespace ConsoleMessenger
 				{
 					status += $"{"[".Color(ConsoleColor.DarkCyan)}Act: ";
 					status += string.Join(",", act.Select(c => {
-						string id = _ChannelBuffers.IndexOf(c).ToString();
+						string id = (_ChannelBuffers.IndexOf(c) + 1).ToString();
 						return id.Color(c.Hilight ? ConsoleColor.Red : ConsoleColor.White);
 					}));
 					status += $"{"]".Color(ConsoleColor.DarkCyan)} ";
@@ -445,7 +446,7 @@ namespace ConsoleMessenger
 						throw new Exception($"Message to unknown channel buffer '{channel}' recieved; {Text}");
 				}
 				else
-					buffer = _ConsoleBuffer;
+					buffer = CurrentChannelBuffer;
 			}
 
             buffer.ChatBuf.SendMessage(sender ?? _Chat.LocalCharacter, Text, type);
