@@ -21,6 +21,7 @@ namespace ConsoleMessenger
 		{
 			public DateTime Timestamp { get; set; }
 			public string Message { get; set; }
+            public int Lines { get; set; }
 			public Character Sender { get; set; }
 			public MessageType Type { get; set; }
 		}

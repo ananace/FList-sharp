@@ -30,6 +30,8 @@ namespace ConsoleMessenger.UI.FChat
         public bool Activity { get; set; }
         public bool Hilight { get; set; }
 
+        public int Scroll { get; set; } = -1;
+
         string TitleBar
         {
             get
@@ -38,10 +40,37 @@ namespace ConsoleMessenger.UI.FChat
             }
         }
 
+        void RenderMessages()
+        {
+            foreach (var msg in _ChatBuf.Messages)
+            {
+                int len = (msg.Timestamp.Date == DateTime.Now ? 7 : 12) + 2;
+                if (msg.Sender?.Name != null)
+                    len += msg.Sender.Name.Length;
+                else
+                    len += 6;
+
+                int mheight = 1;
+                foreach (var ch in msg.Message.ToPlainString())
+                    if (++len > ConsoleHelper.Size.Width || ch == '\n')
+                    {
+                        mheight++;
+                        len = 0;
+                    }
+
+                if (msg.Message.EndsWith("\n", StringComparison.Ordinal))
+                    mheight--;
+
+                msg.Lines = mheight;
+            }
+        }
+
         public void Render()
         {
             lock (Application.DrawLock)
             {
+                RenderMessages();
+
                 Activity = false;
                 Hilight = false;
 
@@ -56,31 +85,11 @@ namespace ConsoleMessenger.UI.FChat
 
                 using (var c = new CursorChanger(new Point(0, 1)))
                 {
-                    foreach (var msg in ChatBuf.Messages.Reverse().TakeWhile(p =>
-                        {
-                            if (totalHeight >= height)
-                                return false;
-
-                            int len = (p.Timestamp.Date == DateTime.Now ? 7 : 12) + 2;
-                            if (p.Sender?.Name != null)
-                                len += p.Sender.Name.Length;
-                            else
-                                len += 6;
-
-                            int mheight = 1;
-                            foreach (var ch in p.Message.ToPlainString())
-                                if (++len > ConsoleHelper.Size.Width || ch == '\n')
-                                {
-                                    mheight++;
-                                    len = 0;
-                                }
-
-                            if (p.Message.EndsWith("\n", StringComparison.Ordinal))
-                                mheight--;
-
-                            totalHeight += mheight;
-                            return true;
-                        }).Skip(totalHeight >= height ? 1 : 0).Reverse())
+                    foreach (var msg in ChatBuf.Messages
+                        .Reverse()
+                        .TakeWhile(p => (totalHeight += p.Lines) < height)
+                        .Reverse()
+                        .Skip(totalHeight > height ? 1 : 0))
                     {
                         if (msg.Timestamp.Date == DateTime.Now.Date)
                             Graphics.WriteANSIString($"[{msg.Timestamp.ToString("HH:mm")}] ".Color(ConsoleColor.Gray));
@@ -130,6 +139,8 @@ namespace ConsoleMessenger.UI.FChat
                         }
                         else
                             Graphics.WriteANSIString(": " + msg.Message, foreground: ConsoleColor.Gray);
+
+                        Console.Write("|{0}", msg.Lines);
 
                         Console.CursorLeft = 0;
                         Console.CursorTop++;

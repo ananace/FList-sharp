@@ -449,10 +449,12 @@ namespace ConsoleMessenger
 					buffer = CurrentChannelBuffer;
 			}
 
-            buffer.ChatBuf.SendMessage(sender ?? _Chat.LocalCharacter, Text, type);
-
             buffer.Activity = true;
 			buffer.Hilight |= buffer.Character != null || Text.ToLower().Contains(Connection.LocalCharacter.Name.ToLower());
+            if (buffer.Hilight && buffer.Character == null)
+                Text = Text.Replace(Connection.LocalCharacter.Name, Connection.LocalCharacter.Name.Color(ConsoleColor.Yellow));
+
+            buffer.ChatBuf.SendMessage(sender ?? _Chat.LocalCharacter, Text, type);
 				
             if (CurrentChannelBuffer == buffer)
                 CurrentChannelBuffer.Render();
