@@ -12,8 +12,13 @@ namespace ConsoleMessenger
 		LFRP,
 		Roll,
 
-		Preview
+        Preview
 	}
+    public enum MessageSource
+    {
+        Local,
+        Remote
+    }
 
 	public class ChatBuffer
 	{
@@ -24,6 +29,7 @@ namespace ConsoleMessenger
             public int Lines { get; set; }
 			public Character Sender { get; set; }
 			public MessageType Type { get; set; }
+            public MessageSource Source { get; set; }
 		}
 
         public event EventHandler<MessageData> OnMessage;
@@ -37,13 +43,14 @@ namespace ConsoleMessenger
 			_Messages.Clear();
 		}
 
-		public void PushMessage(Character sender, string message, MessageType type = MessageType.Chat, DateTime? timestamp = null)
+        public void PushMessage(Character sender, string message, MessageType type = MessageType.Chat, MessageSource source = MessageSource.Local, DateTime? timestamp = null)
 		{
 			_Messages.Add(new MessageData {
 				Timestamp = timestamp ?? DateTime.Now,
 				Sender = sender,
 				Message = message,
-				Type = type
+				Type = type,
+                Source = source
 			});
 
             while (_Messages.Count >= MaxMessages)
@@ -52,7 +59,7 @@ namespace ConsoleMessenger
             OnMessage?.Invoke(this, _Messages.Last());
 		}
 
-		public virtual void SendMessage(Character sender, string message, MessageType type = MessageType.Chat)
+		public virtual void SendMessage(Character sender, string message, MessageType type = MessageType.Chat, MessageSource source = MessageSource.Local)
 		{
 			PushMessage(sender, message);
 		}
@@ -104,9 +111,9 @@ namespace ConsoleMessenger
 			Channel = channel;
 		}
 
-		public override void SendMessage(Character sender, string message, MessageType type = MessageType.Chat)
+		public override void SendMessage(Character sender, string message, MessageType type = MessageType.Chat, MessageSource source = MessageSource.Local)
 		{
-			if (sender == null || sender == Application.Connection.LocalCharacter)
+			if (source == MessageSource.Local)
 				switch (type)
 				{
 					case MessageType.Chat:
@@ -114,10 +121,10 @@ namespace ConsoleMessenger
 					case MessageType.LFRP:
 						Channel.SendLFRP(message); break;
 					case MessageType.Roll:
-						Channel.SendRoll(message); break;
+                        Channel.SendRoll(message); return;
 				}
 
-			PushMessage(sender, message, type);
+			PushMessage(sender, message, type, source);
 		}
 	}
 
@@ -130,11 +137,11 @@ namespace ConsoleMessenger
 			Character = character;
 		}
 
-		public override void SendMessage(Character sender, string message, MessageType type = MessageType.Chat)
+		public override void SendMessage(Character sender, string message, MessageType type = MessageType.Chat, MessageSource source = MessageSource.Local)
 		{
-			if (type == MessageType.Chat)
+			if (source == MessageSource.Local && type == MessageType.Chat)
 				Character.SendMessage(message);
-			PushMessage(sender, message, type);
+			PushMessage(sender, message, type, source);
 		}
 	}
 }

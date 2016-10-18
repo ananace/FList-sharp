@@ -426,7 +426,7 @@ namespace ConsoleMessenger
 			WriteMessage(Text);
 		}
 
-		public static void WriteMessage(string Text, ChannelBuffer buffer = null, Channel channel = null, Character sender = null, MessageType type = MessageType.Chat)
+		public static void WriteMessage(string Text, ChannelBuffer buffer = null, Channel channel = null, Character sender = null, MessageType type = MessageType.Chat, MessageSource source = MessageSource.Local)
 		{
 			if (buffer == null)
 			{
@@ -454,7 +454,7 @@ namespace ConsoleMessenger
             if (buffer.Hilight && buffer.Character == null)
                 Text = Text.Replace(Connection.LocalCharacter.Name, Connection.LocalCharacter.Name.Color(ConsoleColor.Yellow));
 
-            buffer.ChatBuf.SendMessage(sender ?? _Chat.LocalCharacter, Text, type);
+            buffer.ChatBuf.SendMessage(sender ?? _Chat.LocalCharacter, Text, type, source);
 				
             if (CurrentChannelBuffer == buffer)
                 CurrentChannelBuffer.Render();
@@ -537,13 +537,13 @@ namespace ConsoleMessenger
 			};
 
 			_Chat.OnChannelChatMessage += (_, e) =>
-				WriteMessage(e.Message, null, e.Channel, e.Character);
+				WriteMessage(e.Message, null, e.Channel, e.Character, source: MessageSource.Remote);
 			_Chat.OnChannelLFRPMessage += (_, e) =>
-				WriteMessage(e.Message, null, e.Channel, e.Character);
+				WriteMessage(e.Message, null, e.Channel, e.Character, MessageType.LFRP, MessageSource.Remote);
 			_Chat.OnChannelRollMessage += (_, e) =>
-				WriteMessage(e.Message, null, e.Channel, e.Character);
+				WriteMessage(e.Message, null, e.Channel, e.Character, MessageType.Roll, MessageSource.Remote);
 			_Chat.OnCharacterChatMessage += (_, e) =>
-				WriteMessage(e.Message, null, null, e.Character);
+				WriteMessage(e.Message, null, null, e.Character, source: MessageSource.Remote);
 
 			_Chat.OnChannelLeave += (_, e) =>
 			{
