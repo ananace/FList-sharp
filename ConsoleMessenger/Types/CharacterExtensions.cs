@@ -46,9 +46,9 @@ namespace ConsoleMessenger.Types
 				case Genders.Herm:
 					return ConsoleColor.DarkMagenta;
 				case Genders.Male:
-					return ConsoleColor.Blue;
+					return ConsoleColor.DarkCyan;
 				case Genders.MaleHerm:
-					return ConsoleColor.DarkBlue;
+					return ConsoleColor.Blue;
 				case Genders.None:
 					return ConsoleColor.Yellow;
 				case Genders.Shemale:

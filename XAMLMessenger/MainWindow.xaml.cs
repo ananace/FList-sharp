@@ -139,7 +139,7 @@ namespace XAMLMessenger
             _consoleChat.AddMessage("[session]Cuntboy[/session] [url=https://google.com][icon]ananace[/icon] or [i][sub]google[/sub][/i][/url]");
             _consoleChat.AddMessage("[session]Cuntboy[/session] [url=https://google.com][icon]ananace[/icon] or [i][sub]google[/sub][/i][/url]");
             _consoleChat.AddMessage("[session]Cuntboy[/session] [url=https://google.com][icon]ananace[/icon] or [i][sub]google[/sub][/i][/url]");
-            _consoleChat.AddMessage("[session]Cuntboy[/session] [icon]ananace[/icon][url=https://google.com] or [i][sub]google[/sub][/i][/url]");
+            _consoleChat.AddMessage("[session]Cuntboy[/session] [icon]ananace[/icon][url=https://google.com] or [i][sub][color=red]g[/color]o[color=orange]o[/color]g[color=cornflowerblue]l[/color]e[/sub][/i][/url]");
         }
     }
 }

@@ -76,7 +76,7 @@ namespace ConsoleMessenger
 			{
 				if (Environment.OSVersion.IsLinux())
 					return new Size(Console.BufferWidth, Console.BufferHeight);
-				return new Size(Console.WindowWidth, Console.WindowHeight);
+				return new Size(Console.WindowWidth - 1, Console.WindowHeight - 1);
 			} }
 
 		public static void Start()
@@ -512,10 +512,10 @@ namespace ConsoleMessenger
 			_Chat.Endpoint = FChatConnection.TestingServerEndpoint;
 			//_Chat.Endpoint = FChatConnection.LiveServerEndpoint;
 
-			_Chat.OnRawMessage += (_, e) =>
-				_ConsoleBuffer.ChatBuf.PushMessage(null, $"<< {e.Command.Serialize()}");
-			_Chat.OnSendMessage += (_, e) =>
-				_ConsoleBuffer.ChatBuf.PushMessage(null, $">> {e.Command.Serialize()}");
+			//_Chat.OnRawMessage += (_, e) =>
+			//	_ConsoleBuffer.ChatBuf.PushMessage(null, $"<< {e.Command.Serialize()}");
+			//_Chat.OnSendMessage += (_, e) =>
+			//	_ConsoleBuffer.ChatBuf.PushMessage(null, $">> {e.Command.Serialize()}");
 
 			_Chat.OnSYSMessage += (_, e) =>
 				_ConsoleBuffer.ChatBuf.PushMessage(null, (e.Command as Server_SYS_ChatSYSMessage).Message);

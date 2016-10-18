@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
+using System.Reflection;
 using System.Windows;
 using System.Windows.Documents;
 using System.Windows.Media;
@@ -53,22 +53,14 @@ namespace XAMLMessenger.Message.Nodes
 
         Brush _GetBrush(string name)
         {
-            switch (name.ToLower())
-            {
-                case "red": return Brushes.Red;
-                case "blue": return Brushes.Blue;
-                case "white": return Brushes.White;
-                case "yellow": return Brushes.Yellow;
-                case "pink": return Brushes.Pink;
-                case "gray": return Brushes.Gray;
-                case "green": return Brushes.Green;
-                case "orange": return Brushes.Orange;
-                case "purple": return Brushes.Purple;
-                case "black": return Brushes.Black;
-                case "brown": return Brushes.Brown;
-                case "cyan": return Brushes.Cyan;
-            }
-            return Brushes.White;
+			// No need to use a lookup table when there's reflection
+			var prop = typeof(Brushes)
+				.GetProperties(BindingFlags.Static | BindingFlags.Public)
+				.FirstOrDefault(p => p.Name.Equals(name, StringComparison.CurrentCultureIgnoreCase));
+			if (prop == null)
+				return Brushes.White;
+
+			return prop.GetMethod.Invoke(null, null) as Brush;
         }
     }
 }

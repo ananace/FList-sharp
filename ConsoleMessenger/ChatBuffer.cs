@@ -40,21 +40,28 @@ namespace ConsoleMessenger
 
 		public void Clear()
 		{
-			_Messages.Clear();
+			lock (this)
+			{
+				_Messages.Clear();
+			}
 		}
 
         public void PushMessage(Character sender, string message, MessageType type = MessageType.Chat, MessageSource source = MessageSource.Local, DateTime? timestamp = null)
 		{
-			_Messages.Add(new MessageData {
-				Timestamp = timestamp ?? DateTime.Now,
-				Sender = sender,
-				Message = message,
-				Type = type,
-                Source = source
-			});
+			lock (this)
+			{
+				_Messages.Add(new MessageData
+				{
+					Timestamp = timestamp ?? DateTime.Now,
+					Sender = sender,
+					Message = message,
+					Type = type,
+					Source = source
+				});
 
-            while (_Messages.Count >= MaxMessages)
-                _Messages.RemoveAt(0);
+				while (_Messages.Count >= MaxMessages)
+					_Messages.RemoveAt(0);
+			}
 
             OnMessage?.Invoke(this, _Messages.Last());
 		}

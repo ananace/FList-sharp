@@ -75,7 +75,7 @@ namespace XAMLMessenger.Message
                             case "icon": tag = new IconNode(); break;
                             case "eicon": tag = new EIconNode(); break;
                             case "user": tag = new CharacterNode(); break;
-                            case "color": tag = new TextEffectNode(); break;
+                            case "color": tag = new TextEffectNode { Name = "color" }; break;
                             case "url": tag = new URLNode(); break;
                             case "session": tag = new SessionNode(); break;
                             case "channel": tag = new SessionNode() { Name = "channel" }; break;

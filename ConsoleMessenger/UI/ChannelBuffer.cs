@@ -42,6 +42,7 @@ namespace ConsoleMessenger.UI.FChat
 
         void RenderMessages()
         {
+			lock(_ChatBuf)
             foreach (var msg in _ChatBuf.Messages)
             {
                 int len = (msg.Timestamp.Date == DateTime.Now ? 7 : 12) + 2;
@@ -85,6 +86,7 @@ namespace ConsoleMessenger.UI.FChat
 
                 using (var c = new CursorChanger(new Point(0, 1)))
                 {
+					lock(_ChatBuf)
                     foreach (var msg in ChatBuf.Messages
                         .Reverse()
                         .TakeWhile(p => (totalHeight += p.Lines) < height)
