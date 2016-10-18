@@ -7,14 +7,19 @@ namespace ConsoleMessenger.UI
 {
 	public static class StringHelper
 	{
+        public static string ToPlainString(this string String)
+        {
+            var data = String.Split('\x1b');
+            return data.First() + data.Skip(1).Select(s =>
+            {
+                int i = s.IndexOf('m');
+                return i >= 0 ? s.Substring(i + 1) : s;
+            }).ToString(" ");
+        }
+
 		public static int ANSILength(this string String)
 		{
-			var data = String.Split('\x1b');
-			return string.Join(" ", data.First() + data.Skip(1).Select(s =>
-			{
-				int i = s.IndexOf('m');
-				return i >= 0 ? s.Substring(i + 1) : s;
-			})).Length;
+            return String.ToPlainString().Length;
 		}
 
 		public static string ANSIColor(this ConsoleColor color, bool background = false)

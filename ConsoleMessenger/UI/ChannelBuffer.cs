@@ -47,7 +47,7 @@ namespace ConsoleMessenger.UI.FChat
 
                 Graphics.DrawLine(new Point(0, 0), new Point(ConsoleHelper.Size.Width - 1, 0), ' ', ConsoleColor.DarkBlue);
                 Graphics.WriteANSIString(TitleBar, new Point(0, 0), ConsoleColor.DarkBlue, ConsoleColor.White);
-                Graphics.DrawFilledBox(new Point(0, 1), new Point(ConsoleHelper.Size.Width - 1, ConsoleHelper.Size.Height - 3), ' ');
+                Graphics.DrawFilledBox(new Point(0, 1), new Point(ConsoleHelper.Size.Width - 1, ConsoleHelper.Size.Height - 2), ' ');
 
                 int height = ConsoleHelper.Size.Height - 4;
                 int totalHeight = 0;
@@ -61,13 +61,24 @@ namespace ConsoleMessenger.UI.FChat
                             if (totalHeight >= height)
                                 return false;
 
-                            int len = p.Message.ANSILength()
-                                + (p.Timestamp.Date == DateTime.Now ? 7 : 12)
-                                + 2;
+                            int len = (p.Timestamp.Date == DateTime.Now ? 7 : 12) + 2;
                             if (p.Sender?.Name != null)
                                 len += p.Sender.Name.Length;
+                            else
+                                len += 6;
 
-                            totalHeight += len / ConsoleHelper.Size.Width;
+                            int mheight = 1;
+                            foreach (var ch in p.Message.ToPlainString())
+                                if (++len > ConsoleHelper.Size.Width || ch == '\n')
+                                {
+                                    mheight++;
+                                    len = 0;
+                                }
+
+                            if (p.Message.EndsWith("\n", StringComparison.Ordinal))
+                                mheight--;
+
+                            totalHeight += mheight;
                             return true;
                         }).Skip(totalHeight >= height ? 1 : 0).Reverse())
                     {
