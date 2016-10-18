@@ -214,7 +214,7 @@ namespace libflist.FChat
 		public void SendCommand(Command command)
 		{
 			if (command.Source != CommandSource.Client)
-				throw new ArgumentException("Command source is invalid.", nameof(command));
+                throw new ArgumentException($"{command.GetType().Name} Command source is invalid.", nameof(command));
 
 			lock (_Connection)
 			{

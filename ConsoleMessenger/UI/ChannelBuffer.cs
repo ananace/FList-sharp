@@ -140,8 +140,6 @@ namespace ConsoleMessenger.UI.FChat
                         else
                             Graphics.WriteANSIString(": " + msg.Message, foreground: ConsoleColor.Gray);
 
-                        Console.Write("|{0}", msg.Lines);
-
                         Console.CursorLeft = 0;
                         Console.CursorTop++;
                     }

@@ -128,7 +128,7 @@ namespace ConsoleMessenger
 
 		static int _CurBuffer = 0;
         public static ChannelBuffer CurrentChannelBuffer => _ChannelBuffers[_CurBuffer];
-		public static IReadOnlyCollection<ChannelBuffer> Buffers => _ChannelBuffers;
+		public static IList<ChannelBuffer> Buffers => _ChannelBuffers;
 
 		static bool _Running = true;
         static Timer _Redraw = new Timer((_) => { Redraw(); }, null, 1000, 1000);
@@ -508,6 +508,7 @@ namespace ConsoleMessenger
             _ChannelBuffers.Add(_ConsoleBuffer);
             _InputBox.OnTextEntered += (s, e) => { TextEntry(e); };
 
+            _Chat.AutoPing = true;
 			_Chat.Endpoint = FChatConnection.TestingServerEndpoint;
 			//_Chat.Endpoint = FChatConnection.LiveServerEndpoint;
 
@@ -518,8 +519,12 @@ namespace ConsoleMessenger
 
 			_Chat.OnSYSMessage += (_, e) =>
 				_ConsoleBuffer.ChatBuf.PushMessage(null, (e.Command as Server_SYS_ChatSYSMessage).Message);
-			_Chat.OnErrorMessage += (_, e) => 
-				_ConsoleBuffer.ChatBuf.PushMessage(null, (e.Command as Server_ERR_ChatError).Error);
+            _Chat.OnErrorMessage += (_, e) =>
+            {
+                if (CurrentChannelBuffer != _ConsoleBuffer)
+                    _ConsoleBuffer.ChatBuf.PushMessage(null, (e.Command as Server_ERR_ChatError).Error);
+                CurrentChannelBuffer.ChatBuf.PushMessage(null, (e.Command as Server_ERR_ChatError).Error, MessageType.Preview, MessageSource.Remote);
+            };
 			_Chat.OnError += (_, e) =>
 				_ConsoleBuffer.ChatBuf.PushMessage(null, $"{e.Message}:\n${e.InnerException}");
 

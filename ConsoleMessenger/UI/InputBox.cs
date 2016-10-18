@@ -60,7 +60,7 @@ namespace ConsoleMessenger.UI
 						break;
 
 					buf.Remove(--Cursor, 1);
-                    Console.Write("\b \b");
+                    Render();
 				}
 				break;
 

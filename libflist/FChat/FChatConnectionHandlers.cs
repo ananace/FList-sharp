@@ -48,7 +48,7 @@ namespace libflist.FChat
 			};
 			_Handlers["PIN"] += (_, c) => {
 				if (AutoPing)
-					SendCommand(new Server_PIN_ChatPing());
+					SendCommand(new Client_PIN_ChatPing());
 			};
 			_Handlers["SYS"] += (_, c) => {
 				var sys = c as Server_SYS_ChatSYSMessage;

@@ -58,6 +58,7 @@
     <Compile Include="Commands\Status.cs" />
     <Compile Include="Commands\Who.cs" />
     <Compile Include="Commands\Roll.cs" />
+    <Compile Include="Commands\Priv.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\libflist\libflist.csproj">
