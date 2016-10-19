@@ -1,4 +1,5 @@
-﻿using ConsoleMessenger.Types;
+﻿using ConsoleMessenger.Settings;
+using ConsoleMessenger.Types;
 using libflist.FChat;
 using System;
 using System.Collections.Generic;
@@ -6,31 +7,46 @@ using System.Linq;
 
 namespace ConsoleMessenger.UI.FChat
 {
-    public class ChannelBuffer
-    {
-        ChatBuffer _ChatBuf;
-        public ChatBuffer ChatBuf
-        {
-            get { return _ChatBuf; }
-            set
-            {
-                _ChatBuf = value;
-                _ChatBuf.OnMessage += (s, e) =>
-                {
-                    if (Application.CurrentChannelBuffer == this)
-                        Render();
-                };
-            }
-        }
-        public Channel Channel => (_ChatBuf as ChannelChatBuffer)?.Channel;
-        public Character Character => (_ChatBuf as CharacterChatBuffer)?.Character;
+	public class ChannelBuffer
+	{
+		ChatBuffer _ChatBuf;
+		public ChatBuffer ChatBuf
+		{
+			get { return _ChatBuf; }
+			set
+			{
+				_ChatBuf = value;
+				_ChatBuf.OnMessage += (s, e) =>
+				{
+					if (Application.CurrentChannelBuffer == this)
+						Render();
+				};
+			}
+		}
+		public Channel Channel => (_ChatBuf as ChannelChatBuffer)?.Channel;
+		public Character Character => (_ChatBuf as CharacterChatBuffer)?.Character;
 
-        public string Title { get; set; }
+		public string Title { get; set; }
 
-        public bool Activity { get; set; }
-        public bool Hilight { get; set; }
+		public bool Activity { get; set; }
+		public bool Hilight { get; set; }
 
-        public int Scroll { get; set; } = -1;
+		public int Scroll { get; set; } = -1;
+
+		[Setting("buffer.show_ads", DefaultValue = true, Description = "Should the buffer display ads?")]
+		public bool ShowADs { get; set; } = true;
+		[Setting("buffer.show_messages", DefaultValue = true, Description = "Should the buffer display messages?")]
+		public bool ShowMessages { get; set; } = true;
+
+		[Setting("buffer.max_messages", DefaultValue = 1000, Description = "The number of messages to store in scrollback.")]
+		public int MaxMessages
+		{
+			get { return _ChatBuf.MaxMessages; }
+			set
+			{
+				_ChatBuf.MaxMessages = value;
+			}
+		}
 
         string TitleBar
         {
@@ -40,10 +56,27 @@ namespace ConsoleMessenger.UI.FChat
             }
         }
 
+		IEnumerable<ChatBuffer.MessageData> Messages
+		{
+			get
+			{
+				if (ShowADs && ShowMessages)
+					return _ChatBuf.Messages;
+
+				IEnumerable<ChatBuffer.MessageData> en = _ChatBuf.Messages;
+				if (!ShowADs)
+					en = en.Where(m => m.Type != MessageType.LFRP);
+				if (!ShowMessages)
+					en = en.Where(m => m.Type != MessageType.Chat);
+
+				return en;
+			}
+		}
+
         void RenderMessages()
         {
 			lock(_ChatBuf)
-            foreach (var msg in _ChatBuf.Messages)
+            foreach (var msg in Messages)
             {
                 int len = (msg.Timestamp.Date == DateTime.Now ? 7 : 12) + 2;
                 if (msg.Sender?.Name != null)
@@ -87,7 +120,7 @@ namespace ConsoleMessenger.UI.FChat
                 using (var c = new CursorChanger(new Point(0, 1)))
                 {
 					lock(_ChatBuf)
-                    foreach (var msg in ChatBuf.Messages
+                    foreach (var msg in Messages
                         .Reverse()
                         .TakeWhile(p => (totalHeight += p.Lines) < height)
                         .Reverse()
