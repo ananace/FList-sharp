@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using libflist.FChat;
 using System.Linq;
 using System.Diagnostics;
+using libflist.Message;
 
 namespace ConsoleMessenger
 {
@@ -12,31 +13,51 @@ namespace ConsoleMessenger
 		LFRP,
 		Roll,
 
-        Preview
+		Preview
 	}
-    public enum MessageSource
-    {
-        Local,
-        Remote
-    }
+	public enum MessageSource
+	{
+		Local,
+		Remote
+	}
 
 	public class ChatBuffer
 	{
 		public class MessageData
 		{
 			public DateTime Timestamp { get; set; }
-			public string Message { get; set; }
-            public int Lines { get; set; }
+			public IEnumerable<INode> RawMessage { get; set; }
+			string _PlainMessage;
+			public string PlainMessage
+			{
+				get
+				{
+					if (_PlainMessage == null)
+						_PlainMessage = RawMessage.Select(m => m.ToString(NodeStringType.Plain)).ToString(" ");
+					return _PlainMessage;
+				}
+			}
+			string _BBCodeMessage;
+			public string BBCodeMessage
+			{
+				get
+				{
+					if (_BBCodeMessage == null)	
+						_BBCodeMessage = RawMessage.Select(m => m.ToString(NodeStringType.Plain)).ToString(" ");
+					return _BBCodeMessage;
+				}
+			}
+			public int Lines { get; set; }
 			public Character Sender { get; set; }
 			public MessageType Type { get; set; }
-            public MessageSource Source { get; set; }
+			public MessageSource Source { get; set; }
 		}
 
-        public event EventHandler<MessageData> OnMessage;
+		public event EventHandler<MessageData> OnMessage;
 
 		List<MessageData> _Messages = new List<MessageData>();
 		public IReadOnlyList<MessageData> Messages { get { return _Messages; } }
-        public int MaxMessages { get; set; } = 1000;
+		public int MaxMessages { get; set; } = 100;
 
 		public void Clear()
 		{
@@ -46,7 +67,7 @@ namespace ConsoleMessenger
 			}
 		}
 
-        public void PushMessage(Character sender, string message, MessageType type = MessageType.Chat, MessageSource source = MessageSource.Local, DateTime? timestamp = null)
+		public void PushMessage(Character sender, string message, MessageType type = MessageType.Chat, MessageSource source = MessageSource.Local, DateTime? timestamp = null)
 		{
 			lock (this)
 			{
@@ -54,7 +75,7 @@ namespace ConsoleMessenger
 				{
 					Timestamp = timestamp ?? DateTime.Now,
 					Sender = sender,
-					Message = message,
+					RawMessage = new Parser { Validity = NodeValidity.FChat }.ParseMessage(message),
 					Type = type,
 					Source = source
 				});
@@ -63,7 +84,7 @@ namespace ConsoleMessenger
 					_Messages.RemoveAt(0);
 			}
 
-            OnMessage?.Invoke(this, _Messages.Last());
+			OnMessage?.Invoke(this, _Messages.Last());
 		}
 
 		public virtual void SendMessage(Character sender, string message, MessageType type = MessageType.Chat, MessageSource source = MessageSource.Local)
@@ -72,8 +93,8 @@ namespace ConsoleMessenger
 		}
 	}
 
-    public sealed class ConsoleChatBuffer : ChatBuffer
-    {
+	public sealed class ConsoleChatBuffer : ChatBuffer
+	{
 		class DebugTracer : TraceListener
 		{
 			ConsoleChatBuffer _Buf;
@@ -104,10 +125,10 @@ namespace ConsoleMessenger
 			}
 		}
 
-        DebugTracer _Tracer;
+		DebugTracer _Tracer;
 		public TraceListener TraceListener { get { if (_Tracer == null) _Tracer = new DebugTracer(this); return _Tracer; } }
-        
-    }
+
+	}
 
 	public sealed class ChannelChatBuffer : ChatBuffer
 	{
@@ -128,7 +149,7 @@ namespace ConsoleMessenger
 					case MessageType.LFRP:
 						Channel.SendLFRP(message); break;
 					case MessageType.Roll:
-                        Channel.SendRoll(message); return;
+						Channel.SendRoll(message); return;
 				}
 
 			PushMessage(sender, message, type, source);

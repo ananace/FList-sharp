@@ -41,7 +41,27 @@ namespace libflist.Message
 				build.Append(']');
 			}
 
-			if (node is ITextNode)
+			if (node is Nodes.URLNode && type == NodeStringType.Plain)
+			{
+				var url = node as Nodes.URLNode;
+				if (!string.IsNullOrEmpty(url.Attribute))
+				{
+					build.Append((url as IContentNode).ToString(type));
+					build.Append(" (");
+				}
+
+				build.Append((node as Nodes.URLNode).Uri.ToString());
+
+				if (!string.IsNullOrEmpty(url.Attribute))
+					build.Append(")");
+			}
+			else if ((node is Nodes.IconNode || node is Nodes.EIconNode) && type == NodeStringType.Plain)
+			{
+				build.Append(":");
+				build.Append((node as ITextNode).ToString(type));
+				build.Append(":");
+			}
+			else if (node is ITextNode)
 				build.Append((node as ITextNode).Text);
 			else if (node is IContentNode)
 			{

@@ -38,14 +38,15 @@ namespace ConsoleMessenger.UI.FChat
 		[Setting("buffer.show_messages", DefaultValue = true, Description = "Should the buffer display messages?")]
 		public bool ShowMessages { get; set; } = true;
 
-		[Setting("buffer.max_messages", DefaultValue = 1000, Description = "The number of messages to store in scrollback.")]
+		// TODO: ANSI generation for BBCodes
+		[Setting("buffer.strip_messages", DefaultValue = true, Description = "Should messages be stripped of their BBCode before being displayed")]
+		public bool StripMessages { get; set; } = true;
+
+		[Setting("buffer.max_messages", DefaultValue = 100, Description = "The number of messages to store in scrollback.")]
 		public int MaxMessages
 		{
 			get { return _ChatBuf.MaxMessages; }
-			set
-			{
-				_ChatBuf.MaxMessages = value;
-			}
+			set { _ChatBuf.MaxMessages = value; }
 		}
 
         string TitleBar
@@ -85,14 +86,14 @@ namespace ConsoleMessenger.UI.FChat
                     len += 6;
 
                 int mheight = 1;
-                foreach (var ch in msg.Message.ToPlainString())
+                foreach (var ch in (StripMessages ? msg.PlainMessage : msg.BBCodeMessage))
                     if (++len > ConsoleHelper.Size.Width || ch == '\n')
                     {
                         mheight++;
                         len = 0;
                     }
 
-                if (msg.Message.EndsWith("\n", StringComparison.Ordinal))
+                if ((StripMessages ? msg.PlainMessage : msg.BBCodeMessage).EndsWith("\n", StringComparison.Ordinal))
                     mheight--;
 
                 msg.Lines = mheight;
@@ -131,7 +132,7 @@ namespace ConsoleMessenger.UI.FChat
                         else
                             Graphics.WriteANSIString($"[{msg.Timestamp.ToString("yyyy-MM-dd")}] ".Color(ConsoleColor.Gray));
 
-                        bool action = msg.Message.StartsWith("/me", StringComparison.CurrentCultureIgnoreCase);
+                        bool action = (StripMessages ? msg.PlainMessage : msg.BBCodeMessage).StartsWith("/me", StringComparison.CurrentCultureIgnoreCase);
                         if (action)
                             Console.Write("* ");
 
@@ -162,18 +163,18 @@ namespace ConsoleMessenger.UI.FChat
 
                         if (action)
                         {
-                            if (msg.Message.StartsWith("/me's", StringComparison.CurrentCultureIgnoreCase))
+                            if (msg.PlainMessage.StartsWith("/me's", StringComparison.CurrentCultureIgnoreCase))
                             {
-                                Graphics.WriteANSIString(msg.Message.Substring(3), foreground: ConsoleColor.White);
+                                Graphics.WriteANSIString((StripMessages ? msg.PlainMessage : msg.BBCodeMessage).Substring(3), foreground: ConsoleColor.White);
                             }
                             else
                             {
                                 Console.CursorLeft++;
-                                Graphics.WriteANSIString(msg.Message.Substring(4), foreground: ConsoleColor.White);
+                                Graphics.WriteANSIString((StripMessages ? msg.PlainMessage : msg.BBCodeMessage).Substring(4), foreground: ConsoleColor.White);
                             }
                         }
                         else
-                            Graphics.WriteANSIString(": " + msg.Message, foreground: ConsoleColor.Gray);
+                            Graphics.WriteANSIString(": " + (StripMessages ? msg.PlainMessage : msg.BBCodeMessage), foreground: ConsoleColor.Gray);
 
                         Console.CursorLeft = 0;
                         Console.CursorTop++;
