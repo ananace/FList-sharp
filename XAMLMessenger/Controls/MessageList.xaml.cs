@@ -1,4 +1,5 @@
-﻿using System;
+﻿using libflist.Message;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -69,8 +70,21 @@ namespace XAMLMessenger.Controls
             };
             par.Foreground = Brushes.LightGray;
 
-            par.Inlines.Add(new Message.Nodes.DateNode().ToInline(null));
-            par.Inlines.AddRange(new Parser().ParseMessage(message).Select(n => n.ToInline(null)));
+            par.Inlines.Add(new DateNode().ToInline(null));
+            par.Inlines.AddRange(new Parser { Validity = NodeValidity.FChat }.ParseMessage(message).Select(n => {
+				try
+				{
+					return n.ToInline(null);
+				}
+				catch (Exception ex)
+				{
+					return new Run(n.ToString(NodeStringType.BBCode))
+					{
+						TextDecorations = TextDecorations.Baseline,
+						ToolTip = ex.ToString()
+					};
+				}
+			}));
 
 			AddMessageParagraph(par);
         }

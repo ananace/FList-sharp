@@ -16,8 +16,9 @@ using System.Windows.Shapes;
 using libflist.FChat;
 using libflist.Info;
 using System.Globalization;
-using XAMLMessenger.Message.Nodes;
 using XAMLMessenger.Message;
+using libflist.Message;
+using libflist.Message.Nodes;
 
 namespace XAMLMessenger.Controls
 {
@@ -43,7 +44,7 @@ namespace XAMLMessenger.Controls
                 {
                     if (e.Channel == _channel)
                     {
-                        _userList.Document.Blocks.Add(new Paragraph(new CharacterNode() { Text = e.Character.Name }.ToInline(_channel))
+                        _userList.Document.Blocks.Add(new Paragraph(new UserNode() { Text = e.Character.Name }.ToInline(_channel))
                         {
                             Tag = e.Character
                         });
@@ -76,10 +77,10 @@ namespace XAMLMessenger.Controls
 
             par.Inlines.AddRange(new Inline[]{
                 new DateNode().ToInline(_channel),
-                new CharacterNode { Text = sender.Name }.ToInline(_channel)
+                new UserNode { Text = sender.Name }.ToInline(_channel)
             });
 
-            par.Inlines.AddRange(new Parser().ParseMessage(message).Select(n => n.ToInline(_channel)));
+            par.Inlines.AddRange(new Parser { Validity = NodeValidity.FChat }.ParseMessage(message).Select(n => n.ToInline(_channel)));
         }
 
         public void AddAction(Character sender, string action)

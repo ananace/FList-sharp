@@ -1,17 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using libflist.Message;
+using System;
 using System.Windows;
 using System.Windows.Documents;
-using System.Windows.Media;
 
-namespace XAMLMessenger.Message.Nodes
+namespace XAMLMessenger.Message
 {
+	[Node("date", Valid = NodeValidity.Internal)]
     class DateNode : ITextNode
     {
-        public string Name { get; } = "date";
         public string Text { get; set; }
 
         DateTime Time { get

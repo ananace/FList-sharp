@@ -1,52 +1,11 @@
-﻿using System;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Documents;
+﻿using System.Windows;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
 
-namespace XAMLMessenger.Message.Nodes
+namespace XAMLMessenger.Message
 {
-    class CharacterNode : ITextNode
-    {
-        public string Name { get; } = "character";
-        public string Text { get; set; }
-
-        public Inline ToInline(libflist.FChat.Channel chan)
-        {
-            var ch = App.Current.FChatClient.GetCharacter(Text);
-            var sym = _CharacterSymbol(ch, chan);
-            var span = new Span
-            {
-                Inlines = {
-                    new InlineUIContainer(new Image {
-                        Source = new CroppedBitmap(App.Current.CombinedImageResource, _CharacterStatus(ch.Status)),
-                        Margin = new Thickness(5, 0, 5, 0)
-                    }),
-                    new Run(ch.Name) {
-                        Foreground = _CharacterBrush(ch.Gender)
-                    }
-                }
-            };
-            if (sym.HasValue)
-                span.Inlines.InsertBefore(span.Inlines.LastInline, new InlineUIContainer(new Image
-                {
-                    Source = new CroppedBitmap(App.Current.CombinedImageResource, sym.Value),
-                    Width = 24,
-                    Height = 24,
-                }));
-
-            return new Hyperlink(span)
-            {
-				Foreground = Brushes.White,
-				TextDecorations = null,
-
-                NavigateUri = new Uri($"flist://character/{Uri.EscapeUriString(ch.Name.ToLower())}"),
-                ToolTip = ch.Name
-            };
-        }
-
-        Int32Rect? _CharacterSymbol(libflist.FChat.Character ch, libflist.FChat.Channel chan)
+	static class CharacterExtensions
+	{
+        public static Int32Rect? CharacterSymbolRect(this libflist.FChat.Character ch, libflist.FChat.Channel chan)
         {
             if (ch.IsChatOp)
                 return new Int32Rect(216, 72, 24, 24);
@@ -63,9 +22,9 @@ namespace XAMLMessenger.Message.Nodes
             return null;
         }
 
-        Int32Rect _CharacterStatus(libflist.FChat.CharacterStatus status)
+        public static Int32Rect CharacterStatusRect(this libflist.FChat.Character character)
         {
-            switch (status)
+            switch (character.Status)
             {
                 case libflist.FChat.CharacterStatus.Away: return new Int32Rect(24, 72, 24, 24);
                 case libflist.FChat.CharacterStatus.Busy: return new Int32Rect(72, 72, 24, 24);
@@ -79,9 +38,9 @@ namespace XAMLMessenger.Message.Nodes
             return new Int32Rect(96, 72, 24, 24);
         }
 
-        Brush _CharacterBrush(libflist.Info.Genders gender)
+        public static Brush CharacterGenderBrush(this libflist.FChat.Character character)
         {
-            switch (gender)
+            switch (character.Gender)
             {
                 case libflist.Info.Genders.Cuntboy: return Brushes.Green;
                 case libflist.Info.Genders.Female: return Brushes.Pink;
@@ -94,5 +53,5 @@ namespace XAMLMessenger.Message.Nodes
             }
             return Brushes.White;
         }
-    }
+	}
 }

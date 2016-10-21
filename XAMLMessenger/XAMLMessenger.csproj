@@ -56,6 +56,8 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Message\CharacterExtensions.cs" />
+    <Compile Include="TypeExtensions.cs" />
     <Page Include="Controls\ChatChannel.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -104,16 +106,9 @@
       <DependentUpon>LoginDialog.xaml</DependentUpon>
     </Compile>
     <Compile Include="FListUriParser.cs" />
-    <Compile Include="Message\IAttributeNode.cs" />
-    <Compile Include="Message\ITextNode.cs" />
-    <Compile Include="Message\IContentNode.cs" />
-    <Compile Include="Message\INode.cs" />
-    <Compile Include="Message\Nodes\DateNode.cs" />
-    <Compile Include="Message\Nodes\EIconNode.cs" />
-    <Compile Include="Message\Nodes\NoparseNode.cs" />
-    <Compile Include="Message\Nodes\SessionNode.cs" />
-    <Compile Include="Message\Nodes\CharacterNode.cs" />
-    <Compile Include="Message\Nodes\IconNode.cs" />
+    <Compile Include="Message\InternalEndNode.cs" />
+    <Compile Include="Message\DateNode.cs" />
+    <Compile Include="Message\NodeExtensions.cs" />
     <Compile Include="LoginWindow.xaml.cs">
       <DependentUpon>LoginWindow.xaml</DependentUpon>
     </Compile>
@@ -123,10 +118,6 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Message\Nodes\TextEffectNode.cs" />
-    <Compile Include="Message\Nodes\TextNode.cs" />
-    <Compile Include="Message\Nodes\URLNode.cs" />
-    <Compile Include="Message\Parser.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
