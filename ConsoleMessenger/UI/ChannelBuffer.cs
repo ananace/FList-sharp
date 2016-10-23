@@ -132,7 +132,8 @@ namespace ConsoleMessenger.UI.FChat
                         else
                             Graphics.WriteANSIString($"[{msg.Timestamp.ToString("yyyy-MM-dd")}] ".Color(ConsoleColor.Gray));
 
-                        bool action = (StripMessages ? msg.PlainMessage : msg.BBCodeMessage).StartsWith("/me", StringComparison.CurrentCultureIgnoreCase);
+                        string message = (StripMessages ? msg.PlainMessage : msg.BBCodeMessage);
+                        bool action = message.StartsWith("/me", StringComparison.CurrentCultureIgnoreCase);
                         if (action)
                             Console.Write("* ");
 
@@ -165,16 +166,16 @@ namespace ConsoleMessenger.UI.FChat
                         {
                             if (msg.PlainMessage.StartsWith("/me's", StringComparison.CurrentCultureIgnoreCase))
                             {
-                                Graphics.WriteANSIString((StripMessages ? msg.PlainMessage : msg.BBCodeMessage).Substring(3), foreground: ConsoleColor.White);
+                                Graphics.WriteANSIString(message.Substring(3), foreground: ConsoleColor.White);
                             }
                             else
                             {
                                 Console.CursorLeft++;
-                                Graphics.WriteANSIString((StripMessages ? msg.PlainMessage : msg.BBCodeMessage).Substring(4), foreground: ConsoleColor.White);
+                                Graphics.WriteANSIString(message.Substring(4), foreground: ConsoleColor.White);
                             }
                         }
                         else
-                            Graphics.WriteANSIString(": " + (StripMessages ? msg.PlainMessage : msg.BBCodeMessage), foreground: ConsoleColor.Gray);
+                            Graphics.WriteANSIString(": " + message, foreground: (msg.Sender?.Name == null ? ConsoleColor.DarkGray : ConsoleColor.Gray));
 
                         Console.CursorLeft = 0;
                         Console.CursorTop++;
