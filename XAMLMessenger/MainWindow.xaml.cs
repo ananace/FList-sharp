@@ -17,12 +17,22 @@ using XAMLMessenger.Controls;
 
 namespace XAMLMessenger
 {
+	namespace Commands
+	{
+		public static class MainCommands
+		{
+			public static RoutedUICommand SendMessage = new RoutedUICommand("Send a message", "SendMessage", typeof(MainCommands));
+			public static RoutedUICommand AddNewLine = new RoutedUICommand("Add a newline", "AddNewLine", typeof(MainCommands));
+			public static RoutedUICommand TabComplete = new RoutedUICommand("Run a tabcompletion", "TabComplete", typeof(MainCommands));
+		}
+	}
+
 	/// <summary>
 	/// Interaction logic for MainWindow.xaml
 	/// </summary>
 	public partial class MainWindow : Window
 	{
-        ChatChannel GetOrCreateChannel(Channel channel)
+		ChatChannel GetOrCreateChannel(Channel channel)
         {
             foreach (var tab in _chatList.Items)
             {
@@ -141,5 +151,33 @@ namespace XAMLMessenger
             _consoleChat.AddMessage("[session]Cuntboy[/session] [url=https://google.com][icon]ananace[/icon] or [i][sub]google[/sub][/i][/url]");
             _consoleChat.AddMessage("[session]Cuntboy[/session] [icon]ananace[/icon][url=https://google.com] or [i][sub][color=red]g[/color]o[color=orange]o[/color]g[color=cornflowerblue]l[/color]e[/sub][/i][/url]");
         }
-    }
+
+		private void CommandBinding_Executed(object sender, ExecutedRoutedEventArgs e)
+		{
+			var action = e.Parameter as string;
+
+			switch(action)
+			{
+				case "Tab":
+					{
+						var prev = _chatBox.CaretIndex;
+						_chatBox.Text += "<>";
+						_chatBox.CaretIndex = prev + 2;
+					} break;
+				case "Send":
+					_chatBox.Clear(); break;
+				case "Line":
+					{
+						var prev = _chatBox.CaretIndex;
+						_chatBox.Text += "\n";
+						_chatBox.CaretIndex = prev + 1;
+					} break;
+			}
+		}
+
+		private void CommandBinding_CanExecute(object sender, CanExecuteRoutedEventArgs e)
+		{
+			e.CanExecute = true;
+		}
+	}
 }
