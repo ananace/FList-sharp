@@ -62,9 +62,9 @@
 				<Grid>
 					<Grid.RowDefinitions>
 						<RowDefinition Height="48"/>
-						<RowDefinition Height="0"/>
+						<RowDefinition Height="2"/>
 						<RowDefinition Height="*"/>
-						<RowDefinition Height="0"/>
+						<RowDefinition Height="2"/>
 						<RowDefinition Height="48"/>
 					</Grid.RowDefinitions>
 					<Grid Grid.Row="0">
@@ -80,6 +80,7 @@
 							<TextBlock x:Name="_ChatDescription" Grid.Column="2" Foreground="White" Margin="5,2" ScrollViewer.VerticalScrollBarVisibility="Auto">Online</TextBlock>
 						</Grid>
 					</Grid>
+					<GridSplitter Grid.Row="1" Height="2" ResizeDirection="Rows" Cursor="SizeNS" ResizeBehavior="PreviousAndNext" HorizontalAlignment="Stretch" VerticalAlignment="Center" Background="#FF2A315D"/>
 					<TabControl TabStripPlacement="Left" Background="{x:Null}" BorderBrush="{x:Null}" Name="_chatList" Grid.Row="2">
 						<TabControl.Resources>
 						</TabControl.Resources>
@@ -103,12 +104,13 @@
 							<controls:ChatChannel/>
 						</TabItem>
 					</TabControl>
-					<Grid Grid.Row="4" Margin="4,2,4,4">
+					<GridSplitter Grid.Row="3" Height="2" ResizeDirection="Rows" Cursor="SizeNS" ResizeBehavior="PreviousAndNext" HorizontalAlignment="Stretch" VerticalAlignment="Center" Background="#FF2A315D"/>
+					<Grid Grid.Row="4" Margin="4">
 						<Grid.ColumnDefinitions>
 							<ColumnDefinition Width="*"/>
 							<ColumnDefinition Width="64"/>
 						</Grid.ColumnDefinitions>
-						<TextBox x:Name="_chatBox" Grid.Row="0" Margin="0,0,2,0" SpellCheck.IsEnabled="True" TextWrapping="Wrap">
+						<TextBox x:Name="_chatBox" Grid.Row="0" Margin="0,0,2,0" SpellCheck.IsEnabled="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto">
 							<TextBox.InputBindings>
 								<KeyBinding Key="Return" Command="{x:Static wc:MainCommands.SendMessage}" CommandParameter="Send"/>
 								<KeyBinding Key="Tab" Command="{x:Static wc:MainCommands.TabComplete}" CommandParameter="Tab"/>

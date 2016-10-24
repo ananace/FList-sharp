@@ -13,11 +13,11 @@
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="1" />
+            <ColumnDefinition Width="2" />
             <ColumnDefinition Width="220" />
         </Grid.ColumnDefinitions>
         <local:MessageList x:Name="_messageList" Grid.Column="0" />
-        <GridSplitter Grid.Column="1" />
+        <GridSplitter Grid.Column="1" Width="2" Background="#FF2A315D" ResizeBehavior="PreviousAndNext" ResizeDirection="Columns" />
         <Grid Grid.Column="2" >
             <Grid VerticalAlignment="Top" Height="24" Name="_userTitleGrid">
                 <Label HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" Content="Users" Width="{Binding ElementName=_userTitleGrid, Path=ActualWidth, Converter={StaticResource HalfConverter}}">
