@@ -29,7 +29,17 @@ namespace ConsoleMessenger.UI.FChat
 		public string Title { get; set; }
 
 		public bool Activity { get; set; }
-		public bool Hilight { get; set; }
+        bool _Hilight;
+		public bool Hilight
+        {
+            get { return _Hilight; }
+            set
+            {
+                if (value && !_Hilight && BellOnHighlight)
+                    Console.Beep();
+                _Hilight = value;
+            }
+        }
 
 		public int Scroll { get; set; } = -1;
 
@@ -41,6 +51,9 @@ namespace ConsoleMessenger.UI.FChat
 		// TODO: ANSI generation for BBCodes
 		[Setting("buffer.strip_messages", DefaultValue = true, Description = "Should messages be stripped of their BBCode before being displayed")]
 		public bool StripMessages { get; set; } = true;
+
+        [Setting("buffer.bell_on_higlight", DefaultValue = false, Description = "Play a console bell when someone mentions your name in the buffer")]
+        public bool BellOnHighlight { get; set; } = false;
 
 		[Setting("buffer.max_messages", DefaultValue = 100, Description = "The number of messages to store in scrollback.")]
 		public int MaxMessages
