@@ -12,6 +12,7 @@ using Newtonsoft.Json;
 using ConsoleMessenger.UI;
 using ConsoleMessenger.UI.FChat;
 using System.Threading;
+using ConsoleMessenger.Settings;
 
 namespace ConsoleMessenger
 {
@@ -119,6 +120,9 @@ namespace ConsoleMessenger
 		}
 
         public static object DrawLock = new object();
+
+		[Setting("application.use_test_endpoint", DefaultValue = true, Description = "Should the application connect to the testing endpoint?")]
+		public static bool UseTestEndpoint { get; set; } = true;
 
 		static List<ChannelBuffer> _ChannelBuffers = new List<ChannelBuffer>();
 		static ChannelBuffer _ConsoleBuffer = new ChannelBuffer() { ChatBuf = new ConsoleChatBuffer(), Title = "Console" };
@@ -509,8 +513,6 @@ namespace ConsoleMessenger
             _InputBox.OnTextEntered += (s, e) => { TextEntry(e); };
 
             _Chat.AutoPing = true;
-			_Chat.Endpoint = FChatConnection.TestingServerEndpoint;
-			//_Chat.Endpoint = FChatConnection.LiveServerEndpoint;
 
 			//_Chat.OnRawMessage += (_, e) =>
 			//	_ConsoleBuffer.ChatBuf.PushMessage(null, $"<< {e.Command.Serialize()}");

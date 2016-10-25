@@ -1,4 +1,5 @@
-﻿using System;
+﻿using libflist.FChat;
+using System;
 using System.Diagnostics;
 
 namespace ConsoleMessenger.Commands
@@ -6,6 +7,12 @@ namespace ConsoleMessenger.Commands
 	[Command("connect", Description = "Connect to the F-Chat network")]
 	class Connect : Command
 	{
+		void _Connect()
+		{
+			Application.Connection.Endpoint = (Application.UseTestEndpoint ? FChatConnection.TestingServerEndpoint : FChatConnection.LiveServerEndpoint);
+			Application.Connection.Connect();
+		}
+
 		public void Call()
 		{
 			if (Application.Ticket == null)
@@ -13,7 +20,7 @@ namespace ConsoleMessenger.Commands
 
 			Debug.WriteLine("Attempting connection with earlier ticket.");
 			Application.Connection.FListClient.Ticket = Application.Ticket.Ticket;
-			Application.Connection.Connect();
+			_Connect();
 		}
 
 		public void Call(string username, string password)
@@ -37,7 +44,7 @@ namespace ConsoleMessenger.Commands
 			Debug.WriteLine(Application.Connection.FListClient.Ticket.Characters.ToString(", "));
 
 			Debug.WriteLine("Connecting to FChat network...");
-			Application.Connection.Connect(); // TODO: ConnectAsync
+			_Connect();
 			Debug.WriteLine("Connected.");
 		}
 	}
