@@ -32,6 +32,18 @@ namespace ConsoleMessenger.Commands
             }
         }
 
+        public override bool TabComplete(string input, out string[] possibilities)
+        {
+            var possible = _AvailableSettings.Select(s => s.Property.GetCustomAttribute<SettingAttribute>());
+
+            possibilities = possible
+                .Where(p => p.Name.StartsWith(input, StringComparison.OrdinalIgnoreCase))
+                .Select(p => p.Name)
+                .ToArray();
+
+            return possibilities.Any();
+        }
+
 		public void Call()
 		{
 			Debug.WriteLine("Available settings:");
