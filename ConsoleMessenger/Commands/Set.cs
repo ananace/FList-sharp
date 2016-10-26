@@ -1,11 +1,8 @@
 ﻿using ConsoleMessenger.Settings;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using System.ComponentModel;
 
 namespace ConsoleMessenger.Commands
@@ -46,11 +43,11 @@ namespace ConsoleMessenger.Commands
 
 		public void Call()
 		{
-			Debug.WriteLine("Available settings:");
+			Application.WriteLog("Available settings:");
 			foreach (var prop in _AvailableSettings)
 			{
 				var set = prop.Property.GetCustomAttribute<SettingAttribute>();
-				Debug.WriteLine($"- {set.Name} = {prop.Property.GetMethod.Invoke(prop.Class, null)} - {set.Description}");
+                Application.WriteLog($"- {set.Name} = {prop.Property.GetValue(prop.Class) ?? "(null)"} - {set.Description}");
 			}	
 		}
 
@@ -59,11 +56,11 @@ namespace ConsoleMessenger.Commands
             var setting = _AvailableSettings.FirstOrDefault(s => s.Property.GetCustomAttribute<SettingAttribute>().Name.Equals(name, StringComparison.CurrentCultureIgnoreCase));
 
             if (setting == null)
-                Debug.WriteLine("No such setting {0}", name);
+                Application.WriteLog($"No such setting {name}");
             else
             {
                 var att = setting.Property.GetCustomAttribute<SettingAttribute>();
-                Debug.WriteLine($"{att.Name} = {setting.Property.GetValue(setting.Class)} - {att.Description}");
+                Application.WriteLog($"{att.Name} = {setting.Property.GetValue(setting.Class) ?? "(null)"} - {att.Description}");
             }
 		}
 
@@ -72,14 +69,14 @@ namespace ConsoleMessenger.Commands
             var setting = _AvailableSettings.FirstOrDefault(s => s.Property.GetCustomAttribute<SettingAttribute>().Name.Equals(name, StringComparison.CurrentCultureIgnoreCase));
 
             if (setting == null)
-                Debug.WriteLine("No such setting {0}", name);
+                Application.WriteLog($"No such setting {name}");
             else
             {
                 var att = setting.Property.GetCustomAttribute<SettingAttribute>();
                 var conv = TypeDescriptor.GetConverter(setting.Property.PropertyType);
 
                 setting.Property.SetValue(setting.Class, conv.ConvertFromString(values.ToString(" ")));
-                Debug.WriteLine($"{att.Name} = {setting.Property.GetValue(setting.Class)} - {att.Description}");
+                Application.WriteLog($"{att.Name} = {setting.Property.GetValue(setting.Class) ?? "(null)"} - {att.Description}");
             }
 		}
 	}

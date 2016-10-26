@@ -430,6 +430,14 @@ namespace ConsoleMessenger
 			WriteMessage(Text);
 		}
 
+        public static void WriteLog(string Text, ChannelBuffer buffer = null)
+        {
+            if (buffer == null)
+                buffer = CurrentChannelBuffer;
+
+            buffer.ChatBuf.PushMessage(null, Text, MessageType.Preview);
+        }
+
 		public static void WriteMessage(string Text, ChannelBuffer buffer = null, Channel channel = null, Character sender = null, MessageType type = MessageType.Chat, MessageSource source = MessageSource.Local)
 		{
 			if (buffer == null)
