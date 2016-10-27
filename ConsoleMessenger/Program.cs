@@ -412,6 +412,9 @@ namespace ConsoleMessenger
 
 		public static void TextEntry(string Text, object source = null)
 		{
+            if (string.IsNullOrWhiteSpace(Text))
+                return;
+
 			if (Text.StartsWith("/", StringComparison.OrdinalIgnoreCase))
 			{
 				// Split, but respect quotation marks
@@ -437,6 +440,9 @@ namespace ConsoleMessenger
 
             buffer.ChatBuf.PushMessage(null, Text, MessageType.Preview);
             buffer.SystemActivity = true;
+
+            if (buffer == CurrentChannelBuffer)
+                buffer.Render();
         }
 
 		public static void WriteMessage(string Text, ChannelBuffer buffer = null, Channel channel = null, Character sender = null, MessageType type = MessageType.Chat, MessageSource source = MessageSource.Local)
@@ -464,7 +470,7 @@ namespace ConsoleMessenger
 
             buffer.Activity = true;
 			buffer.Hilight |= buffer.Character != null || Text.ToLower().Contains(Connection.LocalCharacter.Name.ToLower());
-            if (buffer.Hilight && buffer.Character == null)
+            if (buffer.Hilight)
                 Text = Text.Replace(Connection.LocalCharacter.Name, Connection.LocalCharacter.Name.Color(ConsoleColor.Yellow));
 
             buffer.ChatBuf.SendMessage(sender ?? _Chat.LocalCharacter, Text, type, source);
