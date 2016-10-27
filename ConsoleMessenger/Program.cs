@@ -164,13 +164,13 @@ namespace ConsoleMessenger
 
 				status += $"{"[".Color(ConsoleColor.DarkCyan)}{_CurBuffer + 1}:{CurrentChannelBuffer.Title ?? "??"}{"]".Color(ConsoleColor.DarkCyan)} ";
 
-				var act = _ChannelBuffers.Where(c => c.Activity).ToList();
+				var act = _ChannelBuffers.Where(c => c.Activity || c.SystemActivity).ToList();
 				if (act.Any())
 				{
 					status += $"{"[".Color(ConsoleColor.DarkCyan)}Act: ";
 					status += string.Join(",", act.Select(c => {
 						string id = (_ChannelBuffers.IndexOf(c) + 1).ToString();
-						return id.Color(c.Hilight ? ConsoleColor.Red : ConsoleColor.White);
+                        return id.Color(c.Hilight ? ConsoleColor.Red : (!c.SystemActivity ? ConsoleColor.White : ConsoleColor.Cyan));
 					}));
 					status += $"{"]".Color(ConsoleColor.DarkCyan)} ";
 				}
@@ -436,6 +436,7 @@ namespace ConsoleMessenger
                 buffer = CurrentChannelBuffer;
 
             buffer.ChatBuf.PushMessage(null, Text, MessageType.Preview);
+            buffer.SystemActivity = true;
         }
 
 		public static void WriteMessage(string Text, ChannelBuffer buffer = null, Channel channel = null, Character sender = null, MessageType type = MessageType.Chat, MessageSource source = MessageSource.Local)

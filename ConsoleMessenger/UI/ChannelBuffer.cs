@@ -28,6 +28,7 @@ namespace ConsoleMessenger.UI.FChat
 
 		public string Title { get; set; }
 
+        public bool SystemActivity { get; set; }
 		public bool Activity { get; set; }
         bool _Hilight;
 		public bool Hilight
@@ -121,6 +122,7 @@ namespace ConsoleMessenger.UI.FChat
             {
                 RenderMessages();
 
+                SystemActivity = false;
                 Activity = false;
                 Hilight = false;
 
@@ -190,7 +192,7 @@ namespace ConsoleMessenger.UI.FChat
                             }
                         }
                         else
-                            Graphics.WriteANSIString(": " + message, foreground: (msg.Sender?.Name == null ? ConsoleColor.DarkGray : ConsoleColor.Gray));
+                            Graphics.WriteANSIString(": " + message, foreground: ConsoleColor.Gray);
 
                         Console.CursorLeft = 0;
                         Console.CursorTop++;
