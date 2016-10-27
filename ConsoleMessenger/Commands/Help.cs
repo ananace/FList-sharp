@@ -19,9 +19,9 @@ namespace ConsoleMessenger.Commands
 
 		public void Call()
 		{
-			Debug.WriteLine("Available commands are:");
-			Debug.WriteLine("  " + string.Join(", ", Command.Available.Select(t => t.Key).OrderBy(t => t)));
-			Debug.WriteLine("More help with: /help <command>");
+            Application.WriteLog("Request more help with: /help <command>");
+			Application.WriteLog("Available commands are:");
+			Application.WriteLog("  " + string.Join(", ", Command.Available.Select(t => t.Key).OrderBy(t => t)));
 		}
 
 		public void Call(string command)
@@ -31,9 +31,9 @@ namespace ConsoleMessenger.Commands
 
 			var cmd = Command.GetCommand(command);
 			if (cmd == null)
-				Debug.WriteLine($"No such command as '{command}'.");
+				Application.WriteLog($"No such command as '{command}'.");
 			else
-				Debug.WriteLine($"{cmd.Name}: {cmd.Description}");
+				Application.WriteLog($"{cmd.Name}: {cmd.Description}");
 		}
 	}
 }

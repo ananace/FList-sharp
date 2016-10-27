@@ -7,9 +7,9 @@ namespace ConsoleMessenger.Commands
 	{
 		public void Call()
 		{
-			Debug.WriteLine("Connected server variables:");
+			Application.WriteLog("Connected server variables:");
 			foreach (var v in Application.Connection.Variables)
-				Debug.WriteLine($"  {v.Key}:\t{v.Value}");
+				Application.WriteLog($"  {v.Key}:\t{v.Value}");
 		}
 	}
 }

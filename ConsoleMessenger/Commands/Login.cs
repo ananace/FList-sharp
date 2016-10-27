@@ -17,7 +17,7 @@ namespace ConsoleMessenger.Commands
 
 		public void Call(string character)
 		{
-			Debug.WriteLine(string.Format("Logging in as character {0}", character));
+			Application.WriteLog(string.Format("Logging in as character {0}", character));
 			Application.Connection.Login(character);
 		}
 	}
