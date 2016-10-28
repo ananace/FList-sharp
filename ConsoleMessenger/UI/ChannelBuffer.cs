@@ -55,6 +55,8 @@ namespace ConsoleMessenger.UI.FChat
 
         [Setting("buffer.sys_timeout", DefaultValue = null, Description = "Provide a timeout value in seconds for system messages to be shown in the buffer")]
         public double? TimeoutSys { get; set; } = null;
+        [Setting("buffer.preview_timeout", DefaultValue = null, Description = "Provide a timeout value in seconds for preview messages to be shown in the buffer")]
+        public double? TimeoutPre { get; set; } = null;
 
         [Setting("buffer.bell_on_higlight", DefaultValue = false, Description = "Play a console bell when someone mentions your name in the buffer")]
         public bool BellOnHighlight { get; set; } = false;
@@ -81,6 +83,8 @@ namespace ConsoleMessenger.UI.FChat
                 IEnumerable<ChatBuffer.MessageData> en = _ChatBuf.Messages;
                 if (TimeoutSys.HasValue)
                     en = en.Where(m => m.Sender != null || (DateTime.Now - m.Timestamp) <= TimeSpan.FromSeconds(TimeoutSys.Value));
+                if (TimeoutPre.HasValue)
+                    en = en.Where(m => m.Type != MessageType.Preview || (DateTime.Now - m.Timestamp) <= TimeSpan.FromSeconds(TimeoutPre.Value));
 				if (!ShowADs)
 					en = en.Where(m => m.Type != MessageType.LFRP);
 				if (!ShowMessages)
