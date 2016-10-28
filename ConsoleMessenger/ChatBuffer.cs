@@ -15,6 +15,15 @@ namespace ConsoleMessenger
 
 		Preview
 	}
+    public enum MessageDisplayType
+    {
+        None,
+        
+        ANSI,
+        BBCode,
+        Markdown,
+        Plain,
+    }
 	public enum MessageSource
 	{
 		Local,
@@ -27,26 +36,58 @@ namespace ConsoleMessenger
 		{
 			public DateTime Timestamp { get; set; }
 			public IEnumerable<INode> RawMessage { get; set; }
-			string _PlainMessage;
-			public string PlainMessage
-			{
-				get
-				{
-					if (_PlainMessage == null)
-						_PlainMessage = RawMessage.Select(m => m.ToString(NodeStringType.Plain)).ToString(" ");
-					return _PlainMessage;
-				}
-			}
-			string _BBCodeMessage;
+
+            string _Rendered;
+            MessageDisplayType _RenderedType = MessageDisplayType.None;
+
+            public string ANSIMessage
+            {
+                get
+                {
+                    if (_RenderedType != MessageDisplayType.Plain)
+                    {
+                        _Rendered = RawMessage.Select(m => m.ToString(NodeStringType.Plain)).ToString(" ");
+                        _RenderedType = MessageDisplayType.Plain;
+                    }
+                    return _Rendered;
+                }
+            }
 			public string BBCodeMessage
 			{
 				get
 				{
-					if (_BBCodeMessage == null)	
-						_BBCodeMessage = RawMessage.Select(m => m.ToString(NodeStringType.Plain)).ToString(" ");
-					return _BBCodeMessage;
+                    if (_RenderedType != MessageDisplayType.Plain)
+                    {
+                        _Rendered = RawMessage.Select(m => m.ToString(NodeStringType.BBCode)).ToString(" ");
+                        _RenderedType = MessageDisplayType.Plain;
+                    }
+					return _Rendered;
 				}
 			}
+            public string MarkdownMessage
+            {
+                get
+                {
+                    if (_RenderedType != MessageDisplayType.Markdown)
+                    {
+                        _Rendered = RawMessage.Select(m => m.ToString(NodeStringType.BBCode)).ToString(" ");
+                        _RenderedType = MessageDisplayType.Markdown;
+                    }
+                    return _Rendered;
+                }
+            }
+            public string PlainMessage
+            {
+                get
+                {
+                    if (_RenderedType != MessageDisplayType.Plain)
+                    {
+                        _Rendered = RawMessage.Select(m => m.ToString(NodeStringType.Plain)).ToString(" ");
+                        _RenderedType = MessageDisplayType.Plain;
+                    }
+                    return _Rendered;
+                }
+            }
 			public int Lines { get; set; }
 			public Character Sender { get; set; }
 			public MessageType Type { get; set; }

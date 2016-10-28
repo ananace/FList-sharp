@@ -120,6 +120,7 @@
     <Compile Include="Util\ExpiringLazy.cs" />
     <Compile Include="FChat\Events\ErrorEventArgs.cs" />
     <Compile Include="FChat\Events\ServerVariableEventArgs.cs" />
+    <Compile Include="Message\NodeExtensions.cs" />
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>

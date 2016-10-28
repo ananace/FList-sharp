@@ -8,7 +8,7 @@ using System.Linq;
 namespace ConsoleMessenger.UI.FChat
 {
 	public class ChannelBuffer
-	{
+    {
 		ChatBuffer _ChatBuf;
 		public ChatBuffer ChatBuf
 		{
@@ -50,8 +50,8 @@ namespace ConsoleMessenger.UI.FChat
 		public bool ShowMessages { get; set; } = true;
 
 		// TODO: ANSI generation for BBCodes
-		[Setting("buffer.strip_messages", DefaultValue = true, Description = "Should messages be stripped of their BBCode before being displayed")]
-		public bool StripMessages { get; set; } = true;
+		[Setting("buffer.messagetype", DefaultValue = true, Description = "How to display messages in the buffer")]
+        public MessageDisplayType MessageDisplay { get; set; } = MessageDisplayType.Plain;
 
         [Setting("buffer.sys_timeout", DefaultValue = null, Description = "Provide a timeout value in seconds for system messages to be shown in the buffer")]
         public double? TimeoutSys { get; set; } = null;

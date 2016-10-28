@@ -2,7 +2,8 @@
 {
 	public enum NodeStringType
 	{
+        BBCode,
+        Markdown,
 		Plain,
-		BBCode
 	}
 }

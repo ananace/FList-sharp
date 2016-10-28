@@ -16,6 +16,7 @@
     <DefineConstants>DEBUG</DefineConstants>
     <WarningLevel>4</WarningLevel>
     <ExternalConsole>true</ExternalConsole>
+    <CheckForOverflowUnderflow>false</CheckForOverflowUnderflow>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <Optimize>true</Optimize>
