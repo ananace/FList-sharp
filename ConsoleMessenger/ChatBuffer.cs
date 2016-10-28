@@ -53,8 +53,20 @@ namespace ConsoleMessenger
                     {
                         if (type == MessageDisplayType.None)
                             _Rendered = null;
+                        else if (type == MessageDisplayType.ANSI)
+                        {
+                            _Rendered = "!TODO! " + RawMessage.Select(m => m.ToString(NodeStringType.Plain)).ToString(" "); // TODO
+                        }
                         else
-                            _Rendered = RawMessage.Select(m => m.ToString(NodeStringType.Markdown)).ToString(" "); // TODO
+                        {
+                            NodeStringType strType = NodeStringType.Plain;
+                            if (type == MessageDisplayType.Plain)
+                                strType = NodeStringType.Plain;
+                            else if (type == MessageDisplayType.BBCode)
+                                strType = NodeStringType.BBCode;
+
+                            _Rendered = RawMessage.Select(m => m.ToString(strType)).ToString(" ");
+                        }
                         _RenderedType = type;
                     }
                     return _Rendered;

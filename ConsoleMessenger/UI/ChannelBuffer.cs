@@ -106,14 +106,14 @@ namespace ConsoleMessenger.UI.FChat
                     len += 6;
 
                 int mheight = 1;
-                foreach (var ch in (StripMessages ? msg.PlainMessage : msg.BBCodeMessage))
+                foreach (var ch in msg[MessageDisplay])
                     if (++len > ConsoleHelper.Size.Width || ch == '\n')
                     {
                         mheight++;
                         len = 0;
                     }
 
-                if ((StripMessages ? msg.PlainMessage : msg.BBCodeMessage).EndsWith("\n", StringComparison.Ordinal))
+                if ((msg[MessageDisplay].EndsWith("\n", StringComparison.Ordinal))
                     mheight--;
 
                 msg.Lines = mheight;
@@ -153,7 +153,7 @@ namespace ConsoleMessenger.UI.FChat
                         else
                             Graphics.WriteANSIString($"[{msg.Timestamp.ToString("yyyy-MM-dd")}] ".Color(ConsoleColor.Gray));
 
-                        string message = (StripMessages ? msg.PlainMessage : msg.BBCodeMessage);
+                        string message = msg[MessageDisplay];
                         bool action = message.StartsWith("/me", StringComparison.CurrentCultureIgnoreCase);
                         if (action)
                             Console.Write("* ");
