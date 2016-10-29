@@ -113,7 +113,7 @@ namespace ConsoleMessenger.UI.FChat
                         len = 0;
                     }
 
-                if ((msg[MessageDisplay].EndsWith("\n", StringComparison.Ordinal))
+                if ((msg[MessageDisplay].EndsWith("\n", StringComparison.Ordinal)))
                     mheight--;
 
                 msg.Lines = mheight;
