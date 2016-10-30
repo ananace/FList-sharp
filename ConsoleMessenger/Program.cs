@@ -110,6 +110,8 @@ namespace ConsoleMessenger
 		}
 	}
 
+	// TODO: Move the application from a static class to a singleton
+	// TODO: Split UI logic from backend logic
 	public static class Application
 	{
 		public class StoredTicket

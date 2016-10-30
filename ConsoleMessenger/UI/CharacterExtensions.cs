@@ -6,6 +6,8 @@ namespace ConsoleMessenger.UI
 {
     static class CharacterExtensions
     {
+		// TODO: Rework to be closer to the official FChat icons
+		// TODO: Status icon
 		public static string GetChanIcons(this Character ch, Channel chan = null)
 		{
 			string ret = "";

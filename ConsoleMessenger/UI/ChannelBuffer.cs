@@ -28,6 +28,9 @@ namespace ConsoleMessenger.UI.FChat
 
 		public string Title { get; set; }
 
+		// TODO: Add a logging system for channels/rooms/chats
+
+		// TODO: Change for activity flags instead
         public bool SystemActivity { get; set; }
 		public bool Activity { get; set; }
         bool _Hilight;
@@ -94,6 +97,7 @@ namespace ConsoleMessenger.UI.FChat
 			}
 		}
 
+		// TODO: Pre-render messages into row-lists, split on \n and width.
         void RenderMessages()
         {
 			lock(_ChatBuf)
@@ -119,7 +123,8 @@ namespace ConsoleMessenger.UI.FChat
                 msg.Lines = mheight;
             }
         }
-
+		
+		// TODO: Speed up rendering if possible
         public void Render()
         {
             lock (Application.DrawLock)
