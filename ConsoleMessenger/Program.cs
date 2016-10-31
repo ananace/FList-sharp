@@ -475,7 +475,7 @@ namespace ConsoleMessenger
             if (buffer.Hilight)
                 Text = Text.Replace(Connection.LocalCharacter.Name, Connection.LocalCharacter.Name.Color(ConsoleColor.Yellow));
 
-            buffer.ChatBuf.SendMessage(sender ?? _Chat.LocalCharacter, Text, type, source);
+            buffer.ChatBuf.SendMessage(sender ?? (source == MessageSource.Local ? _Chat.LocalCharacter : null), Text, type, source);
 				
             if (CurrentChannelBuffer == buffer)
                 CurrentChannelBuffer.Render();
@@ -568,6 +568,28 @@ namespace ConsoleMessenger
 				WriteMessage(e.Message, null, e.Channel, e.Character, MessageType.Roll, MessageSource.Remote);
 			_Chat.OnCharacterChatMessage += (_, e) =>
 				WriteMessage(e.Message, null, null, e.Character, source: MessageSource.Remote);
+            _Chat.OnCharacterStatusChange += (_, e) =>
+            {
+                var buf = _ChannelBuffers.FirstOrDefault(c => c.Character == e.Character);
+                string msg = $"{e.Character.Name} is now {e.Character.Status}";
+                if (!string.IsNullOrEmpty(e.Character.StatusMessage))
+                    msg += ", " + e.Character.StatusMessage;
+
+                if (buf != null)
+                    WriteMessage(msg, buf, type: MessageType.Preview, source: MessageSource.Remote);
+
+                if (e.Character.IsFriend || e.Character.IsBookmark)
+                    WriteMessage(msg, _ConsoleBuffer, type: MessageType.Preview, source: MessageSource.Remote);
+            };
+            _Chat.OnCharacterTypingChange += (_, e) =>
+            {
+                var buf = _ChannelBuffers.FirstOrDefault(c => c.Character == e.Character);
+                if (buf == null)
+                    return;
+
+                buf.SystemActivity |= true;
+                // TODO: Typing notification
+            };
 
 			_Chat.OnChannelLeave += (_, e) =>
 			{

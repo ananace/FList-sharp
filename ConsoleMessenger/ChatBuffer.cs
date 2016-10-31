@@ -53,8 +53,9 @@ namespace ConsoleMessenger
                     {
                         if (type == MessageDisplayType.None)
                             _Rendered = null;
-                        else if (type == MessageDisplayType.ANSI)
+                        else if (type == MessageDisplayType.ANSI && Environment.OSVersion.IsLinux())
                         {
+                            // Only worth doing full ANSI rendering on Linux, Windows lacks too many ANSI features
                             _Rendered = "!TODO! " + RawMessage.Select(m => m.ToString(NodeStringType.Plain)).ToString(" "); // TODO
                         }
                         else
