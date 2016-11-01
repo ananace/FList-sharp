@@ -9,6 +9,16 @@ namespace ConsoleMessenger.UI.FChat
 {
 	public class ChannelBuffer
     {
+        [Flags]
+        public enum ActivityFlags
+        {
+            None = 0,
+
+            SystemActivity = 1<<0,
+            ChatActivity = 1<<1,
+            Highlight = 1<<2
+        }
+
 		ChatBuffer _ChatBuf;
 		public ChatBuffer ChatBuf
 		{
@@ -28,20 +38,40 @@ namespace ConsoleMessenger.UI.FChat
 
 		public string Title { get; set; }
 
-		// TODO: Add a logging system for channels/rooms/chats
+        // TODO: Add a logging system for channels/rooms/chats
 
-		// TODO: Change for activity flags instead
-        public bool SystemActivity { get; set; }
-		public bool Activity { get; set; }
-        bool _Hilight;
-		public bool Hilight
+        ActivityFlags _Activity = ActivityFlags.None;
+        public bool SystemActivity
         {
-            get { return _Hilight; }
+            get { return _Activity.HasFlag(ActivityFlags.SystemActivity); }
             set
             {
-                if (value && !_Hilight && BellOnHighlight)
-                    Console.Beep();
-                _Hilight = value;
+                if (value)
+                    _Activity = _Activity | ActivityFlags.SystemActivity;
+                else
+                    _Activity = _Activity & ~ActivityFlags.SystemActivity;
+            }
+        }
+		public bool ChatActivity
+        {
+            get { return _Activity.HasFlag(ActivityFlags.ChatActivity); }
+            set
+            {
+                if (value)
+                    _Activity = _Activity | ActivityFlags.ChatActivity;
+                else
+                    _Activity = _Activity & ~ActivityFlags.ChatActivity;
+            }
+        }
+        public bool Highlight
+        {
+            get { return _Activity.HasFlag(ActivityFlags.Highlight); }
+            set
+            {
+                if (value)
+                    _Activity = _Activity | ActivityFlags.Highlight;
+                else
+                    _Activity = _Activity & ~ActivityFlags.Highlight;
             }
         }
 
@@ -131,9 +161,7 @@ namespace ConsoleMessenger.UI.FChat
             {
                 RenderMessages();
 
-                SystemActivity = false;
-                Activity = false;
-                Hilight = false;
+                _Activity = ActivityFlags.None;
 
                 Graphics.DrawLine(new Point(0, 0), new Point(ConsoleHelper.Size.Width - 1, 0), ' ', ConsoleColor.DarkBlue);
                 Graphics.WriteANSIString(TitleBar, new Point(0, 0), ConsoleColor.DarkBlue, ConsoleColor.White);

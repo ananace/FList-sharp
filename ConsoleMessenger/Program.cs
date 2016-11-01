@@ -166,13 +166,13 @@ namespace ConsoleMessenger
 
 				status += $"{"[".Color(ConsoleColor.DarkCyan)}{_CurBuffer + 1}:{CurrentChannelBuffer.Title ?? "??"}{"]".Color(ConsoleColor.DarkCyan)} ";
 
-				var act = _ChannelBuffers.Where(c => c.Activity || c.SystemActivity).ToList();
+				var act = _ChannelBuffers.Where(c => c.ChatActivity || c.SystemActivity).ToList();
 				if (act.Any())
 				{
 					status += $"{"[".Color(ConsoleColor.DarkCyan)}Act: ";
 					status += string.Join(",", act.Select(c => {
 						string id = (_ChannelBuffers.IndexOf(c) + 1).ToString();
-                        return id.Color(c.Hilight ? ConsoleColor.Red : (!c.SystemActivity ? ConsoleColor.White : ConsoleColor.Cyan));
+                        return id.Color(c.Highlight ? ConsoleColor.Red : (!c.SystemActivity ? ConsoleColor.White : ConsoleColor.Cyan));
 					}));
 					status += $"{"]".Color(ConsoleColor.DarkCyan)} ";
 				}
@@ -247,7 +247,10 @@ namespace ConsoleMessenger
 
 							case ConsoleKey.A:
 								{ // Go to activity
-									var buf = _ChannelBuffers.Where(c => c.Activity || c.Hilight).OrderByDescending(c => (c.Hilight ? 2 : 0) + (c.Activity ? 1 : 0)).FirstOrDefault();
+									var buf = _ChannelBuffers
+                                        .Where(c => c.ChatActivity || c.Highlight)
+                                        .OrderByDescending(c => (c.Highlight ? 2 : 0) + (c.ChatActivity ? 1 : 0))
+                                        .FirstOrDefault();
 
 									if (buf != null)
 										CurrentBuffer = _ChannelBuffers.IndexOf(buf);
@@ -470,9 +473,9 @@ namespace ConsoleMessenger
 					buffer = CurrentChannelBuffer;
 			}
 
-            buffer.Activity = true;
-			buffer.Hilight |= buffer.Character != null || Text.ToLower().Contains(Connection.LocalCharacter.Name.ToLower());
-            if (buffer.Hilight)
+            buffer.ChatActivity = true;
+			buffer.Highlight |= buffer.Character != null || Text.ToLower().Contains(Connection.LocalCharacter.Name.ToLower());
+            if (buffer.Highlight)
                 Text = Text.Replace(Connection.LocalCharacter.Name, Connection.LocalCharacter.Name.Color(ConsoleColor.Yellow));
 
             buffer.ChatBuf.SendMessage(sender ?? (source == MessageSource.Local ? _Chat.LocalCharacter : null), Text, type, source);
