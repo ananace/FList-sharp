@@ -192,27 +192,7 @@ namespace ConsoleMessenger.UI.FChat
                             Console.Write("* ");
 
                         if (msg.Sender?.Name != null)
-                        {
-                            if (Channel != null)
-                            {
-                                if (msg.Sender.IsChatOp)
-                                    Graphics.WriteANSIString("▼".Color(ConsoleColor.Yellow));
-
-                                if (Channel.Official)
-                                {
-                                    if (Channel.Owner == msg.Sender || msg.Sender.IsOPInChannel(Channel))
-                                        Graphics.WriteANSIString("▼".Color(ConsoleColor.Red));
-                                }
-                                else
-                                {
-                                    if (Channel.Owner == msg.Sender)
-                                        Graphics.WriteANSIString("►".Color(ConsoleColor.Cyan));
-                                    else if (msg.Sender.IsOPInChannel(Channel))
-                                        Graphics.WriteANSIString("►".Color(ConsoleColor.Red));
-                                }
-                            }
-                            Graphics.WriteANSIString(msg.Sender.ToANSIString());
-                        }
+                            Graphics.WriteANSIString(msg.Sender.ToANSIString(Channel, true));
                         else
                             Graphics.WriteANSIString("System".Color(ConsoleColor.DarkGray));
 
