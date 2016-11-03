@@ -94,6 +94,7 @@ namespace ConsoleMessenger
 
 		static readonly Dictionary<string, Type> _CommandTypes = new Dictionary<string, Type>();
 		public static IEnumerable<string> Names { get { return _CommandTypes.Keys; } }
+        public static IReadOnlyDictionary<string, Type> Types => _CommandTypes;
 		public static IEnumerable<KeyValuePair<string, CommandAttribute>> Available
 		{
 			get

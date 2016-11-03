@@ -30,10 +30,15 @@ namespace ConsoleMessenger.Commands
 				command = command.Substring(1);
 
 			var cmd = Command.GetCommand(command);
-			if (cmd == null)
-				Application.WriteLog($"No such command as '{command}'.");
-			else
-				Application.WriteLog($"{cmd.Name}: {cmd.Description}");
+            if (cmd == null)
+                Application.WriteLog($"No such command as '{command}'.");
+            else
+            {
+                Application.WriteLog($"{cmd.Name}: {cmd.Description}");
+
+                foreach (var m in Types[cmd.Name].GetMethods().Where(m => m.Name == "Call"))
+                    Application.WriteLog(string.Format("- /{0} {1}", cmd.Name, m.GetParameters().Select(p => "<" + p.Name + ">").ToString(" ")));
+            }
 		}
 	}
 }
