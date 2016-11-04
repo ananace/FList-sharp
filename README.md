@@ -33,7 +33,7 @@ A C# library for utilizing the F-List JSON API as well as FChat system.
 	- Connect should be split further into more functions.
 - Add in all the admin features.
 - Add a BBCode render system with different outputs.
-	- HTML, Markdown, Null, etc...
+	- HTML, ~~Markdown~~, ~~Plain~~, etc...
 - Implement the last of the JSON API
 	- Add V2 endpoint
 
