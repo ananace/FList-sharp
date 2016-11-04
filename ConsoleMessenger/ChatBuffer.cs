@@ -60,7 +60,7 @@ namespace ConsoleMessenger
                         }
                         else
                         {
-                            NodeStringType strType = NodeStringType.Plain;
+                            NodeStringType strType = NodeStringType.Markdown;
                             if (type == MessageDisplayType.Plain)
                                 strType = NodeStringType.Plain;
                             else if (type == MessageDisplayType.BBCode)
