@@ -30,6 +30,12 @@ namespace ConsoleMessenger.UI.FChat
 				{
 					if (Application.CurrentChannelBuffer == this)
 						Render();
+
+					if (LogMessages)
+					{
+						using (var stream = new System.IO.FileStream($"{Title.ToLower()}.log", System.IO.FileMode.Append))
+							new Logging.MessageSerializer(Channel?.Connection ?? Character?.Connection).Serialize(stream, e);
+					}
 				};
 			}
 		}
@@ -93,6 +99,8 @@ namespace ConsoleMessenger.UI.FChat
 
         [Setting("buffer.bell_on_higlight", DefaultValue = false, Description = "Play a console bell when someone mentions your name in the buffer")]
         public bool BellOnHighlight { get; set; } = false;
+        [Setting("buffer.log_messages", DefaultValue = false, Description = "Log messages to a <channel>.log file")]
+        public bool LogMessages { get; set; } = false;
 
 		[Setting("buffer.max_messages", DefaultValue = 100, Description = "The number of messages to store in scrollback.")]
 		public int MaxMessages
