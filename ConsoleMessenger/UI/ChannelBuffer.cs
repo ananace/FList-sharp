@@ -31,7 +31,7 @@ namespace ConsoleMessenger.UI.FChat
 					if (Application.CurrentChannelBuffer == this)
 						Render();
 
-					if (LogMessages)
+					if (LogMessages && e.Type != MessageType.Preview)
 					{
 						using (var stream = new System.IO.FileStream($"{Title.ToLower()}.log", System.IO.FileMode.Append))
 							new Logging.MessageSerializer(Channel?.Connection ?? Character?.Connection).Serialize(stream, e);
