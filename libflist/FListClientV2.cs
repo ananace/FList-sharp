@@ -59,22 +59,22 @@ namespace libflist
 			throw new NotImplementedException();
 		}
 
-		public Task<List<string>> GetAllCharacters()
+		public Task<IReadOnlyCollection<string>> GetAllCharacters()
 		{
 			throw new NotImplementedException();
 		}
 
-		public Task<List<Info.KinkInfo>> GetAllKinks()
+		public Task<IReadOnlyCollection<Info.KinkInfo>> GetAllKinks()
 		{
 			throw new NotImplementedException();
 		}
 
-		public Task<List<string>> GetBookmarks()
+		public Task<IReadOnlyCollection<string>> GetBookmarks()
 		{
 			throw new NotImplementedException();
 		}
 
-		public Task<List<Info.KinkInfo>> GetCustomKinks(string name)
+		public Task<IReadOnlyCollection<Info.KinkInfo>> GetCustomKinks(string name)
 		{
 			throw new NotImplementedException();
 		}
@@ -84,12 +84,12 @@ namespace libflist
 			throw new NotImplementedException();
 		}
 
-		public Task<List<string>> GetFriends(string source)
+		public Task<IReadOnlyCollection<string>> GetFriends(string source)
 		{
 			throw new NotImplementedException();
 		}
 
-		public Task<List<Info.ImageInfo>> GetImages(string name)
+		public Task<IReadOnlyCollection<Info.ImageInfo>> GetImages(string name)
 		{
 			throw new NotImplementedException();
 		}
@@ -99,7 +99,7 @@ namespace libflist
 			throw new NotImplementedException();
 		}
 
-		public Task<Dictionary<Info.KinkInfo, Info.KinkChoice>> GetKinks(string name)
+		public Task<IReadOnlyDictionary<Info.KinkInfo, Info.KinkChoice>> GetKinks(string name)
 		{
 			throw new NotImplementedException();
 		}

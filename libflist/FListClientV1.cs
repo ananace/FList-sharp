@@ -99,7 +99,7 @@ namespace libflist
 				return false;
 		}
 
-		public async Task<List<string>> GetAllCharacters()
+		public async Task<IReadOnlyCollection<string>> GetAllCharacters()
 		{
 			if (!HasTicket)
 				throw new Exception();
@@ -126,7 +126,7 @@ namespace libflist
 			return list;
 		}
 
-		public async Task<List<Info.KinkInfo>> GetAllKinks()
+		public async Task<IReadOnlyCollection<Info.KinkInfo>> GetAllKinks()
 		{
 			if (!HasTicket)
 				throw new Exception();
@@ -180,7 +180,7 @@ namespace libflist
 			return true;
 		}
 
-		public async Task<List<string>> GetBookmarks()
+		public async Task<IReadOnlyCollection<string>> GetBookmarks()
 		{
 			if (!HasTicket)
 				throw new Exception();
@@ -254,7 +254,7 @@ namespace libflist
 			return true;
 		}
 
-		public async Task<List<string>> GetFriends(string source)
+		public async Task<IReadOnlyCollection<string>> GetFriends(string source)
 		{
 			if (!HasTicket)
 				throw new Exception();
@@ -329,7 +329,7 @@ namespace libflist
 			return resp;
 		}
 
-		public async Task<List<Info.KinkInfo>> GetCustomKinks(string name)
+		public async Task<IReadOnlyCollection<Info.KinkInfo>> GetCustomKinks(string name)
 		{
 			var data = await UpdateCharacter<CustomKinkResponse>(Path.CharacterGetCustomkinks, name);
 			
@@ -347,7 +347,7 @@ namespace libflist
 			return data.Character.Description;
 		}
 
-		public async Task<List<Info.ImageInfo>> GetImages(string name)
+		public async Task<IReadOnlyCollection<Info.ImageInfo>> GetImages(string name)
 		{
 			var data = await UpdateCharacter<ImagesResponse>(Path.CharacterGetImages, name);
 			
@@ -417,7 +417,7 @@ namespace libflist
 			return info;
 		}
 
-		public async Task<Dictionary<Info.KinkInfo, Info.KinkChoice>> GetKinks(string name)
+		public async Task<IReadOnlyDictionary<Info.KinkInfo, Info.KinkChoice>> GetKinks(string name)
 		{
 			var data = await UpdateCharacter<KinksResponse>(Path.CharacterGetKinks, name);
 			// TODO

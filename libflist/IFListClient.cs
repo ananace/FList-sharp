@@ -23,22 +23,22 @@ namespace libflist
 
 		Task<bool> Authenticate(string Username, string PasswordOrApiKey, AuthMethod Method = AuthMethod.Password);
 
-		Task<List<string>> GetAllCharacters();
-		Task<List<Info.KinkInfo>> GetAllKinks();
+		Task<IReadOnlyCollection<string>> GetAllCharacters();
+		Task<IReadOnlyCollection<Info.KinkInfo>> GetAllKinks();
 
 		Task<bool> AddBookmark(string name);
-		Task<List<string>> GetBookmarks();
+		Task<IReadOnlyCollection<string>> GetBookmarks();
 		Task RemoveBookmark(string name);
 
 		Task<bool> AddFriend(string source, string target);
-		Task<List<string>> GetFriends(string source);
+		Task<IReadOnlyCollection<string>> GetFriends(string source);
 		Task RemoveFriend(string source, string target);
 
-		Task<List<Info.KinkInfo>> GetCustomKinks(string name);
+		Task<IReadOnlyCollection<Info.KinkInfo>> GetCustomKinks(string name);
 		Task<string> GetDescription(string name);
-		Task<List<Info.ImageInfo>> GetImages(string name);
+		Task<IReadOnlyCollection<Info.ImageInfo>> GetImages(string name);
 		Task<Info.ProfileInfo> GetInfo(string name);
-		Task<Dictionary<Info.KinkInfo, Info.KinkChoice>> GetKinks(string name);
+		Task<IReadOnlyDictionary<Info.KinkInfo, Info.KinkChoice>> GetKinks(string name);
 	}
 
 }

@@ -44,8 +44,6 @@ namespace ConsoleMessenger.UI.FChat
 
 		public string Title { get; set; }
 
-        // TODO: Add a logging system for channels/rooms/chats
-
         ActivityFlags _Activity = ActivityFlags.None;
         public bool SystemActivity
         {

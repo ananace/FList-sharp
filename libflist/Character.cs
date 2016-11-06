@@ -17,8 +17,8 @@ namespace libflist
 
 		internal ExpiringLazy<string> _Description;
 		internal ExpiringLazy<Info.ProfileInfo> _ProfileInfo;
-		internal ExpiringLazy<List<Info.ImageInfo>> _Images;
-		internal ExpiringLazy<Dictionary<Info.KinkInfo, Info.KinkChoice>> _Kinks;
+		internal ExpiringLazy<IReadOnlyCollection<Info.ImageInfo>> _Images;
+		internal ExpiringLazy<IReadOnlyDictionary<Info.KinkInfo, Info.KinkChoice>> _Kinks;
 
 		/// <summary>
 		/// Character description block, with BBCode
@@ -65,14 +65,14 @@ namespace libflist
 
 					return task.Result;
 				}, TIMEOUT);
-				_Images = new ExpiringLazy<List<Info.ImageInfo>>(() =>
+				_Images = new ExpiringLazy<IReadOnlyCollection<Info.ImageInfo>>(() =>
 				{
 					var task = Client.GetImages(Name);
 					task.Wait();
 
 					return task.Result;
 				}, TIMEOUT);
-				_Kinks = new ExpiringLazy<Dictionary<Info.KinkInfo, Info.KinkChoice>>(() =>
+				_Kinks = new ExpiringLazy<IReadOnlyDictionary<Info.KinkInfo, Info.KinkChoice>>(() =>
 				{
 					var task = Client.GetKinks(Name);
 					task.Wait();
@@ -84,8 +84,8 @@ namespace libflist
 			{
 				_Description = new ExpiringLazy<string>(() => null, TimeSpan.MaxValue);
 				_ProfileInfo = new ExpiringLazy<Info.ProfileInfo>(() => null, TimeSpan.MaxValue);
-				_Images = new ExpiringLazy<List<Info.ImageInfo>>(() => null, TimeSpan.MaxValue);
-				_Kinks = new ExpiringLazy<Dictionary<Info.KinkInfo, Info.KinkChoice>>(() => null, TimeSpan.MaxValue);
+				_Images = new ExpiringLazy<IReadOnlyCollection<Info.ImageInfo>>(() => null, TimeSpan.MaxValue);
+				_Kinks = new ExpiringLazy<IReadOnlyDictionary<Info.KinkInfo, Info.KinkChoice>>(() => null, TimeSpan.MaxValue);
 			}
 		}
 	}
