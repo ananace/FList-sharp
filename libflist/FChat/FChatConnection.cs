@@ -14,7 +14,7 @@ using WebSocketSharp;
 namespace libflist.FChat
 {
 	// TODO: Should this be interface driven as well?
-	public sealed partial class FChatConnection : IDisposable
+	public sealed partial class FChatConnection : IFChatConnection, IDisposable
 	{
 		public sealed class KnownChannel
 		{
