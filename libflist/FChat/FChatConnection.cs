@@ -63,8 +63,8 @@ namespace libflist.FChat
         public IReadOnlyDictionary<string, EventHandler<Command>> MessageHandlers => _Handlers;
         public ServerVariables Variables => _Variables;
 
-		public IReadOnlyCollection<Character> Friends => _Friends;
-		public IReadOnlyCollection<Character> Bookmarks => _Bookmarks;
+		public IEnumerable<Character> Friends => _Friends;
+		public IEnumerable<Character> Bookmarks => _Bookmarks;
 
 		public IEnumerable<KnownChannel> AllKnownChannels { get { return _OfficialChannels.Concat(_PrivateChannels); } }
 		public IReadOnlyCollection<KnownChannel> OfficialChannels
@@ -94,7 +94,7 @@ namespace libflist.FChat
 			}
 		}
 
-        public IReadOnlyList<Character> ChatOPs => _ChatOPs;
+        public IEnumerable<Character> ChatOPs => _ChatOPs;
 
         public IEnumerable<Channel> ActiveChannels => _Channels;
         public bool IsConnected { get { return _Connection != null && _Connection.ReadyState != WebSocketState.Closed; } }

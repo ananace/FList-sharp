@@ -84,11 +84,28 @@ namespace libflist.FChat
 		event EventHandler<CharacterMessageEventArgs> OnCharacterChatMessage;
 
 
-		void AquireTicket(string User, string Password);
+		IEnumerable<Character> Friends { get; }
+		IEnumerable<Character> Bookmarks { get; }
+		IEnumerable<Character> ChatOPs { get; }
+
+		IEnumerable<Channel> ActiveChannels { get; }
+
+		bool IsConnected { get; }
+		bool IsIdentified { get; }
+
+
+		bool AquireTicket(string User, string Password);
 		void Connect();
 		// void Connect(string User, string Password/APIKey);
 		void Disconnect();
 		void Reconnect(bool AutoLogin = true);
 		void Login(string Character);
+
+		void SendCommand(Command command);
+
+		Channel GetChannel(string ID);
+		Channel GetOrCreateChannel(string ID);
+		Character GetCharacter(string Name);
+		Character GetOrCreateCharacter(string Name);
 	}
 }
