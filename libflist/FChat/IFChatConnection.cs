@@ -2,8 +2,6 @@
 using libflist.FChat.Events;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace libflist.FChat
@@ -107,5 +105,8 @@ namespace libflist.FChat
 		Channel GetOrCreateChannel(string ID);
 		Character GetCharacter(string Name);
 		Character GetOrCreateCharacter(string Name);
+
+
+		// Async?
 	}
 }
