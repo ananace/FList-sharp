@@ -121,6 +121,7 @@
     <Compile Include="FChat\Events\ErrorEventArgs.cs" />
     <Compile Include="FChat\Events\ServerVariableEventArgs.cs" />
     <Compile Include="Message\NodeExtensions.cs" />
+    <Compile Include="FChat\IFChatConnection.cs" />
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
