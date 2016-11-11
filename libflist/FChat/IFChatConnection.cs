@@ -82,6 +82,7 @@ namespace libflist.FChat
 		event EventHandler<CharacterMessageEventArgs> OnCharacterChatMessage;
 
 
+        Character LocalCharacter { get; }
 		IEnumerable<Character> Friends { get; }
 		IEnumerable<Character> Bookmarks { get; }
 		IEnumerable<Character> ChatOPs { get; }
@@ -92,6 +93,7 @@ namespace libflist.FChat
 		bool IsIdentified { get; }
 
 
+
 		bool AquireTicket(string User, string Password);
 		void Connect();
 		// void Connect(string User, string Password/APIKey);
@@ -100,13 +102,16 @@ namespace libflist.FChat
 		void Login(string Character);
 
 		void SendCommand(Command command);
+        T RequestCommand<T>(Command query, int msTimeout = 250) where T : Command;
 
 		Channel GetChannel(string ID);
 		Channel GetOrCreateChannel(string ID);
+        Channel GetOrJoinChannel(string ID);
 		Character GetCharacter(string Name);
 		Character GetOrCreateCharacter(string Name);
 
 
-		// Async?
+        Task SendCommandAsync(Command command);
+        Task<T> RequestCommandAsync<T>(Command query, int msTimeout = 250) where T : Command;
 	}
 }
