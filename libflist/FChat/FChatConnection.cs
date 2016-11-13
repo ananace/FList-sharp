@@ -57,6 +57,7 @@ namespace libflist.FChat
 		public IFListClient FListClient { get; set; }
 
 		public bool AutoPing { get; set; }
+		public bool AutoLogin { get; set; }
 		public bool AutoReconnect { get; set; }
 		public bool AutoUpdate { get; set; }
 
@@ -267,7 +268,7 @@ namespace libflist.FChat
 
 			return successful ? reply as T : null;
 		}
-		public async Task<T> RequestCommandAsync<T>(Command query) where T : Command
+		public async Task<T> RequestCommandAsync<T>(Command query, int msTimeout = 250) where T : Command
 		{
 			var att = query.GetType().GetCustomAttribute<CommandAttribute>();
 			if (att.Response != ResponseType.Default || att.ResponseToken == "SYS")
@@ -276,6 +277,7 @@ namespace libflist.FChat
 			if (ratt == null || att.ResponseToken != ratt.Token)
 				throw new ArgumentException("Provided respose type is not a valid response to the query");
 			
+			// TODO: Timeout values
 			var ev = new AsyncAutoResetEvent();
 
 			Command reply = null;
@@ -348,20 +350,15 @@ namespace libflist.FChat
 			_Identified = false;
 		}
 
-		public void Reconnect(bool AutoLogin = true)
+		public void Reconnect()
 		{
 			if (!FListClient.HasTicket)
 				throw new Exception("Needs a ticket");
 
-			Disconnect();
-			Connect();
+			if (_Connection != null)
+				Disconnect();
 
-			if (AutoLogin)
-				SendCommand(new Client_IDN_ChatIdentify {
-					Account = FListClient.Ticket.Account,
-					Ticket = FListClient.Ticket.Ticket,
-					Character = _Character
-				});
+			Connect();
 		}
 
 		public void Login(string Character)
@@ -472,6 +469,14 @@ namespace libflist.FChat
 		void _Connection_OnOpen(object sender, EventArgs e)
 		{
 			OnConnected?.Invoke(this, e);
+
+			if (AutoLogin)
+				Task.Delay(500).ContinueWith(_ => SendCommand(new Client_IDN_ChatIdentify
+				{
+					Account = FListClient.Ticket.Account,
+					Ticket = FListClient.Ticket.Ticket,
+					Character = _Character
+				}));
 		}
 
 		void _Connection_OnMessage(object sender, MessageEventArgs e)
@@ -493,10 +498,11 @@ namespace libflist.FChat
 		{
 			OnDisconnected?.Invoke(this, e);
 
+			bool reconnect = _Identified;
 			Disconnect();
 
 			// TODO: Count reconnect attempts.
-			if (AutoReconnect && !e.WasClean && !string.IsNullOrEmpty(_Character))
+			if (AutoReconnect && reconnect && !string.IsNullOrEmpty(_Character))
 				Task.Delay(15000).ContinueWith(_ => Reconnect());
 		}
 

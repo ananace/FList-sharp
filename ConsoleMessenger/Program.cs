@@ -125,6 +125,10 @@ namespace ConsoleMessenger
 
 		[Setting("application.use_test_endpoint", DefaultValue = true, Description = "Should the application connect to the testing endpoint?")]
 		public static bool UseTestEndpoint { get; set; } = true;
+		[Setting("application.auto_login", DefaultValue = true, Description = "Automatically login when connected to the network?")]
+		public static bool AutoLogin { get { return _Chat.AutoLogin; } set { _Chat.AutoLogin = value; } }
+		[Setting("application.auto_reconnect", DefaultValue = true, Description = "Automatically reconnect on lost connection?")]
+		public static bool AutoReconnect { get { return _Chat.AutoReconnect; } set { _Chat.AutoReconnect = value; } }
 
 		static List<ChannelBuffer> _ChannelBuffers = new List<ChannelBuffer>();
 		static ChannelBuffer _ConsoleBuffer = new ChannelBuffer() { ChatBuf = new ConsoleChatBuffer(), Title = "Console" };
@@ -473,9 +477,14 @@ namespace ConsoleMessenger
 					buffer = CurrentChannelBuffer;
 			}
 
-            buffer.ChatActivity = true;
-			buffer.Highlight |= buffer.Character != null || Text.ToLower().Contains(Connection.LocalCharacter.Name.ToLower());
-            if (buffer.Highlight)
+			bool hilight = Text.ToLower().Contains(Connection.LocalCharacter.Name.ToLower());
+			if (type != MessageType.Preview)
+			{ 
+				buffer.ChatActivity = true;
+				buffer.Highlight |= buffer.Character != null || hilight;
+			}
+
+            if (hilight)
                 Text = Text.Replace(Connection.LocalCharacter.Name, Connection.LocalCharacter.Name.Color(ConsoleColor.Yellow));
 
             buffer.ChatBuf.SendMessage(sender ?? (source == MessageSource.Local ? _Chat.LocalCharacter : null), Text, type, source);
@@ -532,7 +541,9 @@ namespace ConsoleMessenger
             _ChannelBuffers.Add(_ConsoleBuffer);
             _InputBox.OnTextEntered += (s, e) => { TextEntry(e); };
 
+			_Chat.AutoLogin = true;
             _Chat.AutoPing = true;
+			_Chat.AutoReconnect = true;
 
 			//_Chat.OnRawMessage += (_, e) =>
 			//	_ConsoleBuffer.ChatBuf.PushMessage(null, $"<< {e.Command.Serialize()}");

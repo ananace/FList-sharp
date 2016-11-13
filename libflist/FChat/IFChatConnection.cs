@@ -98,7 +98,7 @@ namespace libflist.FChat
 		void Connect();
 		// void Connect(string User, string Password/APIKey);
 		void Disconnect();
-		void Reconnect(bool AutoLogin = true);
+		void Reconnect();
 		void Login(string Character);
 
 		void SendCommand(Command command);
@@ -111,7 +111,7 @@ namespace libflist.FChat
 		Character GetOrCreateCharacter(string Name);
 
 
-        Task SendCommandAsync(Command command);
+        Task<bool> SendCommandAsync(Command command);
         Task<T> RequestCommandAsync<T>(Command query, int msTimeout = 250) where T : Command;
 	}
 }
