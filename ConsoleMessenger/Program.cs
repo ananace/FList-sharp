@@ -622,6 +622,17 @@ namespace ConsoleMessenger
 				}
 			};
 
+			_Chat.OnIdentified += (_, __) =>
+			{
+				foreach (var buf in _ChannelBuffers)
+				{
+					if (buf == _ConsoleBuffer || buf.Character != null)
+						continue;
+
+					JoinChannel(buf.Channel.ID);
+				}
+			};
+
 			Redraw(true);
 			InputLoop();
 
