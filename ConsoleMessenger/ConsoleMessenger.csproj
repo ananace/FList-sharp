@@ -63,6 +63,7 @@
     <Compile Include="Commands\Who.cs" />
     <Compile Include="Commands\Roll.cs" />
     <Compile Include="Commands\Priv.cs" />
+    <Compile Include="UI\AutoSplitString.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\libflist\libflist.csproj">

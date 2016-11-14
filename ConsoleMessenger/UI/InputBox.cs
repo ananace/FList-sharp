@@ -161,7 +161,7 @@ namespace ConsoleMessenger.UI
 					      !key.Modifiers.HasFlag(ConsoleModifiers.Control))
 					{
 						buf.Insert(Cursor++, key.KeyChar.ToString());
-						Console.Write(key.KeyChar);
+                        Render();
 						break;
 					}
 				}
@@ -178,12 +178,17 @@ namespace ConsoleMessenger.UI
 		{
             lock (Application.DrawLock)
             {
-                Graphics.DrawLine(new Point(0, ConsoleHelper.Size.Height - 1), new Point(ConsoleHelper.Size.Width - 1, ConsoleHelper.Size.Height - 1), ' ');
+                Graphics.DrawLine(new Point(0, ConsoleHelper.Size.Height - 1), new Size(ConsoleHelper.Size.Width - 1, 0), ' ');
 
                 Console.SetCursorPosition(Cursor, ConsoleHelper.Size.Height - 1);
                 using (var cur = new CursorChanger(new Point(0, ConsoleHelper.Size.Height - 1)))
-				using (var col = new ColorChanger(foreground: ConsoleColor.White))
-                    Console.Write(_Content);
+                using (var col = new ColorChanger(foreground: ConsoleColor.White))
+                {
+                    if (_Content.Length > ConsoleHelper.Size.Width - 2)
+                        Console.Write(_Content.ToString().Substring(_Content.Length - ConsoleHelper.Size.Width - 2, ConsoleHelper.Size.Width - 2));
+                    else
+                        Console.Write(_Content);
+                }
 				Console.ForegroundColor = ConsoleColor.Gray;
             }
 		}

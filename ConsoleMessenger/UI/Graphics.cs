@@ -201,6 +201,10 @@ namespace ConsoleMessenger.UI
 				Console.Write(c);
 		}
 
+        public static void DrawLine(Point a, Size b, char Character, ConsoleColor Background = ConsoleColor.Black, ConsoleColor Foreground = ConsoleColor.White)
+        {
+            DrawLine(a, a + b, Character, Background, Foreground);
+        }
 		public static void DrawLine(Point a, Point b, char Character, ConsoleColor Background = ConsoleColor.Black, ConsoleColor Foreground = ConsoleColor.White)
 		{
 			using (new CursorChanger(null, false))
