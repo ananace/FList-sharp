@@ -184,10 +184,8 @@ namespace ConsoleMessenger.UI
                 using (var cur = new CursorChanger(new Point(0, ConsoleHelper.Size.Height - 1)))
                 using (var col = new ColorChanger(foreground: ConsoleColor.White))
                 {
-                    if (_Content.Length > ConsoleHelper.Size.Width - 2)
-                        Console.Write(_Content.ToString().Substring(_Content.Length - ConsoleHelper.Size.Width - 2, ConsoleHelper.Size.Width - 2));
-                    else
-                        Console.Write(_Content);
+                    Console.Write(_Content);
+                    Console.Write(new AutoSplitString(_Content.ToString()) { MaxLength = ConsoleHelper.Size.Width - 1 });
                 }
 				Console.ForegroundColor = ConsoleColor.Gray;
             }
