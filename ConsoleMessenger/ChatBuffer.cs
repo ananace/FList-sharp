@@ -113,6 +113,16 @@ namespace ConsoleMessenger
 
 			OnMessage?.Invoke(this, _Messages.Last());
 		}
+        public void PushMessage(MessageData msg)
+        {
+            lock (this)
+            {
+                _Messages.Add(msg);
+
+                while (_Messages.Count >= MaxMessages)
+                    _Messages.RemoveAt(0);
+            }
+        }
 
 		public virtual void SendMessage(Character sender, string message, MessageType type = MessageType.Chat, MessageSource source = MessageSource.Local)
 		{
