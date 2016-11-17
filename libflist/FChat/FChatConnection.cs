@@ -470,7 +470,7 @@ namespace libflist.FChat
 		{
 			OnConnected?.Invoke(this, e);
 
-			if (AutoLogin)
+			if (AutoLogin && !string.IsNullOrEmpty(_Character))
 				Task.Delay(500).ContinueWith(_ => SendCommand(new Client_IDN_ChatIdentify
 				{
 					Account = FListClient.Ticket.Account,
