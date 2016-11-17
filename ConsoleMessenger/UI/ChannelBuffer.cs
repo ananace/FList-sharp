@@ -3,7 +3,10 @@ using ConsoleMessenger.Types;
 using libflist.FChat;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using ConsoleMessenger.Logging;
+using System.Text;
 
 namespace ConsoleMessenger.UI.FChat
 {
@@ -33,8 +36,8 @@ namespace ConsoleMessenger.UI.FChat
 
 					if (LogMessages && e.Type != MessageType.Preview)
 					{
-						using (var stream = new System.IO.FileStream($"{Title.ToLower()}.log", System.IO.FileMode.Append))
-							new Logging.MessageSerializer(Channel?.Connection ?? Character?.Connection).Serialize(stream, e);
+						using (var stream = new FileStream($"{Title.ToLower()}.log", System.IO.FileMode.Append))
+							new MessageSerializer(Channel?.Connection ?? Character?.Connection).Serialize(stream, e);
 					}
 				};
 			}
@@ -42,7 +45,32 @@ namespace ConsoleMessenger.UI.FChat
 		public Channel Channel => (_ChatBuf as ChannelChatBuffer)?.Channel;
 		public Character Character => (_ChatBuf as CharacterChatBuffer)?.Character;
 
-		public string Title { get; set; }
+        string _Title;
+        public string Title
+        {
+            get { return _Title; }
+            set
+            {
+                if (_Title == null && File.Exists($"{value.ToLower()}.log"))
+                {
+                    var ser = new MessageSerializer(Channel?.Connection ?? Character?.Connection);
+                    var lines = File.ReadAllLines($"{value.ToLower()}.log").Reverse().Take(100).Reverse().ToArray();
+
+                    var msgs = new List<ChatBuffer.MessageData>();
+                    foreach (var line in lines)
+                        using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(line)))
+                        {
+                            msgs.Add(ser.Deserialize(stream));
+                        }
+
+                    _ChatBuf.Clear();
+                    foreach (var msg in msgs)
+                        _ChatBuf.PushMessage(msg);
+                }
+
+                _Title = value;
+            }
+        }
 
         ActivityFlags _Activity = ActivityFlags.None;
         public bool SystemActivity
