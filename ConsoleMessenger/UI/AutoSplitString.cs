@@ -38,8 +38,10 @@ namespace ConsoleMessenger.UI
 
         public AutoSplitString(string String)
         {
-            this.String = String;
-            this.MaxLength = ConsoleHelper.Size.Width - 1;
+            _MaxLength = ConsoleHelper.Size.Width - 1;
+            _String = String;
+
+            ResplitString();
         }
 
         void ResplitString()
