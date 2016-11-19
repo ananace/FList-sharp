@@ -23,6 +23,7 @@ namespace ConsoleMessenger.UI
 		}
 
 		public int Cursor { get; set; }
+		public bool NeedsRender { get; set; }
 
         StringBuilder _Content = new StringBuilder();
 		public string Content
@@ -42,6 +43,8 @@ namespace ConsoleMessenger.UI
 
 				if (Cursor > sb.Length)
 					Cursor = sb.Length;
+
+				NeedsRender = true;
 			}
 		}
 
@@ -178,13 +181,13 @@ namespace ConsoleMessenger.UI
 		{
             lock (Application.DrawLock)
             {
+				NeedsRender = false;
                 Graphics.DrawLine(new Point(0, ConsoleHelper.Size.Height - 1), new Size(ConsoleHelper.Size.Width - 1, 0), ' ');
 
                 Console.SetCursorPosition(Cursor, ConsoleHelper.Size.Height - 1);
                 using (var cur = new CursorChanger(new Point(0, ConsoleHelper.Size.Height - 1)))
                 using (var col = new ColorChanger(foreground: ConsoleColor.White))
                 {
-                    Console.Write(_Content);
                     Console.Write(new AutoSplitString(_Content.ToString()) { MaxLength = ConsoleHelper.Size.Width - 1 });
                 }
 				Console.ForegroundColor = ConsoleColor.Gray;

@@ -32,7 +32,7 @@ namespace ConsoleMessenger.UI.FChat
 				_ChatBuf.OnMessage += (s, e) =>
 				{
 					if (Application.CurrentChannelBuffer == this)
-						Render();
+						NeedsRender = true;
 
 					if (LogMessages && e.Type != MessageType.Preview)
 					{
@@ -44,6 +44,8 @@ namespace ConsoleMessenger.UI.FChat
 		}
 		public Channel Channel => (_ChatBuf as ChannelChatBuffer)?.Channel;
 		public Character Character => (_ChatBuf as CharacterChatBuffer)?.Character;
+
+		public bool NeedsRender { get; set; }
 
         string _Title;
         public string Title
@@ -193,6 +195,7 @@ namespace ConsoleMessenger.UI.FChat
         {
             lock (Application.DrawLock)
             {
+				NeedsRender = false;
                 RenderMessages();
 
                 _Activity = ActivityFlags.None;

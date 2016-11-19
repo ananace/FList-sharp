@@ -68,6 +68,7 @@ namespace ConsoleMessenger
 
 	public static class ConsoleHelper
 	{
+        public static event EventHandler OnDraw;
         public static event EventHandler OnConsoleResized;
 
 		static Timer _Timer;
@@ -93,6 +94,8 @@ namespace ConsoleMessenger
 
 		static void HandleTimerCallback(object state)
 		{
+			OnDraw?.Invoke(null, EventArgs.Empty);
+
 			if (OnConsoleResized == null)
 				return;
 
@@ -141,7 +144,6 @@ namespace ConsoleMessenger
 		public static IList<ChannelBuffer> Buffers => _ChannelBuffers;
 
 		static bool _Running = true;
-        static Timer _Redraw = new Timer((_) => { Redraw(); }, null, 1000, 1000);
 
         public static FChatConnection Connection => _Chat;
 		public static StoredTicket Ticket { get; set; }
@@ -153,7 +155,7 @@ namespace ConsoleMessenger
 				if (value != _CurBuffer && value >= 0 && value < _ChannelBuffers.Count)
 				{
 					_CurBuffer = value;
-					Redraw();
+					//Redraw();
 					CurrentChannelBuffer.Render();
 				}
 			}
@@ -449,9 +451,6 @@ namespace ConsoleMessenger
 
             buffer.ChatBuf.PushMessage(null, Text, MessageType.Preview);
             buffer.SystemActivity = true;
-
-            if (buffer == CurrentChannelBuffer)
-                buffer.Render();
         }
 
 		public static void WriteMessage(string Text, ChannelBuffer buffer = null, Channel channel = null, Character sender = null, MessageType type = MessageType.Chat, MessageSource source = MessageSource.Local)
@@ -488,33 +487,35 @@ namespace ConsoleMessenger
                 Text = Text.Replace(Connection.LocalCharacter.Name, Connection.LocalCharacter.Name.Color(ConsoleColor.Yellow));
 
             buffer.ChatBuf.SendMessage(sender ?? (source == MessageSource.Local ? _Chat.LocalCharacter : null), Text, type, source);
-				
-            if (CurrentChannelBuffer == buffer)
-                CurrentChannelBuffer.Render();
 		}
 
 		public static void Redraw(bool full = false)
 		{
             lock (DrawLock)
             {
-                if (full)
-                {
-                    Console.BackgroundColor = ConsoleColor.Black;
-                    Console.ForegroundColor = ConsoleColor.White;
-                    Console.SetCursorPosition(0, 0);
+				if (full)
+				{
+					Console.BackgroundColor = ConsoleColor.Black;
+					Console.ForegroundColor = ConsoleColor.White;
+					Console.SetCursorPosition(0, 0);
 
-                    Console.Clear();
+					Console.Clear();
 
-                    _ChannelBuffers[_CurBuffer].Render();
+					_ChannelBuffers[_CurBuffer].Render();
 
-                    _InputBox.Render();
-                }
+					_InputBox.Render();
+				}
+				else
+				{
+					if (CurrentChannelBuffer.NeedsRender)
+						CurrentChannelBuffer.Render();
 
-				var size = ConsoleHelper.Size;
-                Graphics.DrawLine(new Point(0, size.Height - 2), new Point(size.Width - 1, size.Height - 2), ' ', ConsoleColor.DarkBlue);
-                Graphics.WriteANSIString(StatusBar, new Point(0, size.Height - 2), ConsoleColor.DarkBlue, ConsoleColor.Gray);
+					var size = ConsoleHelper.Size;
+					Graphics.DrawLine(new Point(0, size.Height - 2), new Point(size.Width - 1, size.Height - 2), ' ', ConsoleColor.DarkBlue);
+					Graphics.WriteANSIString(StatusBar, new Point(0, size.Height - 2), ConsoleColor.DarkBlue, ConsoleColor.Gray);
 
-                _InputBox.Focus();
+					_InputBox.Focus();
+				}
             }
 		}
 
@@ -633,6 +634,7 @@ namespace ConsoleMessenger
 				}
 			};
 
+			ConsoleHelper.OnDraw += (s, e) => Redraw();
 			Redraw(true);
 			InputLoop();
 
