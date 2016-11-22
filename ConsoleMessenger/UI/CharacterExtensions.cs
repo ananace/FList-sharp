@@ -10,33 +10,31 @@ namespace ConsoleMessenger.UI
 		// TODO: Status icon
 		public static string GetChanIcons(this Character ch, Channel chan = null)
 		{
-			string ret = "";
-
 			if (ch.IsChatOp)
-				ret += "▼".Color(ConsoleColor.Yellow);
+				return "▼".Color(ConsoleColor.Yellow);
 
 			if (chan != null)
 			{
 				if (chan.Official)
 				{
 					if (chan.Owner == ch || ch.IsOPInChannel(chan))
-						ret += "▼".Color(ConsoleColor.Red);
+						return "▼".Color(ConsoleColor.Red);
 				}
 				else
 				{
 					if (chan.Owner == ch)
-						ret += "►".Color(ConsoleColor.Cyan);
+						return "►".Color(ConsoleColor.Cyan);
 					else if (ch.IsOPInChannel(chan))
-						ret += "►".Color(ConsoleColor.Red);
+						return "►".Color(ConsoleColor.Red);
 				}
 			}
 
-			return ret;
+			return null;
 		}
 
         public static string ToANSIString(this Character ch, Channel chan = null, bool full = false)
         {
-			return ch.GetChanIcons(chan) + (full ? ch.Status.ToANSIString() : "") + ch.Name.Color(ch.Gender.ToColor());
+			return (ch.GetChanIcons(chan) ?? " ") + (full ? ch.Status.ToANSIString() : "") + ch.Name.Color(ch.Gender.ToColor());
         }
 
 		public static string ToSortable(this Character ch, Channel chan)

@@ -219,14 +219,13 @@ namespace ConsoleMessenger.UI.FChat
                         .Skip(totalHeight > height ? 1 : 0))
                     {
                         if (msg.Timestamp.Date == DateTime.Now.Date)
-                            Graphics.WriteANSIString($"[{msg.Timestamp.ToString("HH:mm")}] ".Color(ConsoleColor.Gray));
+                            Graphics.WriteANSIString($"[{msg.Timestamp.ToString("HH:mm")}]".Color(ConsoleColor.Gray));
                         else
-                            Graphics.WriteANSIString($"[{msg.Timestamp.ToString("yyyy-MM-dd")}] ".Color(ConsoleColor.Gray));
+                            Graphics.WriteANSIString($"[{msg.Timestamp.ToString("yyyy-MM-dd")}]".Color(ConsoleColor.Gray));
 
                         string message = msg[MessageDisplay];
                         bool action = message.StartsWith("/me", StringComparison.CurrentCultureIgnoreCase);
-                        if (action)
-                            Console.Write("* ");
+                        Console.Write(action ? "*" : " ");
 
                         if (msg.Sender?.Name != null)
                             Graphics.WriteANSIString(msg.Sender.ToANSIString(Channel, true));
