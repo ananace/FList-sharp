@@ -299,9 +299,6 @@ namespace libflist.FChat
 		
 		public bool AquireTicket(string User, string Password)
 		{
-			if (FListClient.HasTicket)
-				return true;
-
 			var res = FListClient.Authenticate(User, Password);
 			res.Wait();
 
@@ -471,12 +468,17 @@ namespace libflist.FChat
 			OnConnected?.Invoke(this, e);
 
 			if (AutoLogin && !string.IsNullOrEmpty(_Character))
-				Task.Delay(500).ContinueWith(_ => SendCommand(new Client_IDN_ChatIdentify
-				{
-					Account = FListClient.Ticket.Account,
-					Ticket = FListClient.Ticket.Ticket,
-					Character = _Character
-				}));
+				Task.Delay(500).ContinueWith(_ => {
+					if (!IsIdentified)
+					{
+						SendCommand(new Client_IDN_ChatIdentify
+						{
+							Account = FListClient.Ticket.Account,
+							Ticket = FListClient.Ticket.Ticket,
+							Character = _Character
+						});
+					}
+				});
 		}
 
 		void _Connection_OnMessage(object sender, MessageEventArgs e)

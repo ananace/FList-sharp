@@ -40,12 +40,12 @@ namespace ConsoleMessenger.Commands
 			else
 				throw new Exception("Aquired ticket but still failed?");
 
-			Application.WriteLog(string.Format("Aquired ticket for {0}. Available characters are:", username));
-			Application.WriteLog(Application.Connection.FListClient.Ticket.Characters.ToString(", "));
-
 			Debug.WriteLine("Connecting to FChat network...");
 			_Connect();
 			Debug.WriteLine("Connected.");
+
+			Application.WriteLog(string.Format("Connected as {0}. Available characters are:", username));
+			Application.WriteLog(Application.Connection.FListClient.Ticket.Characters.ToString(", "));
 		}
 	}
 }
