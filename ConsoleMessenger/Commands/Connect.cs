@@ -42,10 +42,12 @@ namespace ConsoleMessenger.Commands
 
 			Debug.WriteLine("Connecting to FChat network...");
 			_Connect();
-			Debug.WriteLine("Connected.");
 
 			Application.WriteLog(string.Format("Connected as {0}. Available characters are:", username));
 			Application.WriteLog(Application.Connection.FListClient.Ticket.Characters.ToString(", "));
+
+			Application.AutoLoginInfo.User = username;
+			Application.AutoLoginInfo.Pass = password;
 		}
 	}
 }

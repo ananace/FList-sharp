@@ -19,6 +19,7 @@ namespace ConsoleMessenger.Commands
 		{
 			Application.WriteLog(string.Format("Logging in as character {0}", character));
 			Application.Connection.Login(character);
+			Application.AutoLoginInfo.Char = character;
 		}
 	}
 }

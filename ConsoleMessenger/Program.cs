@@ -124,12 +124,20 @@ namespace ConsoleMessenger
 			public DateTime Timestamp { get; set; }
 		}
 
+		public class AutoLoginInformation
+		{
+			public string User { get; set; }
+			public string Pass { get; set; }
+			public string Char { get; set; }
+		}
+
         public static object DrawLock = new object();
+		static bool _AutoLogin;
 
 		[Setting("application.use_test_endpoint", DefaultValue = true, Description = "Should the application connect to the testing endpoint?")]
 		public static bool UseTestEndpoint { get; set; } = true;
 		[Setting("application.auto_login", DefaultValue = true, Description = "Automatically login when connected to the network?")]
-		public static bool AutoLogin { get { return _Chat.AutoLogin; } set { _Chat.AutoLogin = value; } }
+		public static bool AutoLogin { get { return _AutoLogin; } set { _AutoLogin = value; } }
 		[Setting("application.auto_reconnect", DefaultValue = true, Description = "Automatically reconnect on lost connection?")]
 		public static bool AutoReconnect { get { return _Chat.AutoReconnect; } set { _Chat.AutoReconnect = value; } }
 
@@ -147,6 +155,8 @@ namespace ConsoleMessenger
 
         public static FChatConnection Connection => _Chat;
 		public static StoredTicket Ticket { get; set; }
+		public static AutoLoginInformation AutoLoginInfo { get; set; } = new AutoLoginInformation();
+
 		public static int CurrentBuffer
 		{
 			get { return _CurBuffer; }
@@ -542,7 +552,7 @@ namespace ConsoleMessenger
             _ChannelBuffers.Add(_ConsoleBuffer);
             _InputBox.OnTextEntered += (s, e) => { TextEntry(e); };
 
-			_Chat.AutoLogin = true;
+			_Chat.AutoLogin = false;
             _Chat.AutoPing = true;
 			_Chat.AutoReconnect = true;
 
@@ -623,8 +633,18 @@ namespace ConsoleMessenger
 				}
 			};
 
+			_Chat.OnConnected += (_, __) =>
+			{
+				WriteLog("Connected to server");
+				if (AutoLogin && !string.IsNullOrEmpty(AutoLoginInfo.User))
+				{
+					_Chat.AquireTicket(AutoLoginInfo.User, AutoLoginInfo.Pass);
+					_Chat.Login(AutoLoginInfo.Char);
+				}
+			};
 			_Chat.OnIdentified += (_, __) =>
 			{
+				WriteLog($"Logged in to server as {_Chat.LocalCharacter.Name}");
 				foreach (var buf in _ChannelBuffers)
 				{
 					if (buf == _ConsoleBuffer || buf.Character != null)
