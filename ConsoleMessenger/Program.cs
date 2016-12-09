@@ -13,6 +13,7 @@ using ConsoleMessenger.UI;
 using ConsoleMessenger.UI.FChat;
 using System.Threading;
 using ConsoleMessenger.Settings;
+using System.Threading.Tasks;
 
 namespace ConsoleMessenger
 {
@@ -132,14 +133,14 @@ namespace ConsoleMessenger
 		}
 
         public static object DrawLock = new object();
-		static bool _AutoLogin;
+		static int _loginCount = 0;
 
 		[Setting("application.use_test_endpoint", DefaultValue = true, Description = "Should the application connect to the testing endpoint?")]
 		public static bool UseTestEndpoint { get; set; } = true;
 		[Setting("application.auto_login", DefaultValue = true, Description = "Automatically login when connected to the network?")]
-		public static bool AutoLogin { get { return _AutoLogin; } set { _AutoLogin = value; } }
+		public static bool AutoLogin { get; set; } = true;
 		[Setting("application.auto_reconnect", DefaultValue = true, Description = "Automatically reconnect on lost connection?")]
-		public static bool AutoReconnect { get { return _Chat.AutoReconnect; } set { _Chat.AutoReconnect = value; } }
+		public static bool AutoReconnect { get; set; } = true;
 
 		static List<ChannelBuffer> _ChannelBuffers = new List<ChannelBuffer>();
 		static ChannelBuffer _ConsoleBuffer = new ChannelBuffer() { ChatBuf = new ConsoleChatBuffer(), Title = "Console" };
@@ -554,7 +555,7 @@ namespace ConsoleMessenger
 
 			_Chat.AutoLogin = false;
             _Chat.AutoPing = true;
-			_Chat.AutoReconnect = true;
+			_Chat.AutoReconnect = false;
 
 			//_Chat.OnRawMessage += (_, e) =>
 			//	_ConsoleBuffer.ChatBuf.PushMessage(null, $"<< {e.Command.Serialize()}");
@@ -632,7 +633,7 @@ namespace ConsoleMessenger
 					++i;
 				}
 			};
-
+			
 			_Chat.OnConnected += (_, __) =>
 			{
 				WriteLog("Connected to server");
@@ -642,8 +643,24 @@ namespace ConsoleMessenger
 					_Chat.Login(AutoLoginInfo.Char);
 				}
 			};
+			_Chat.OnDisconnected += (_, __) =>
+			{
+				WriteLog("Lost connection to server");
+
+				if (AutoReconnect)
+				{
+					if (_loginCount > 5)
+						WriteLog("Failed to auto-login 5 times in a row, aborting.");
+					else
+					{
+						_loginCount++;
+						Task.Delay(_loginCount * 5000).ContinueWith((___) => _Chat.Connect());
+					}
+				}
+			};
 			_Chat.OnIdentified += (_, __) =>
 			{
+				_loginCount = 0;
 				WriteLog($"Logged in to server as {_Chat.LocalCharacter.Name}");
 				foreach (var buf in _ChannelBuffers)
 				{
