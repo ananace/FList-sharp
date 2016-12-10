@@ -649,8 +649,8 @@ namespace ConsoleMessenger
 
 				if (AutoReconnect)
 				{
-					if (_loginCount > 5)
-						WriteLog("Failed to auto-login 5 times in a row, aborting.");
+					if (_loginCount > 10)
+						WriteLog("Failed to auto-login 10 times in a row, aborting.");
 					else
 					{
 						_loginCount++;
