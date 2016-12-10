@@ -53,7 +53,7 @@ namespace libflist.FChat
 		WebSocket _Connection;
 		bool _Identified = false;
 		string _Character;
-
+		
 		public IFListClient FListClient { get; set; }
 
 		public bool AutoPing { get; set; }
@@ -101,14 +101,17 @@ namespace libflist.FChat
         public bool IsConnected { get { return _Connection != null && _Connection.ReadyState != WebSocketState.Closed; } }
         public bool IsIdentified { get { return IsConnected && _Identified; } }
 
-		// Server events
+		// Connection events
 		public event EventHandler OnConnected;
 		public event EventHandler OnDisconnected;
 		public event EventHandler OnIdentified;
+		public event EventHandler<Events.ErrorEventArgs> OnError;
+		public event EventHandler<string> OnWSLog;
+
+		// Server events
 		public event EventHandler<ServerVariableEventArgs> OnServerVariableUpdate;
 
 		// Message events
-		public event EventHandler<Events.ErrorEventArgs> OnError;
 		public event EventHandler<CommandEventArgs> OnErrorMessage;
 		public event EventHandler<CommandEventArgs> OnRawMessage;
 		public event EventHandler<CommandEventArgs> OnSYSMessage;
@@ -322,6 +325,12 @@ namespace libflist.FChat
 				_Connection.OnError += _Connection_OnError;
 				_Connection.OnMessage += _Connection_OnMessage;
 				_Connection.OnOpen += _Connection_OnOpen;
+
+				_Connection.Log.Output = (data, str) =>
+				{
+					// TODO: LogData
+					OnWSLog?.Invoke(this, str);
+				};
 
 				_Connection.Connect();
 			}
