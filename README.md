@@ -32,8 +32,6 @@ A C# library for utilizing the F-List JSON API as well as FChat system.
 - Clean up FChat connection, make it more logical.
 	- Connect should be split further into more functions.
 - Add in all the admin features.
-- Add a BBCode render system with different outputs.
-	- HTML, ~~Markdown~~, ~~Plain~~, etc...
 - Implement the last of the JSON API
 	- Add V2 endpoint
 
@@ -53,19 +51,21 @@ ConsoleMessenger
 
 ### TODO
 
-- Redo channel buffer to actually calculate message sizes correctly.
+- ~~Redo channel buffer to actually calculate message sizes correctly.~~
+- ~~Proper scrolling of channel buffer.~~
+	- Support scrolling back into log files.
 - Finish up input handling.
 	- ~~Cursor movement, delete, etc...~~
 	- ~~Command history.~~
 	- Tab-completion suggestions.
-- Add logging support.
+- ~~Add logging support.~~
 - ~~Add userlist in some way. (Panel on the side?)~~ Preliminary implementation through `/who`
 - Add channel list window.
 - Finish status bar.
 	- ~~Log channel activity.~~
 - ~~Add hilight system.~~
 - Add tab-completion for nicks in chat.
-- Render chat messages properly.
+- ~~Render chat messages properly.~~
 - Be more graceful on exits.
 - Improve UI.
 	- Only redraw when strictly needed.
