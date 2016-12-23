@@ -1,6 +1,7 @@
 ﻿using ConsoleMessenger.Settings;
 using ConsoleMessenger.Types;
 using libflist.FChat;
+using libflist.Message;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -195,7 +196,7 @@ namespace ConsoleMessenger.UI.FChat
 			}
 		}
 
-        IEnumerable<KeyValuePair<ChatBuffer.MessageData, string>> RenderedMessages
+        IEnumerable<KeyValuePair<ChatBuffer.MessageData, ANSIString>> RenderedMessages
         {
             get
             {
@@ -205,45 +206,46 @@ namespace ConsoleMessenger.UI.FChat
                     var splits = new AutoSplitString(text);
 
                     foreach (var line in splits.SplitString)
-                        yield return new KeyValuePair<ChatBuffer.MessageData, string>(msg, line);
+                        yield return new KeyValuePair<ChatBuffer.MessageData, ANSIString>(msg, line);
                 }
             }
         }
 
 		// TODO: Pre-render messages into row-lists, split on \n and width.
-        string RenderMessage(ChatBuffer.MessageData msg)
+        ANSIString RenderMessage(ChatBuffer.MessageData msg)
         {
-            StringBuilder build = new StringBuilder();
-
-            if (msg.Timestamp.Date == DateTime.Now.Date)
-                build.Append($"[{msg.Timestamp.ToString("HH:mm")}]".Color(ConsoleColor.Gray));
-            else
-                build.Append($"[{msg.Timestamp.ToString("yyyy-MM-dd")}]".Color(ConsoleColor.Gray));
-
-            string message = msg[MessageDisplay];
-            bool action = message.StartsWith("/me", StringComparison.CurrentCultureIgnoreCase);
-            build.Append(action ? "*" : " ");
-
-            if (msg.Sender?.Name != null)
-                build.Append(msg.Sender.ToANSIString(Channel, true));
-            else
-                build.Append("System".Color(ConsoleColor.DarkGray));
-
-            if (action)
+            if (msg.RenderedMessage == null)
             {
-                if (msg.PlainMessage.StartsWith("/me's", StringComparison.CurrentCultureIgnoreCase))
+                var build = new ANSIString();
+
+                if (msg.Timestamp.Date == DateTime.Now.Date)
+                    build.Append($"[{msg.Timestamp.ToString("HH:mm")}]".Color(ConsoleColor.Gray));
+                else
+                    build.Append($"[{msg.Timestamp.ToString("yyyy-MM-dd")}]".Color(ConsoleColor.Gray));
+
+                ANSIString message = new ANSIRenderer().Render(msg.RawMessage);
+                bool action = message.PlainString.StartsWith("/me", StringComparison.CurrentCultureIgnoreCase);
+                build.Append(action ? "*" : " ");
+
+                if (msg.Sender?.Name != null)
+                    build.Append(msg.Sender.ToANSIString(Channel, true));
+                else
+                    build.Append("System".Color(ConsoleColor.DarkGray));
+
+                if (action)
                 {
-                    build.Append(message.Substring(3).Color(ConsoleColor.White));
+                    if (message.PlainString.StartsWith("/me's", StringComparison.CurrentCultureIgnoreCase))
+                        build.Append(message.Substring(3));
+                    else
+                        build.Append(" " + message.Substring(4));
                 }
                 else
-                {
-                    build.Append(" " + message.Substring(4).Color(ConsoleColor.White));
-                }
-            }
-            else
-                build.Append((": " + message).Color(ConsoleColor.Gray));
+                    build.Append(new ANSIString(": ") + message);
 
-            return build.ToString();
+                msg.RenderedMessage = build;
+            }
+
+            return msg.RenderedMessage;
         }
 		
 		// TODO: Speed up rendering if possible
@@ -256,7 +258,7 @@ namespace ConsoleMessenger.UI.FChat
                 _Activity = ActivityFlags.None;
 
                 Graphics.DrawLine(new Point(0, 0), new Point(ConsoleHelper.Size.Width - 1, 0), ' ', ConsoleColor.DarkBlue);
-                Graphics.WriteANSIString(TitleBar, new Point(0, 0), ConsoleColor.DarkBlue, ConsoleColor.White);
+                Graphics.WriteANSIString(new ANSIString(TitleBar), new Point(0, 0), ConsoleColor.DarkBlue, ConsoleColor.White);
                 Graphics.DrawFilledBox(new Point(0, 1), new Point(ConsoleHelper.Size.Width - 1, ConsoleHelper.Size.Height - 2), ' ');
 
                 using (var c = new CursorChanger(new Point(0, 1)))

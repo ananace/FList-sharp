@@ -4,6 +4,7 @@ using libflist.FChat;
 using System.Linq;
 using System.Diagnostics;
 using libflist.Message;
+using ConsoleMessenger.Types;
 
 namespace ConsoleMessenger
 {
@@ -37,42 +38,7 @@ namespace ConsoleMessenger
             public DateTime Timestamp { get; set; }
             public IEnumerable<INode> RawMessage { get; set; }
 
-            string _Rendered;
-            MessageDisplayType _RenderedType = MessageDisplayType.None;
-
-            public string ANSIMessage { get { return this[MessageDisplayType.ANSI]; } }
-            public string BBCodeMessage { get { return this[MessageDisplayType.BBCode]; } }
-            public string MarkdownMessage { get { return this[MessageDisplayType.Markdown]; } }
-            public string PlainMessage { get { return this[MessageDisplayType.Plain]; } }
-
-            public string this[MessageDisplayType type]
-            {
-                get
-                {
-                    if (_RenderedType != type)
-                    {
-                        if (type == MessageDisplayType.None)
-                            _Rendered = null;
-                        else if (type == MessageDisplayType.ANSI && Environment.OSVersion.IsLinux())
-                        {
-                            // Only worth doing full ANSI rendering on Linux, Windows lacks too many ANSI features
-                            _Rendered = "!TODO! " + RawMessage.Select(m => m.ToString(NodeStringType.Plain)).ToString(" "); // TODO
-                        }
-                        else
-                        {
-                            NodeStringType strType = NodeStringType.Markdown;
-                            if (type == MessageDisplayType.Plain)
-                                strType = NodeStringType.Plain;
-                            else if (type == MessageDisplayType.BBCode)
-                                strType = NodeStringType.BBCode;
-
-                            _Rendered = RawMessage.Select(m => m.ToString(strType)).ToString(" ");
-                        }
-                        _RenderedType = type;
-                    }
-                    return _Rendered;
-                }
-            }
+            public ANSIString RenderedMessage { get; set; }
 
 			public int Lines { get; set; }
 			public Character Sender { get; set; }

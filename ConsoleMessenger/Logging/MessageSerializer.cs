@@ -30,7 +30,7 @@ namespace ConsoleMessenger.Logging
 				return; // TODO: Exceptions
 
 			using (var write = new StreamWriter(stream))
-				write.WriteLine($"[{message.Timestamp.ToString("u", CultureInfo.InvariantCulture)}] {_TypeDict[message.Type]}, {message.Sender?.Name ?? "System"}: {message.BBCodeMessage}");
+                write.WriteLine($"[{message.Timestamp.ToString("u", CultureInfo.InvariantCulture)}] {_TypeDict[message.Type]}, {message.Sender?.Name ?? "System"}: {new libflist.Message.Renderers.BBCode().Render(message.RawMessage)}");
 		}
 
 		public ChatBuffer.MessageData Deserialize(Stream stream)

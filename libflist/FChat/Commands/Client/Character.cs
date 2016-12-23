@@ -29,9 +29,8 @@ namespace libflist.FChat.Commands
 	[Command("STA")]
 	public sealed class Client_STA_ChatSetStatus : Command
 	{
-		[JsonProperty(PropertyName = "status",
-			ItemConverterType = typeof(JsonEnumConverter),
-			ItemConverterParameters = new object[]{ JsonEnumConverter.EnumHandling.Lowercase })]
+        [JsonProperty(PropertyName = "status")]
+        [JsonConverter(typeof(JsonEnumConverter), new object[] { JsonEnumConverter.EnumHandling.Lowercase })]
 		public CharacterStatus Status { get; set; }
 
 		[JsonProperty(PropertyName = "statusmsg", Required = Required.AllowNull)]
@@ -51,9 +50,8 @@ namespace libflist.FChat.Commands
 		[JsonProperty(PropertyName = "character", Required = Required.DisallowNull)]
 		public string Character { get; set; }
 
-		[JsonProperty(PropertyName = "status",
-			ItemConverterType = typeof(JsonEnumConverter),
-			ItemConverterParameters = new object[]{ JsonEnumConverter.EnumHandling.Lowercase })]
+        [JsonProperty(PropertyName = "status")]
+        [JsonConverter(typeof(JsonEnumConverter), new object[] { JsonEnumConverter.EnumHandling.Lowercase })]
 		public TypingStatus Status { get; set; }
 	}
 }

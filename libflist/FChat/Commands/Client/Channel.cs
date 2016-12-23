@@ -225,9 +225,8 @@ namespace libflist.FChat.Commands
 		[JsonProperty(PropertyName = "channel", Required = Required.DisallowNull)]
 		public string Channel { get; set; }
 
-		[JsonProperty(PropertyName = "mode", Required = Required.DisallowNull,
-			ItemConverterType = typeof(JsonEnumConverter),
-			ItemConverterParameters = new object[]{ JsonEnumConverter.EnumHandling.Lowercase })]
+        [JsonProperty(PropertyName = "mode", Required = Required.DisallowNull)]
+        [JsonConverter(typeof(JsonEnumConverter), new object[] { JsonEnumConverter.EnumHandling.Lowercase })]
 		public ChannelMode Mode { get; set; }
 	}
 
@@ -237,9 +236,8 @@ namespace libflist.FChat.Commands
 		[JsonProperty(PropertyName = "channel", Required = Required.DisallowNull)]
 		public string Channel { get; set; }
 
-		[JsonProperty(PropertyName = "status", Required = Required.DisallowNull,
-			ItemConverterType = typeof(JsonEnumConverter),
-			ItemConverterParameters = new object[]{ JsonEnumConverter.EnumHandling.Lowercase })]
+        [JsonProperty(PropertyName = "status", Required = Required.DisallowNull)]
+        [JsonConverter(typeof(JsonEnumConverter), new object[] { JsonEnumConverter.EnumHandling.Lowercase })]
 		public ChannelStatus Status { get; set; }
 	}
 }

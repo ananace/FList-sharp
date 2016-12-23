@@ -1,6 +1,7 @@
 ﻿using libflist.FChat;
 using libflist.Info;
 using System;
+using ConsoleMessenger.Types;
 
 namespace ConsoleMessenger.UI
 {
@@ -8,7 +9,7 @@ namespace ConsoleMessenger.UI
     {
 		// TODO: Rework to be closer to the official FChat icons
 		// TODO: Status icon
-		public static string GetChanIcons(this Character ch, Channel chan = null)
+		public static ANSIString GetChanIcons(this Character ch, Channel chan = null)
 		{
 			if (ch.IsChatOp)
 				return "▼".Color(ConsoleColor.Yellow);
@@ -32,9 +33,9 @@ namespace ConsoleMessenger.UI
 			return null;
 		}
 
-        public static string ToANSIString(this Character ch, Channel chan = null, bool full = false)
+        public static ANSIString ToANSIString(this Character ch, Channel chan = null, bool full = false)
         {
-			return (ch.GetChanIcons(chan) ?? " ") + (full ? ch.Status.ToANSIString() : "") + ch.Name.Color(ch.Gender.ToColor());
+            return (ch.GetChanIcons(chan) ?? new ANSIString(" ")) + (full ? ch.Status.ToANSIString() : new ANSIString()) + ch.Name.Color(ch.Gender.ToColor());
         }
 
 		public static string ToSortable(this Character ch, Channel chan)
@@ -48,7 +49,7 @@ namespace ConsoleMessenger.UI
 			return $"{value}{ch.Name}";
 		}
 
-        public static string ToANSIString(this CharacterStatus status)
+        public static ANSIString ToANSIString(this CharacterStatus status)
         {
             string icon;
             switch (status)

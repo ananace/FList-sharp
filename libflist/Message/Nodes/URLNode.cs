@@ -17,7 +17,7 @@ namespace libflist.Message.Nodes
 				if (!string.IsNullOrEmpty(Attribute))
 					return new Uri(Attribute);
 				else if (Content.Count == 1)
-					return new Uri(Content.First().ToString(NodeStringType.Plain));
+                    return new Uri(new Renderers.Plain().Render(Content.First()));
 
 				return null;
 			}

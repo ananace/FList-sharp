@@ -64,6 +64,8 @@
     <Compile Include="Commands\Roll.cs" />
     <Compile Include="Commands\Priv.cs" />
     <Compile Include="UI\AutoSplitString.cs" />
+    <Compile Include="Types\ANSIString.cs" />
+    <Compile Include="ANSIRenderer.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\libflist\libflist.csproj">

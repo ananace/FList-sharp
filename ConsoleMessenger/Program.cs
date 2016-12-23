@@ -174,24 +174,24 @@ namespace ConsoleMessenger
         public static int BufferCount => _ChannelBuffers.Count;
 
 		public static bool Running { get { return _Running; } set { _Running = value; } }
-        static string StatusBar { get
+        static ANSIString StatusBar { get
             {
-                var status = $" {"[".Color(ConsoleColor.DarkCyan)}{DateTime.Now.ToShortTimeString()}{"]".Color(ConsoleColor.DarkCyan)} ";
+                var status = "[".Color(ConsoleColor.DarkCyan) + DateTime.Now.ToShortTimeString() + "]".Color(ConsoleColor.DarkCyan) + " ";
 
                 if (_Chat.IsIdentified)
-                    status += $"{"[".Color(ConsoleColor.DarkCyan)}{Connection.LocalCharacter.Status.ToANSIString()} {Connection.LocalCharacter.ToANSIString()}{"]".Color(ConsoleColor.DarkCyan)} ";
+                    status.Append("[".Color(ConsoleColor.DarkCyan) + Connection.LocalCharacter.Status.ToANSIString() + Connection.LocalCharacter.ToANSIString() + "]".Color(ConsoleColor.DarkCyan) + " ");
 
-				status += $"{"[".Color(ConsoleColor.DarkCyan)}{_CurBuffer + 1}:{CurrentChannelBuffer.Title ?? "??"}{"]".Color(ConsoleColor.DarkCyan)} ";
+                status.Append("[".Color(ConsoleColor.DarkCyan) + $"{_CurBuffer + 1}:{CurrentChannelBuffer.Title ?? "??"}" + "]".Color(ConsoleColor.DarkCyan) + " ");
 
 				var act = _ChannelBuffers.Where(c => c.ChatActivity || c.SystemActivity).ToList();
 				if (act.Any())
 				{
-					status += $"{"[".Color(ConsoleColor.DarkCyan)}Act: ";
-					status += string.Join(",", act.Select(c => {
+                    status.Append("[".Color(ConsoleColor.DarkCyan) + "Act: ");
+					status.Append(ANSIString.Join(",", act.Select(c => {
 						string id = (_ChannelBuffers.IndexOf(c) + 1).ToString();
                         return id.Color(c.Highlight ? ConsoleColor.Red : (!c.SystemActivity ? ConsoleColor.White : ConsoleColor.Cyan));
-					}));
-					status += $"{"]".Color(ConsoleColor.DarkCyan)} ";
+                    })));
+                    status.Append("]".Color(ConsoleColor.DarkCyan) + " ");
 				}
 
 				return status;
@@ -509,16 +509,18 @@ namespace ConsoleMessenger
 					buffer = CurrentChannelBuffer;
 			}
 
-			bool hilight = Text.ToLower().Contains(Connection.LocalCharacter.Name.ToLower());
-			if (type != MessageType.Preview)
-			{ 
-				buffer.ChatActivity = true;
-				buffer.Highlight |= buffer.Character != null || hilight;
-			}
+            if (Connection.IsIdentified)
+            {
+                bool hilight = Text.ToLower().Contains(Connection.LocalCharacter.Name.ToLower());
+                if (type != MessageType.Preview)
+                {
+                    buffer.ChatActivity = true;
+                    buffer.Highlight |= buffer.Character != null || hilight;
+                }
 
-            if (hilight)
-                Text = Text.Replace(Connection.LocalCharacter.Name, Connection.LocalCharacter.Name.Color(ConsoleColor.Yellow));
-
+                if (hilight)
+                    Text = Text.Replace(Connection.LocalCharacter.Name, $"[color=yellow]{Connection.LocalCharacter.Name}[/color]");
+            }
             buffer.ChatBuf.SendMessage(sender ?? (source == MessageSource.Local ? _Chat.LocalCharacter : null), Text, type, source);
 		}
 
@@ -618,6 +620,12 @@ namespace ConsoleMessenger
 				WriteMessage(e.Message, null, null, e.Character, source: MessageSource.Remote);
             _Chat.OnCharacterStatusChange += (_, e) =>
             {
+                if (e.Character == Connection.LocalCharacter)
+                {
+                    WriteLog($"You are now {e.Character.Status}");
+                    return;
+                }
+
                 var buf = _ChannelBuffers.FirstOrDefault(c => c.Character == e.Character);
                 string msg = $"{e.Character.Name} is now {e.Character.Status}";
                 if (!string.IsNullOrEmpty(e.Character.StatusMessage))

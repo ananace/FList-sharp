@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Linq;
+using ConsoleMessenger.Types;
 using ConsoleMessenger.UI;
 
 namespace ConsoleMessenger.Commands
@@ -19,7 +20,7 @@ namespace ConsoleMessenger.Commands
 			{
 				var chan = (buf as ChannelChatBuffer).Channel;
 				buf.PushMessage(null, $"{chan.Characters.Count} characters in {chan.Title}:", MessageType.Preview);
-				buf.PushMessage(null, chan.Characters.OrderBy(c => c.ToSortable(chan)).Select(c => c.ToANSIString(chan, true)).ToString(", "), MessageType.Preview);
+                buf.PushMessage(null, ANSIString.Join(", ", chan.Characters.OrderBy(c => c.ToSortable(chan)).Select(c => c.ToANSIString(chan, true))).ToBBCode(), MessageType.Preview);
 			}
 		}
 	}

@@ -49,17 +49,17 @@ namespace ConsoleMessenger.UI
 			return string.Format("\x1b[{0}{1}m", background ? c + 10 : c, b ? ";1" : "");
 		}
 
-		public static string BackgroundColor(this string String, ConsoleColor color)
+		public static ANSIString BackgroundColor(this string String, ConsoleColor color)
 		{
-			if (String.EndsWith("\x1b[0m", StringComparison.OrdinalIgnoreCase))
-				String = String.Substring(0, String.Length - 4);
-			return string.Format("{0}{1}\x1b[0m", color.ANSIColor(true), String);
+            var ret = new ANSIString(String);
+            ret.BackgroundColor = color;
+            return ret;
 		}
-		public static string Color(this string String, ConsoleColor color)
+		public static ANSIString Color(this string String, ConsoleColor color)
 		{
-			if (String.EndsWith("\x1b[0m", StringComparison.OrdinalIgnoreCase))
-				String = String.Substring(0, String.Length - 4);
-			return string.Format("{0}{1}\x1b[0m", color.ANSIColor(), String);
+            var ret = new ANSIString(String);
+            ret.ForegroundColor = color;
+            return ret;
 		}
 	}
 
@@ -119,76 +119,41 @@ namespace ConsoleMessenger.UI
 			}
 		}
 
-		public static void WriteANSIString(string String, Point? p = null, ConsoleColor? background = null, ConsoleColor? foreground = null)
+		public static void WriteANSIString(ANSIString String, Point? p = null, ConsoleColor? background = null, ConsoleColor? foreground = null)
 		{
-			var data = String;
-
 			CursorChanger cursor = null;
 			if (p.HasValue)
 				cursor = new CursorChanger(p);
 
             using (var color = new ColorChanger(background, foreground))
+            {
+                var oldBack = Console.BackgroundColor;
+                var oldFore = Console.ForegroundColor;
+
+                ConsoleColor? lastBack = null, lastFore = null;
+
+                foreach (var ansichar in String as IEnumerable<ANSIString.ANSIChar>)
                 {
-                    var oldBack = Console.BackgroundColor;
-                    var oldFore = Console.ForegroundColor;
-
-                    do
+                    if (lastBack != ansichar.BackgroundColor)
                     {
-                        var found = data.IndexOf('\x1b');
-                        if (found > 0)
-                        {
-                            Console.Write(data.Substring(0, found));
-                            data = data.Remove(0, found);
-                        }
-                        else if (found == 0)
-                        {
-                            var end = data.IndexOf('m');
-                            var ansi = data.Substring(1, end - 1);
-                            data = data.Remove(0, end + 1);
-
-                            if (ansi[0] != '[')
-                                continue;
-
-                            IEnumerable<int> cmd = ansi.Substring(1).Split(';').Select(c => int.Parse(c));
-                            int code = cmd.First();
-                            cmd = cmd.Skip(1);
-
-                            bool bold = cmd.FirstOrDefault() == 1;
-                            switch (code)
-                            {
-                                case 0:
-                                    Console.ForegroundColor = oldFore;
-                                    Console.BackgroundColor = oldBack;
-                                    break;
-
-                                case 30: Console.ForegroundColor = bold ? ConsoleColor.Gray : ConsoleColor.Black; break;
-                                case 31: Console.ForegroundColor = bold ? ConsoleColor.Red : ConsoleColor.DarkRed; break;
-                                case 32: Console.ForegroundColor = bold ? ConsoleColor.Green : ConsoleColor.DarkGreen; break;
-                                case 33: Console.ForegroundColor = bold ? ConsoleColor.Yellow : ConsoleColor.DarkYellow; break;
-                                case 34: Console.ForegroundColor = bold ? ConsoleColor.Blue : ConsoleColor.DarkBlue; break;
-                                case 35: Console.ForegroundColor = bold ? ConsoleColor.Magenta : ConsoleColor.DarkMagenta; break;
-                                case 36: Console.ForegroundColor = bold ? ConsoleColor.Cyan : ConsoleColor.DarkCyan; break;
-                                case 37: Console.ForegroundColor = bold ? ConsoleColor.White : ConsoleColor.DarkGray; break;
-                                case 39: Console.ForegroundColor = oldFore; break;
-
-                                case 40: Console.BackgroundColor = bold ? ConsoleColor.Gray : ConsoleColor.Black; break;
-                                case 41: Console.BackgroundColor = bold ? ConsoleColor.Red : ConsoleColor.DarkRed; break;
-                                case 42: Console.BackgroundColor = bold ? ConsoleColor.Green : ConsoleColor.DarkGreen; break;
-                                case 43: Console.BackgroundColor = bold ? ConsoleColor.Yellow : ConsoleColor.DarkYellow; break;
-                                case 44: Console.BackgroundColor = bold ? ConsoleColor.Blue : ConsoleColor.DarkBlue; break;
-                                case 45: Console.BackgroundColor = bold ? ConsoleColor.Magenta : ConsoleColor.DarkMagenta; break;
-                                case 46: Console.BackgroundColor = bold ? ConsoleColor.Cyan : ConsoleColor.DarkCyan; break;
-                                case 47: Console.BackgroundColor = bold ? ConsoleColor.White : ConsoleColor.DarkGray; break;
-                                case 49: Console.BackgroundColor = oldBack; break;
-                            }
-                        }
+                        lastBack = ansichar.BackgroundColor;
+                        if (lastBack.HasValue)
+                            Console.BackgroundColor = lastBack.Value;
                         else
-                        {
-                            Console.Write(data);
-                            break;
-                        }
-                    } while (!string.IsNullOrEmpty(data));
+                            Console.BackgroundColor = oldBack;
+                    }
+                    if (lastFore != ansichar.ForegroundColor)
+                    {
+                        lastFore = ansichar.ForegroundColor;
+                        if (lastFore.HasValue)
+                            Console.ForegroundColor = lastFore.Value;
+                        else
+                            Console.ForegroundColor = oldFore;
+                    }
+
+                    Console.Write(ansichar.UnicodeChar);
                 }
+            }
 
 			if (cursor != null)
 				cursor.Dispose();

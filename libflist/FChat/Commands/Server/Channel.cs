@@ -122,9 +122,8 @@ namespace libflist.FChat.Commands
 		[JsonProperty(PropertyName = "users")]
 		public User[] Users { get; set; }
 
-		[JsonProperty(PropertyName = "mode",
-			ItemConverterType = typeof(JsonEnumConverter),
-			ItemConverterParameters = new object[]{ JsonEnumConverter.EnumHandling.Lowercase })]
+        [JsonProperty(PropertyName = "mode")]
+        [JsonConverter(typeof(JsonEnumConverter), new object[] { JsonEnumConverter.EnumHandling.Lowercase })]
 		public ChannelMode Mode { get; set; }
 	}
 

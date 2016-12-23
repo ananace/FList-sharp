@@ -188,7 +188,7 @@ namespace ConsoleMessenger.UI
                 using (var cur = new CursorChanger(new Point(0, ConsoleHelper.Size.Height - 1)))
                 using (var col = new ColorChanger(foreground: ConsoleColor.White))
                 {
-                    Console.Write(new AutoSplitString(_Content.ToString()) { MaxLength = ConsoleHelper.Size.Width - 1 });
+                    Graphics.WriteANSIString(new ANSIString(_Content.ToString()));
                 }
 				Console.ForegroundColor = ConsoleColor.Gray;
             }

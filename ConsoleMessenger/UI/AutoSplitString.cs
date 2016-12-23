@@ -1,22 +1,24 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using ConsoleMessenger.Types;
 
 namespace ConsoleMessenger.UI
 {
     public class AutoSplitString
     {
         int _MaxLength;
-        string[] _SplitString;
-        string _String;
+        ANSIString[] _SplitString;
+        ANSIString _String;
 
-        public string[] SplitString => _SplitString;
-        public string String
+        public ANSIString[] SplitString => _SplitString;
+        public ANSIString String
         {
             get { return _String; }
             set
             {
-                if (_String == value)
+                if (_String.Equals(value))
                     return;
 
                 _String = value;
@@ -36,7 +38,7 @@ namespace ConsoleMessenger.UI
             }
         }
 
-        public AutoSplitString(string String)
+        public AutoSplitString(ANSIString String)
         {
             _MaxLength = ConsoleHelper.Size.Width - 1;
             _String = String;
@@ -49,12 +51,12 @@ namespace ConsoleMessenger.UI
             _SplitString = String
                 .Split('\n')
                 .SelectMany(s => {
-                    if (s.ANSILength() <= _MaxLength)
+                    if (s.Count <= _MaxLength)
                         return new[] { s };
 
-                    var ret = new List<string>();
-                    var splitS = s.Clone() as string;
-                    while (splitS.Length > _MaxLength)
+                    var ret = new List<ANSIString>();
+                    var splitS = s.Clone() as ANSIString;
+                    while (splitS.Count > _MaxLength)
                     {
                         ret.Add(splitS.Substring(0, _MaxLength));
                         splitS = splitS.Remove(0, _MaxLength);
@@ -65,9 +67,13 @@ namespace ConsoleMessenger.UI
                 }).ToArray();
         }
 
+        public ANSIString ToANSIString()
+        {
+            return ANSIString.Join("\n", _SplitString);
+        }
         public override string ToString()
         {
-            return string.Join("\n", _SplitString);
+            return ANSIString.Join("\n", _SplitString).PlainString;
         }
     }
 }

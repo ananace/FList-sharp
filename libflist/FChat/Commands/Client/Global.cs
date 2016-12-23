@@ -50,20 +50,20 @@ namespace libflist.FChat.Commands
 	{
 		[JsonProperty(PropertyName = "kinks", Required = Required.DisallowNull)]
 		public int[] Kinks { get; set; }
-		[JsonProperty(PropertyName = "genders", Required = Required.AllowNull,
-		              ItemConverterType = typeof(JsonEnumConverter))]
+        [JsonProperty(PropertyName = "genders", Required = Required.AllowNull)]
+        [JsonConverter(typeof(JsonEnumConverter), new object[] { JsonEnumConverter.EnumHandling.Lowercase })]
 		public Genders[] Genders { get; set; }
-		[JsonProperty(PropertyName = "orientations", Required = Required.AllowNull,
-		              ItemConverterType = typeof(JsonEnumConverter))]
+        [JsonProperty(PropertyName = "orientations", Required = Required.AllowNull)]
+        [JsonConverter(typeof(JsonEnumConverter), new object[] { JsonEnumConverter.EnumHandling.Lowercase })]
 		public Orientations[] Orientations { get; set; }
-		[JsonProperty(PropertyName = "languages", Required = Required.AllowNull,
-		              ItemConverterType = typeof(JsonEnumConverter))]
+        [JsonProperty(PropertyName = "languages", Required = Required.AllowNull)]
+        [JsonConverter(typeof(JsonEnumConverter), new object[] { JsonEnumConverter.EnumHandling.Lowercase })]
 		public LanguagePreferences[] Languages { get; set; }
-		[JsonProperty(PropertyName = "preferences", Required = Required.AllowNull,
-		              ItemConverterType = typeof(JsonEnumConverter))]
+        [JsonProperty(PropertyName = "preferences", Required = Required.AllowNull)]
+        [JsonConverter(typeof(JsonEnumConverter), new object[] { JsonEnumConverter.EnumHandling.Lowercase })]
 		public FurryPreferences[] Preferences { get; set; }
-		[JsonProperty(PropertyName = "roles", Required = Required.AllowNull,
-		              ItemConverterType = typeof(JsonEnumConverter))]
+        [JsonProperty(PropertyName = "roles", Required = Required.AllowNull)]
+        [JsonConverter(typeof(JsonEnumConverter), new object[] { JsonEnumConverter.EnumHandling.Lowercase })]
 		public DomRoles[] Roles { get; set; }
 	}
 
@@ -78,10 +78,8 @@ namespace libflist.FChat.Commands
 			Notify
 		}
 
-		[JsonProperty(PropertyName = "method",
-		              Required = Required.Always,
-		              ItemConverterType = typeof(JsonEnumConverter),
-		              ItemConverterParameters = new object[]{ JsonEnumConverter.EnumHandling.Lowercase })]
+		[JsonProperty(PropertyName = "method", Required = Required.Always)]
+        [JsonConverter(typeof(JsonEnumConverter), new object[] { JsonEnumConverter.EnumHandling.Lowercase })]
 		public IgnoreAction Action { get; set; }
 
 		[JsonProperty(PropertyName = "character",
