@@ -10,42 +10,42 @@ using System.Text;
 
 namespace ConsoleMessenger.UI.FChat
 {
-	public class ChannelBuffer
+    public class ChannelBuffer
     {
         [Flags]
         public enum ActivityFlags
         {
             None = 0,
 
-            SystemActivity = 1<<0,
-            ChatActivity = 1<<1,
-            Highlight = 1<<2
+            SystemActivity = 1 << 0,
+            ChatActivity = 1 << 1,
+            Highlight = 1 << 2
         }
 
-		ChatBuffer _ChatBuf;
-		public ChatBuffer ChatBuf
-		{
-			get { return _ChatBuf; }
-			set
-			{
-				_ChatBuf = value;
-				_ChatBuf.OnMessage += (s, e) =>
-				{
-					if (Application.CurrentChannelBuffer == this)
-						NeedsRender = true;
+        ChatBuffer _ChatBuf;
+        public ChatBuffer ChatBuf
+        {
+            get { return _ChatBuf; }
+            set
+            {
+                _ChatBuf = value;
+                _ChatBuf.OnMessage += (s, e) =>
+                {
+                    if (Application.CurrentChannelBuffer == this)
+                        NeedsRender = true;
 
-					if (LogMessages && e.Type != MessageType.Preview)
-					{
-						using (var stream = new FileStream($"{Title.ToLower()}.log", System.IO.FileMode.Append))
-							new MessageSerializer(Channel?.Connection ?? Character?.Connection).Serialize(stream, e);
-					}
-				};
-			}
-		}
-		public Channel Channel => (_ChatBuf as ChannelChatBuffer)?.Channel;
-		public Character Character => (_ChatBuf as CharacterChatBuffer)?.Character;
+                    if (LogMessages && e.Type != MessageType.Preview)
+                    {
+                        using (var stream = new FileStream($"{Title.ToLower()}.log", System.IO.FileMode.Append))
+                            new MessageSerializer(Channel?.Connection ?? Character?.Connection).Serialize(stream, e);
+                    }
+                };
+            }
+        }
+        public Channel Channel => (_ChatBuf as ChannelChatBuffer)?.Channel;
+        public Character Character => (_ChatBuf as CharacterChatBuffer)?.Character;
 
-		public bool NeedsRender { get; set; }
+        public bool NeedsRender { get; set; }
 
         string _Title;
         public string Title
@@ -86,7 +86,7 @@ namespace ConsoleMessenger.UI.FChat
                     _Activity = _Activity & ~ActivityFlags.SystemActivity;
             }
         }
-		public bool ChatActivity
+        public bool ChatActivity
         {
             get { return _Activity.HasFlag(ActivityFlags.ChatActivity); }
             set
@@ -109,15 +109,47 @@ namespace ConsoleMessenger.UI.FChat
             }
         }
 
-		public int Scroll { get; set; } = -1;
+        public static int SCROLL_BOTTOM = int.MinValue;
+        public int _ScrollValue = SCROLL_BOTTOM;
+        public int Scroll
+        {
+            get
+            {
+                if (_ScrollValue == SCROLL_BOTTOM)
+                    return Math.Max(0, RenderedMessages.Count() - Size.Height);
 
-		[Setting("buffer.show_ads", DefaultValue = true, Description = "Should the buffer display ads?")]
-		public bool ShowADs { get; set; } = true;
-		[Setting("buffer.show_messages", DefaultValue = true, Description = "Should the buffer display messages?")]
-		public bool ShowMessages { get; set; } = true;
+                return _ScrollValue;
+            }
+            set
+            {
+                if (value == SCROLL_BOTTOM ||
+                    (value > 0 && value >= (RenderedMessages.Count() - Size.Height)))
+                    _ScrollValue = SCROLL_BOTTOM;
+                else
+                {
+                    if (value < 0)
+                        _ScrollValue = 0;
+                    else
+                        _ScrollValue = value;
+                }
+            }
+        }
 
-		// TODO: ANSI generation for BBCodes
-		[Setting("buffer.messagetype", DefaultValue = true, Description = "How to display messages in the buffer")]
+        public Size Size
+        {
+            get
+            {
+                return ConsoleHelper.Size - new Size(0, 4);
+            }
+        }
+
+        [Setting("buffer.show_ads", DefaultValue = true, Description = "Should the buffer display ads?")]
+        public bool ShowADs { get; set; } = true;
+        [Setting("buffer.show_messages", DefaultValue = true, Description = "Should the buffer display messages?")]
+        public bool ShowMessages { get; set; } = true;
+
+        // TODO: ANSI generation for BBCodes
+        [Setting("buffer.messagetype", DefaultValue = true, Description = "How to display messages in the buffer")]
         public MessageDisplayType MessageDisplay { get; set; } = MessageDisplayType.Plain;
 
         [Setting("buffer.sys_timeout", DefaultValue = null, Description = "Provide a timeout value in seconds for system messages to be shown in the buffer")]
@@ -130,12 +162,12 @@ namespace ConsoleMessenger.UI.FChat
         [Setting("buffer.log_messages", DefaultValue = false, Description = "Log messages to a <channel>.log file")]
         public bool LogMessages { get; set; } = false;
 
-		[Setting("buffer.max_messages", DefaultValue = 100, Description = "The number of messages to store in scrollback.")]
-		public int MaxMessages
-		{
-			get { return _ChatBuf.MaxMessages; }
-			set { _ChatBuf.MaxMessages = value; }
-		}
+        [Setting("buffer.max_messages", DefaultValue = 100, Description = "The number of messages to store in scrollback.")]
+        public int MaxMessages
+        {
+            get { return _ChatBuf.MaxMessages; }
+            set { _ChatBuf.MaxMessages = value; }
+        }
 
         string TitleBar
         {
@@ -145,9 +177,9 @@ namespace ConsoleMessenger.UI.FChat
             }
         }
 
-		IEnumerable<ChatBuffer.MessageData> Messages
-		{
-			get
+        IEnumerable<ChatBuffer.MessageData> Messages
+        {
+            get
             {
                 IEnumerable<ChatBuffer.MessageData> en = _ChatBuf.Messages;
                 if (TimeoutSys.HasValue)
@@ -163,31 +195,55 @@ namespace ConsoleMessenger.UI.FChat
 			}
 		}
 
-		// TODO: Pre-render messages into row-lists, split on \n and width.
-        void RenderMessages()
+        IEnumerable<KeyValuePair<ChatBuffer.MessageData, string>> RenderedMessages
         {
-			lock(_ChatBuf)
-            foreach (var msg in Messages)
+            get
             {
-                int len = (msg.Timestamp.Date == DateTime.Now ? 7 : 12) + 2;
-                if (msg.Sender?.Name != null)
-                    len += msg.Sender.Name.Length;
-                else
-                    len += 6;
+                foreach (var msg in Messages)
+                {
+                    var text = RenderMessage(msg);
+                    var splits = new AutoSplitString(text);
 
-                int mheight = 1;
-                foreach (var ch in msg[MessageDisplay])
-                    if (++len > ConsoleHelper.Size.Width || ch == '\n')
-                    {
-                        mheight++;
-                        len = 0;
-                    }
-
-                if ((msg[MessageDisplay].EndsWith("\n", StringComparison.Ordinal)))
-                    mheight--;
-
-                msg.Lines = mheight;
+                    foreach (var line in splits.SplitString)
+                        yield return new KeyValuePair<ChatBuffer.MessageData, string>(msg, line);
+                }
             }
+        }
+
+		// TODO: Pre-render messages into row-lists, split on \n and width.
+        string RenderMessage(ChatBuffer.MessageData msg)
+        {
+            StringBuilder build = new StringBuilder();
+
+            if (msg.Timestamp.Date == DateTime.Now.Date)
+                build.Append($"[{msg.Timestamp.ToString("HH:mm")}]".Color(ConsoleColor.Gray));
+            else
+                build.Append($"[{msg.Timestamp.ToString("yyyy-MM-dd")}]".Color(ConsoleColor.Gray));
+
+            string message = msg[MessageDisplay];
+            bool action = message.StartsWith("/me", StringComparison.CurrentCultureIgnoreCase);
+            build.Append(action ? "*" : " ");
+
+            if (msg.Sender?.Name != null)
+                build.Append(msg.Sender.ToANSIString(Channel, true));
+            else
+                build.Append("System".Color(ConsoleColor.DarkGray));
+
+            if (action)
+            {
+                if (msg.PlainMessage.StartsWith("/me's", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    build.Append(message.Substring(3).Color(ConsoleColor.White));
+                }
+                else
+                {
+                    build.Append(" " + message.Substring(4).Color(ConsoleColor.White));
+                }
+            }
+            else
+                build.Append((": " + message).Color(ConsoleColor.Gray));
+
+            return build.ToString();
         }
 		
 		// TODO: Speed up rendering if possible
@@ -196,7 +252,6 @@ namespace ConsoleMessenger.UI.FChat
             lock (Application.DrawLock)
             {
 				NeedsRender = false;
-                RenderMessages();
 
                 _Activity = ActivityFlags.None;
 
@@ -204,51 +259,24 @@ namespace ConsoleMessenger.UI.FChat
                 Graphics.WriteANSIString(TitleBar, new Point(0, 0), ConsoleColor.DarkBlue, ConsoleColor.White);
                 Graphics.DrawFilledBox(new Point(0, 1), new Point(ConsoleHelper.Size.Width - 1, ConsoleHelper.Size.Height - 2), ' ');
 
-                int height = ConsoleHelper.Size.Height - 4;
-                int totalHeight = 0;
-
-                // TODO Scrolling
-
                 using (var c = new CursorChanger(new Point(0, 1)))
                 {
-					lock(_ChatBuf)
-                    foreach (var msg in Messages
-                        .Reverse()
-                        .TakeWhile(p => (totalHeight += p.Lines) < height)
-                        .Reverse()
-                        .Skip(totalHeight > height ? 1 : 0))
+                    lock (_ChatBuf)
                     {
-                        if (msg.Timestamp.Date == DateTime.Now.Date)
-                            Graphics.WriteANSIString($"[{msg.Timestamp.ToString("HH:mm")}]".Color(ConsoleColor.Gray));
-                        else
-                            Graphics.WriteANSIString($"[{msg.Timestamp.ToString("yyyy-MM-dd")}]".Color(ConsoleColor.Gray));
+                        var rendered = RenderedMessages.ToArray();
+                        var shown = Math.Min(rendered.Length, Size.Height);
 
-                        string message = msg[MessageDisplay];
-                        bool action = message.StartsWith("/me", StringComparison.CurrentCultureIgnoreCase);
-                        Console.Write(action ? "*" : " ");
+                        var scroll = Scroll;
 
-                        if (msg.Sender?.Name != null)
-                            Graphics.WriteANSIString(msg.Sender.ToANSIString(Channel, true));
-                        else
-                            Graphics.WriteANSIString("System".Color(ConsoleColor.DarkGray));
-
-                        if (action)
+                        for (int i = 0; i < shown; ++i)
                         {
-                            if (msg.PlainMessage.StartsWith("/me's", StringComparison.CurrentCultureIgnoreCase))
-                            {
-                                Graphics.WriteANSIString(message.Substring(3), foreground: ConsoleColor.White);
-                            }
-                            else
-                            {
-                                Console.CursorLeft++;
-                                Graphics.WriteANSIString(message.Substring(4), foreground: ConsoleColor.White);
-                            }
-                        }
-                        else
-                            Graphics.WriteANSIString(": " + message, foreground: ConsoleColor.Gray);
+                            var line = rendered[i + scroll];
 
-                        Console.CursorLeft = 0;
-                        Console.CursorTop++;
+                            Graphics.WriteANSIString(line.Value);
+
+                            Console.CursorLeft = 0;
+                            Console.CursorTop++;
+                        }
                     }
                 }
             }

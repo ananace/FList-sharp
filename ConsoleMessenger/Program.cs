@@ -287,14 +287,32 @@ namespace ConsoleMessenger
 									CurrentBuffer = target;
 								}
 								break;
+
+                            case ConsoleKey.J:
+                            case ConsoleKey.K:
+                                { // Up / Down
+                                    var dir = key.Key == ConsoleKey.J ? 1 : -1;
+
+                                    CurrentChannelBuffer.Scroll += dir;
+                                    CurrentChannelBuffer.Render();
+                                }
+                                break;
 						}
 					}
 					else
 					{
-						_InputBox.PushInput(key);
-
 						switch (key.Key)
 						{
+                            case ConsoleKey.PageUp:
+                            case ConsoleKey.PageDown:
+                                {
+                                    var dir = key.Key == ConsoleKey.PageDown ? 1 : -1;
+
+                                    CurrentChannelBuffer.Scroll += CurrentChannelBuffer.Size.Height * dir;
+                                    CurrentChannelBuffer.Render();
+                                }
+                                break;
+
 							case ConsoleKey.Tab:
 								{
 									var inp = _InputBox.Content as string;
@@ -341,6 +359,10 @@ namespace ConsoleMessenger
 									case '\f':
 										Redraw(true);
 										break;
+
+                                    default:
+                                        _InputBox.PushInput(key);
+                                        break;
 								}
 								break;
 						}
