@@ -237,7 +237,7 @@ namespace ConsoleMessenger.UI.FChat
                     if (message.PlainString.StartsWith("/me's", StringComparison.CurrentCultureIgnoreCase))
                         build.Append(message.Substring(3));
                     else
-                        build.Append(" " + message.Substring(4));
+                        build.Append(new ANSIString(" ") + message.Substring(4));
                 }
                 else
                     build.Append(new ANSIString(": ") + message);

@@ -24,7 +24,7 @@ namespace ConsoleMessenger
 
             ANSIString ret = new ANSIString();
             var special = GetType().GetMethod("Render", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic, Type.DefaultBinder, new[] { node.GetType() }, new System.Reflection.ParameterModifier[0]);
-            if (special != System.Reflection.MethodBase.GetCurrentMethod())
+            if (special != null && special != System.Reflection.MethodBase.GetCurrentMethod())
                 ret += (special.Invoke(this, new[] { node }) as ANSIString);
             else if (node is ITextNode)
                 ret += (node as ITextNode).Text;

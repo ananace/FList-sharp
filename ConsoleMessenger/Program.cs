@@ -701,6 +701,15 @@ namespace ConsoleMessenger
 				}
 			};
 
+            _Chat.OnOfficialListUpdate += (_, __) =>
+            {
+                WriteLog($"Retrieved list of {_Chat.OfficialChannels.Count} official channels.");
+            };
+            _Chat.OnPrivateListUpdate += (_, __) =>
+            {
+                WriteLog($"Retrieved list of {_Chat.PrivateChannels.Count} private channels.");
+            };
+
 			ConsoleHelper.OnDraw += (s, e) => Redraw();
 			Redraw(true);
 			InputLoop();

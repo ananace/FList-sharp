@@ -40,11 +40,13 @@ namespace ConsoleMessenger.UI
 
 		public static string ToSortable(this Character ch, Channel chan)
 		{
-			int value = 9;
-			if (ch.IsFriend || ch.IsBookmark)
-			    value = 1;
-			if (ch.IsChatOp || ch.IsOPInChannel(chan))
-				value = 0;
+            int value = 10;
+            if (ch.IsFriend || ch.IsBookmark)
+                value = 1;
+            else if (ch.IsChatOp || ch.IsOPInChannel(chan))
+                value = 0;
+            else if (ch.Status == CharacterStatus.Looking)
+                value = 2;
 
 			return $"{value}{ch.Name}";
 		}
