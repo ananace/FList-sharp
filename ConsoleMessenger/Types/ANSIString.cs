@@ -187,6 +187,12 @@ namespace ConsoleMessenger.Types
             ret.Append(new ANSIString(b));
             return ret;
         }
+        public static ANSIString operator +(string a, ANSIString b)
+        {
+            var ret = new ANSIString(a);
+            ret.Append(b);
+            return ret;
+        }
 
         public static ANSIString Join(string sep, IEnumerable<ANSIString> parts)
         {
