@@ -47,6 +47,8 @@ ConsoleMessenger
 - Basic ticket store.
 - Chatting.
 - Channel joining.
+- Automatic reconnection.
+- Basic settings.
 
 
 ### TODO
@@ -54,6 +56,7 @@ ConsoleMessenger
 - ~~Redo channel buffer to actually calculate message sizes correctly.~~
 - ~~Proper scrolling of channel buffer.~~
 	- Support scrolling back into log files.
+- Multi-line input box.
 - Finish up input handling.
 	- ~~Cursor movement, delete, etc...~~
 	- ~~Command history.~~
